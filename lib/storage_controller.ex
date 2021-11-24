@@ -1,10 +1,10 @@
 defmodule ExActiveStorage.Controller do
-  use ChaskiqWeb, :controller
+  # use ChaskiqWeb, :controller
 
   # action_fallback ChaskiqWeb.FallbackController
 
   def show(conn, %{"signed_id" => signed_id}) do
-    case Chaskiq.Verifier.verify(signed_id) do
+    case ExActiveStorage.Verifier.verify(signed_id) do
       {:ok, id} -> conn |> handle_redirect(id)
       _ -> conn |> error_response(422, "Wrong provider key")
     end
@@ -12,8 +12,8 @@ defmodule ExActiveStorage.Controller do
 
   defp handle_redirect(conn, id) do
     presigned =
-      Chaskiq.ActiveStorage.get_storage_blob!(id)
-      |> Chaskiq.ActiveStorage.presigned_url()
+      ExActiveStorage.get_storage_blob!(id)
+      |> ExActiveStorage.presigned_url()
 
     case presigned do
       {:ok, url} -> conn |> redirect(external: url) |> halt()
