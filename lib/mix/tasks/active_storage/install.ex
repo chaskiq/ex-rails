@@ -7,6 +7,7 @@ defmodule Mix.Tasks.ExActiveStorage.Install do
   def run(_args) do
     path = Path.relative_to("priv/repo/migrations", Mix.Project.app_path())
     blob_file = Path.join(path, "#{timestamp()}_create_storage_blob.exs")
+    variant_file = Path.join(path, "#{timestamp()}_create_active_storage_variant_records.exs")
     create_directory(path)
 
     create_file(blob_file, """
@@ -23,6 +24,22 @@ defmodule Mix.Tasks.ExActiveStorage.Install do
 
           timestamps()
         end
+      end
+    end
+    """)
+
+    create_file(variant_file, """
+    defmodule Chaskiq.Repo.Migrations.AddAddActiveStorageVariantRecords do
+      use Ecto.Migration
+
+      def change do
+        create table(:storage_variant_records, primary_key: false) do
+          add :blob_id, references(:storage_blob, on_delete: :nothing, type: :binary_id)
+          add :variation_digest, :string
+          timestamps()
+        end
+
+        create index(:storage_variant_records, [:blob_id, :variation_digest])
       end
     end
     """)
