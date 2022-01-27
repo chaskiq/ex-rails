@@ -1,0 +1,28 @@
+services:
+  db:
+    image: postgres:9.6.24-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ex_active_storage_test
+    ports:
+      - 5433:5432
+
+  minio:
+    image: minio/minio:latest
+    command: server /data
+    environment:
+      MINIO_ACCESS_KEY: abcd1234
+      MINIO_SECRET_KEY: efgh5678
+
+  app:
+    build: test/app
+    environment:
+      RAILS_ENV: development
+    volumes:
+      - ./test/app:/app
+    ports:
+      - 3000:3000
+    links:
+      - minio
+      - db
