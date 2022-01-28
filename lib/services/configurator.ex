@@ -9,11 +9,11 @@ defmodule ActiveStorage.Service.Configurator do
   end
 
   # def initialize(configurations) do
-  def new(configurations) do
+  def new(_configurations) do
     # @configurations = configurations.deep_symbolize_keys
   end
 
-  def instance_build(service_name, configurations) do
+  def instance_build(_service_name, configurations) do
     # config = config_for(service_name.to_sym)
     resolve(configurations.service)
     # .build(
@@ -21,7 +21,7 @@ defmodule ActiveStorage.Service.Configurator do
     # )
   end
 
-  defp config_for(name) do
+  defp config_for(_name) do
     # configurations.fetch name do
     #  raise "Missing configuration for the #{name.inspect} Active Storage service. Configurations available for #{configurations.keys.inspect}"
     # end

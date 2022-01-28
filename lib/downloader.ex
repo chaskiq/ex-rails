@@ -16,7 +16,7 @@ defmodule ActiveStorage.Downloader do
     tmp_file = Path.join(dir, args.name)
     IO.inspect(tmp_file)
 
-    {:ok, file} =
+    {:ok, _file} =
       open_tempfile(tmp_file, fn file ->
         verify_integrity_of(a, args)
         IO.binwrite(file, a)
@@ -50,7 +50,7 @@ defmodule ActiveStorage.Downloader do
     # end
   end
 
-  defp download(service, key, file) do
+  defp download(_service, _key, _file) do
     # file.binmode
     # service.download(key) { |chunk| file.write(chunk) }
     # file.flush

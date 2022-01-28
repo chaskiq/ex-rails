@@ -25,7 +25,7 @@ defmodule ActiveStorage.Blob.Analyzable do
   #
   # You won't ordinarily need to call this method from a Rails application. New blobs are automatically and asynchronously
   # analyzed via #analyze_later when they're attached for the first time.
-  def analyze(blob) do
+  def analyze(_blob) do
     # update! metadata: metadata.merge(extract_metadata_via_analyzer)
   end
 

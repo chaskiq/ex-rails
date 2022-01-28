@@ -59,7 +59,7 @@ defmodule ActiveStorage.Service do
   #  #
   #  # See MirrorService for an example.
   # :nodoc:
-  def build(%{configurator: configurator, name: name, service: service}, service_config) do
+  def build(%{configurator: _configurator, name: _name, service: _service}, _service_config) do
     # new(service_config).tap do |service_instance|
     #  service_instance.name = name
     # end

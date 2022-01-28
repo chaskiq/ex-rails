@@ -79,7 +79,6 @@ defmodule ActiveStorage.Blob do
     n =
       blob
       |> ActiveStorage.Blob.changeset(%{
-        service_name: service_name,
         # byte_size: byte_size,
         # checksum: checksum,
         content_type: content_type,
@@ -112,17 +111,16 @@ defmodule ActiveStorage.Blob do
         identify: identify
         # record: record
       }) do
-    changeset =
-      build_after_unfurling(blob, %{
-        # key: k,
-        io: io,
-        filename: filename,
-        content_type: content_type,
-        metadata: metadata,
-        service_name: service_name,
-        identify: identify
-      })
-      |> Chaskiq.Repo.insert!()
+    build_after_unfurling(blob, %{
+      # key: k,
+      io: io,
+      filename: filename,
+      content_type: content_type,
+      metadata: metadata,
+      service_name: service_name,
+      identify: identify
+    })
+    |> Chaskiq.Repo.insert!()
 
     # changeset.tap(&:save!)
   end
@@ -165,14 +163,14 @@ defmodule ActiveStorage.Blob do
   # Once the form using the direct upload is submitted, the blob can be associated with the right record using
   # the signed ID.
   def create_before_direct_upload!(blob, %{
-        key: k,
-        io: io,
-        filename: filename,
-        content_type: content_type,
-        metadata: metadata,
-        service_name: service_name,
-        identify: identify,
-        record: record
+        key: _k,
+        io: _io,
+        filename: _filename,
+        content_type: _content_type,
+        metadata: _metadata,
+        service_name: _service_name,
+        identify: _identify,
+        record: _record
       }) do
     # create! key: key, filename: filename, byte_size: byte_size, checksum: checksum, content_type: content_type, metadata: metadata, service_name: service_name
   end
@@ -198,7 +196,7 @@ defmodule ActiveStorage.Blob do
   # Deletes the files on the service associated with the blob. This should only be done if the blob is going to be
   # deleted as well or you will essentially have a dead reference. It's recommended to use #purge and #purge_later
   # methods in most circumstances.
-  def delete(blob) do
+  def delete(_blob) do
     # service.delete(key)
     # service.delete_prefixed("variants/#{key}/") if image?
   end
@@ -206,7 +204,7 @@ defmodule ActiveStorage.Blob do
   # Destroys the blob record and then deletes the file on the service. This is the recommended way to dispose of unwanted
   # blobs. Note, though, that deleting the file off the service will initiate an HTTP connection to the service, which may
   # be slow or prevented, so you should not use this method inside a transaction or in callbacks. Use #purge_later instead.
-  def purge(blob) do
+  def purge(_blob) do
     # destroy
     # delete if previously_persisted?
     # rescue ActiveRecord::InvalidForeignKey
@@ -226,7 +224,7 @@ defmodule ActiveStorage.Blob do
   end
 
   # :nodoc:
-  def unfurl(blob, io, identify) do
+  def unfurl(blob, io, _identify) do
     checksum = compute_checksum_in_chunks(blob, io)
     # ExImageInfo.seems?(io)
     <<head::size(8), _rest::binary>> = io
@@ -240,7 +238,7 @@ defmodule ActiveStorage.Blob do
 
     data =
       if blob.changes |> Map.has_key?(:content_type) != true do
-        {mime, w, h, _} = ExImageInfo.info(io)
+        {mime, _w, _h, _} = ExImageInfo.info(io)
         content_type = mime
         data |> Map.merge(%{content_type: content_type})
       else
@@ -255,7 +253,7 @@ defmodule ActiveStorage.Blob do
     # identified   = true
   end
 
-  def compose(blob, keys) do
+  def compose(_blob, _keys) do
     # self.composed = true
     # service.compose(keys, key, **service_metadata)
   end
@@ -277,7 +275,7 @@ defmodule ActiveStorage.Blob do
     # service.upload key, io, checksum: checksum, **service_metadata
   end
 
-  def compute_checksum_in_chunks(blob, io) do
+  def compute_checksum_in_chunks(_blob, io) do
     :crypto.hash(:md5, io) |> Base.encode64()
     # OpenSSL::Digest::MD5.new.tap do |checksum|
     #  while chunk = io.read(5.megabytes)
@@ -317,7 +315,7 @@ defmodule ActiveStorage.Blob do
     #  name: [ "ActiveStorage-#{id}-", blob.filename.extension_with_delimiter ], tmpdir: tmpdir, &block
   end
 
-  def extract_content_type(io) do
+  def extract_content_type(_io) do
     # Marcel::MimeType.for io, name: filename.to_s, declared_type: content_type
   end
 

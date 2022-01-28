@@ -2,7 +2,7 @@
 
 defmodule ActiveStorage.Service.Registry do
   # def initialize(configurations) do
-  def new(configurations) do
+  def new(_configurations) do
     # @configurations = configurations.deep_symbolize_keys
     # @services = {}
   end

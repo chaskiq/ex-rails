@@ -1,5 +1,5 @@
 defmodule ActiveStorage.Analyzer.NullAnalyzer do
-  def accept?(blob) do
+  def accept?(_blob) do
     true
   end
 

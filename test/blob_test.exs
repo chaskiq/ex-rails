@@ -1,15 +1,12 @@
-defmodule ActiveStorageTest do
+defmodule ActiveStorageBlobTest do
   use Chaskiq.DataCase
   use Oban.Testing, repo: Chaskiq.Repo
-
-  alias Chaskiq.AppsFixtures
-  alias Chaskiq.AppUsers
 
   describe "blob" do
     test "upload " do
       {:ok, file} = File.read("./uploads/github-social.png")
       filename = "github-social.png"
-      {mime, w, h, _kind} = ExImageInfo.info(file)
+      {mime, _w, _h, _kind} = ExImageInfo.info(file)
 
       blob = %ActiveStorage.Blob{}
 
@@ -29,8 +26,6 @@ defmodule ActiveStorageTest do
       a = ActiveStorage.Blob.Representable.variant(r, %{resize_to_limit: "100x100"})
 
       a |> ActiveStorage.Variant.processed()
-      require IEx
-      IEx.pry()
     end
   end
 
@@ -52,8 +47,6 @@ defmodule ActiveStorageTest do
       assert encoded
       # ActiveStorage.Variation.wrap("somekey")
       assert ActiveStorage.Variation.decode(encoded)
-      require IEx
-      IEx.pry()
     end
   end
 end
