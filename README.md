@@ -25,7 +25,6 @@ be found at [https://hexdocs.pm/ex_active_storage](https://hexdocs.pm/ex_active_
 
 ```elixir
 
-
 config :ex_aws,
   debug_requests: true,
   # access_key_id: {:system, "AWS_ACCESS_KEY_ID"},
@@ -36,6 +35,8 @@ config :ex_aws,
   access_key_id: System.get_env("AWS_ACCESS_KEY_ID"),
   secret_access_key: System.get_env("AWS_SECRET_ACCESS_KEY")
 
+
+config :ex_active_storage, repo: MyApp.Repo
 
 config :my_app, :storage,
   service: "amazon",

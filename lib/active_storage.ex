@@ -6,7 +6,7 @@ defmodule ActiveStorage do
   import Ecto.Query, warn: false
   alias Chaskiq.Repo
 
-  alias ActiveStorage.Blob
+  alias ActiveStorage.{Attachment, Blob}
 
   def verifier do
     Chaskiq.Verifier
@@ -163,6 +163,30 @@ defmodule ActiveStorage do
   """
   def change_storage_blob(%Blob{} = storage_blob, attrs \\ %{}) do
     Blob.changeset(storage_blob, attrs)
+  end
+
+  @doc """
+  Gets a single attachment.
+
+  Raises `Ecto.NoResultsError` if the attachment does not exist.
+
+  ## Examples
+
+      iex> get_attachment(123)
+      %Blob{}
+
+      iex> get_attachment(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_attachment!(record_type, record_id) do
+    from(a in Attachment, where: a.record_type == ^record_type and a.record_id == ^record_id)
+    |> preload(:blob)
+    |> repo().one!()
+  end
+
+  defp repo do
+    Application.fetch_env!(:ex_active_storage, :repo)
   end
 
   # Downloads the blob to a tempfile on disk. Yields the tempfile.

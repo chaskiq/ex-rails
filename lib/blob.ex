@@ -5,22 +5,24 @@ defmodule ActiveStorage.Blob do
   import ActiveStorage.Blob.Identifiable
   import ActiveStorage.Blob.Analyzable
 
-  @foreign_key_type :binary_id
-  @primary_key {:id, Ecto.UUID, autogenerate: true}
-  schema "storage_blob" do
+  # @foreign_key_type :binary_id
+  schema "active_storage_blobs" do
     field :byte_size, :integer
     field :checksum, :string
     field :content_type, :string
     field :filename, :string
     # field :key, :string
-    field :metadata, :map
+
+    # I wasn't able to get the JSON to render.  Error:
+    # cannot load `"{\"identified\":true,\"analyzed\":true}"` as type :map for field :metadata in %ActiveStorage.Blob{...
+    # field :metadata, :map
     field :service_name, :string
 
     has_many :variant_records, ActiveStorage.VariantRecord
     # before_destroy { variant_records.destroy_all if ActiveStorage.track_variants }
     # has_one_attached :preview_image
 
-    timestamps()
+    timestamps(inserted_at: :created_at, updated_at: false)
   end
 
   @doc false

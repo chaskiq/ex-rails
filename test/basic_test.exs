@@ -25,12 +25,23 @@ defmodule StartingTest do
   end
 
   describe "uploading a file" do
-    test "list_storage_blob/0 returns all storage_blob" do
+    test "get_attachment/2 returns the attachment" do
       {:ok, %HTTPoison.Response{body: body}} =
         RailsApp.create_record()
 
-      RailsApp.add_record_attachment(body.id, "test/files/test.jpg")
-      |> IO.inspect(label: :add_record_attachment)
+      {:ok, %HTTPoison.Response{body: body}} =
+        RailsApp.add_record_attachment(body.id, "test/files/test.jpg")
+
+      ExActiveStorage.Repo.all(ActiveStorage.Attachment)
+
+      attachment = ActiveStorage.get_attachment!("Record", body.id)
+                   |> IO.inspect()
+
+      assert attachment.record_type == "Record"
+      assert attachment.blob.byte_size == 269595
+      assert attachment.blob.checksum == "EaOUdw2PqEjswce87kCVow=="
+      assert attachment.blob.filename == "test.jpg"
+
     end
   end
 end
