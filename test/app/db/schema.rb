@@ -43,11 +43,35 @@ ActiveRecord::Schema.define(version: 2022_01_27_211734) do
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
   end
 
+  create_table "ecto_schema_migrations", primary_key: "version", id: :bigint, default: nil, force: :cascade do |t|
+    t.datetime "inserted_at", precision: 0
+  end
+
   create_table "records", force: :cascade do |t|
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
   end
 
+  create_table "storage_blob", id: :uuid, default: nil, force: :cascade do |t|
+    t.string "filename", limit: 255
+    t.string "content_type", limit: 255
+    t.jsonb "metadata"
+    t.integer "byte_size"
+    t.string "checksum", limit: 255
+    t.string "service_name", limit: 255
+    t.datetime "inserted_at", precision: 0, null: false
+    t.datetime "updated_at", precision: 0, null: false
+  end
+
+  create_table "storage_variant_records", id: false, force: :cascade do |t|
+    t.uuid "blob_id"
+    t.string "variation_digest", limit: 255
+    t.datetime "inserted_at", precision: 0, null: false
+    t.datetime "updated_at", precision: 0, null: false
+    t.index ["blob_id", "variation_digest"], name: "storage_variant_records_blob_id_variation_digest_index"
+  end
+
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "storage_variant_records", "storage_blob", column: "blob_id", name: "storage_variant_records_blob_id_fkey"
 end
