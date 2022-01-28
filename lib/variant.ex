@@ -93,7 +93,7 @@ defmodule ActiveStorage.Variant do
   # for a variant that points to the ActiveStorage::RepresentationsController, which in turn will use this +service_call+ method
   # for its redirection.
   # %{expires_in: ActiveStorage.service_urls_expire_in(), disposition: :inline}
-  def url(variant, %{expires_in: expires_in, disposition: disposition}) do
+  def url(variant, %{expires_in: _expires_in, disposition: _disposition}) do
     variant.blob |> ActiveStorage.url()
 
     # service.url key, expires_in: expires_in, disposition: disposition, filename: filename, content_type: content_type
@@ -133,14 +133,13 @@ defmodule ActiveStorage.Variant do
   end
 
   defp process(variant) do
-    input =
-      variant.blob
-      |> ActiveStorage.Blob.open(fn input ->
-        variant.variation
-        |> ActiveStorage.Variation.transform(input, fn output ->
-          variant.blob |> ActiveStorage.Blob.service().upload(variant.blob, output)
-        end)
+    variant.blob
+    |> ActiveStorage.Blob.open(fn input ->
+      variant.variation
+      |> ActiveStorage.Variation.transform(input, fn output ->
+        variant.blob |> ActiveStorage.Blob.service().upload(variant.blob, output)
       end)
+    end)
 
     # blob.open do |input|
     #  variation.transform(input) do |output|

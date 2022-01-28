@@ -60,7 +60,7 @@ defmodule ActiveStorage.Service.S3Service do
   end
 
   def download(key) do
-    bucket = System.fetch_env!("AWS_S3_BUCKET")
+    _bucket = System.fetch_env!("AWS_S3_BUCKET")
 
     case object_for(key) do
       {:ok, %{body: body}} -> body
@@ -93,10 +93,10 @@ defmodule ActiveStorage.Service.S3Service do
   end
 
   def create_direct_upload(blob, %{
-        byte_size: byte_size,
-        checksum: checksum,
+        byte_size: _byte_size,
+        checksum: _checksum,
         content_type: content_type,
-        filename: filename
+        filename: _filename
       }) do
     bucket = System.fetch_env!("AWS_S3_BUCKET")
 
@@ -111,7 +111,7 @@ defmodule ActiveStorage.Service.S3Service do
       service_url: ActiveStorage.service_url(blob),
       headers: headers,
       blob_id: blob.id,
-      signed_blob_id: Chaskiq.Verifier.sign(blob)
+      signed_blob_id: Chaskiq.Verifier.sign(blob.id)
     }
   end
 

@@ -17,11 +17,11 @@
 #
 # This analyzer requires the {FFmpeg}[https://www.ffmpeg.org] system library, which is not provided by Rails.
 defmodule ActiveStorage.Analyzer.VideoAnalyzer do
-  def accept?(blob) do
+  def accept?(_blob) do
     # blob.video?
   end
 
-  def metadata(blob) do
+  def metadata(_blob) do
     # %{ width: width,
     # height: height,
     #  duration: duration,
@@ -108,7 +108,7 @@ defmodule ActiveStorage.Analyzer.VideoAnalyzer do
     #  @probe ||= download_blob_to_tempfile { |file| probe_from(file) }
   end
 
-  def probe_from(file) do
+  def probe_from(_file) do
     #   IO.popen([ ffprobe_path,
     #     "-print_format", "json",
     #     "-show_streams",

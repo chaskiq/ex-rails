@@ -12,7 +12,7 @@ defmodule ActiveStorage.Transformers.Transformer do
   # Applies the transformations to the source image in +file+, producing a target image in the
   # specified +format+. Yields an open Tempfile containing the target image. Closes and unlinks
   # the output tempfile after yielding to the given block. Returns the result of the block.
-  def transform(file, %{format: format}) do
+  def transform(_file, %{format: _format}) do
     # output = process(file, format: format)
 
     # begin
@@ -25,7 +25,7 @@ defmodule ActiveStorage.Transformers.Transformer do
   # Returns an open Tempfile containing a transformed image in the given +format+.
   # All subclasses implement this method.
   # :doc:
-  defp process(file, %{format: format}) do
+  defp process(_file, %{format: _format}) do
     # raise NotImplementedError
   end
 end

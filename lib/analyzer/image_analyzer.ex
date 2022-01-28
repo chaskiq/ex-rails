@@ -14,7 +14,7 @@ defmodule ActiveStorage.Analyzer.ImageAnalyzer do
     blob.image?
   end
 
-  def metadata(blob) do
+  def metadata(_blob) do
     # read_image do |image|
     #   if rotated_image?(image)
     #     { width: image.height, height: image.width }
@@ -24,7 +24,7 @@ defmodule ActiveStorage.Analyzer.ImageAnalyzer do
     # end
   end
 
-  def read_image(blob) do
+  def read_image(_blob) do
     #  download_blob_to_tempfile do |file|
     #    require "mini_magick"
     #    image = MiniMagick::Image.new(file.path)

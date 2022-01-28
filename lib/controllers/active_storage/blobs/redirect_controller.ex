@@ -1,7 +1,7 @@
-defmodule ActiveStorageRedirectController do
+defmodule ActiveStorage.Blobs.RedirectController do
   use ChaskiqWeb, :controller
 
-  # action_fallback(ChaskiqWeb.FallbackController)
+  action_fallback ChaskiqWeb.FallbackController
 
   def show(conn, %{"signed_id" => signed_id}) do
     case Chaskiq.Verifier.verify(signed_id) do
@@ -16,8 +16,8 @@ defmodule ActiveStorageRedirectController do
       |> ActiveStorage.url()
 
     case presigned do
-      {:ok, url} -> conn |> redirect(external: url) |> halt()
-      _ -> conn |> error_response(422, "Invalid blob id")
+      nil -> conn |> error_response(422, "Invalid blob id")
+      url -> conn |> redirect(external: url) |> halt()
     end
   end
 

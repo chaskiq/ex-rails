@@ -21,6 +21,45 @@ use Mix.Config
 #     config :logger, level: :info
 #
 
+# Use rails credentials:edit to set the AWS secrets (as aws:access_key_id|secret_access_key)
+config :chaskiq, :storage,
+  amazon: %{
+    service: "S3",
+    region: System.get_env("AWS_S3_REGION"),
+    access_key_id: System.get_env("AWS_ACCESS_KEY_ID"),
+    secret_access_key: System.get_env("AWS_SECRET_ACCESS_KEY")
+  },
+  local: %{service: "Disk", root: "storage"},
+  test: %{
+    service: "Disk",
+    root: "tmp/storage"
+  }
+
+# Configure mogrify command:
+
+config :mogrify,
+  mogrify_command: [
+    path: "magick",
+    args: ["mogrify"]
+  ]
+
+# Configure convert command:
+
+config :mogrify,
+  convert_command: [
+    path: "magick",
+    args: ["convert"]
+  ]
+
+# Configure identify command:
+
+config :mogrify,
+  identify_command: [
+    path: "magick",
+    args: ["identify"]
+  ]
+
+
 # It is also possible to import configuration files, relative to this
 # directory. For example, you can emulate configuration per environment
 # by uncommenting the line below and defining dev.exs, test.exs and such.
