@@ -111,7 +111,7 @@ defmodule ActiveStorage.Service.S3Service do
       service_url: ActiveStorage.service_url(blob),
       headers: headers,
       blob_id: blob.id,
-      signed_blob_id: Chaskiq.Verifier.sign(blob.id)
+      signed_blob_id: ActiveStorage.verifier().sign(blob.id)
     }
   end
 

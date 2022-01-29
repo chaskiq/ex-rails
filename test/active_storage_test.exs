@@ -1,6 +1,8 @@
 defmodule ActiveStorageTest do
+  use ExUnit.Case, async: true
+
   alias Ecto.Adapters.SQL
-  alias ActiveStorage.{StorageBlob}
+  alias ActiveStorage.{Blob}
   import Ecto.Query
   # import Mix.Ecto, only: [build_repo_priv: 1]
 
@@ -9,9 +11,9 @@ defmodule ActiveStorageTest do
   # doctest ActiveStorage
 
   describe "storage_blob" do
-    alias Chaskiq.ActiveStorage.StorageBlob
+    alias ActiveStorage.Blob
 
-    import Chaskiq.ActiveStorageFixtures
+    import ActiveStorageFixtures
 
     @invalid_attrs %{
       byte_size: nil,
@@ -42,7 +44,7 @@ defmodule ActiveStorageTest do
         service_name: "some service_name"
       }
 
-      assert {:ok, %StorageBlob{} = storage_blob} = ActiveStorage.create_storage_blob(valid_attrs)
+      assert {:ok, %Blob{} = storage_blob} = ActiveStorage.create_storage_blob(valid_attrs)
       assert storage_blob.byte_size == 42
       assert storage_blob.checksum == "some checksum"
       assert storage_blob.content_type == "some content_type"
@@ -67,7 +69,7 @@ defmodule ActiveStorageTest do
         service_name: "some updated service_name"
       }
 
-      assert {:ok, %StorageBlob{} = storage_blob} =
+      assert {:ok, %Blob{} = storage_blob} =
                ActiveStorage.update_storage_blob(storage_blob, update_attrs)
 
       assert storage_blob.byte_size == 43
@@ -89,7 +91,7 @@ defmodule ActiveStorageTest do
 
     test "delete_storage_blob/1 deletes the storage_blob" do
       storage_blob = storage_blob_fixture()
-      assert {:ok, %StorageBlob{}} = ActiveStorage.delete_storage_blob(storage_blob)
+      assert {:ok, %Blob{}} = ActiveStorage.delete_storage_blob(storage_blob)
       assert_raise Ecto.NoResultsError, fn -> ActiveStorage.get_storage_blob!(storage_blob.id) end
     end
 

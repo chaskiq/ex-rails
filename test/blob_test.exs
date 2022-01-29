@@ -1,6 +1,7 @@
 defmodule ActiveStorageBlobTest do
-  use Chaskiq.DataCase
-  use Oban.Testing, repo: Chaskiq.Repo
+  # use Chaskiq.DataCase
+  # use Oban.Testing, repo: Chaskiq.Repo
+  use ExUnit.Case, async: true
 
   describe "blob" do
     test "upload " do

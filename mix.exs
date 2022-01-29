@@ -31,7 +31,8 @@ defmodule ExActiveStorage.MixProject do
       {:ex_aws_s3, "~> 2.1"},
       {:ex_aws, "~> 2.1"},
       {:mogrify, "~> 0.9.1"},
-
+      {:plug_crypto, "~> 1.0"},
+      {:ex_image_info, "~> 0.2.4"},
       {:postgrex, ">= 0.0.0", only: [:test]},
       {:httpoison, "~> 1.8", only: [:test]}
       # {:dep_from_hexpm, "~> 0.3.0"},
