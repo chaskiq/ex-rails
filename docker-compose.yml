@@ -4,7 +4,7 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: ex_active_storage_test
+      POSTGRES_DB: active_storage_test
     ports:
       - 5433:5432
 

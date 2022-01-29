@@ -22,7 +22,7 @@ use Mix.Config
 #
 
 # Use rails credentials:edit to set the AWS secrets (as aws:access_key_id|secret_access_key)
-config :ex_active_storage, :storage,
+config :active_storage, :storage,
   amazon: %{
     service: "S3",
     region: System.get_env("AWS_S3_REGION"),

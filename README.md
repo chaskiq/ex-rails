@@ -5,26 +5,25 @@
 ## Installation
 
 If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `ex_active_storage` to your list of dependencies in `mix.exs`:
+by adding `active_storage` to your list of dependencies in `mix.exs`:
 
 ```elixir
 def deps do
   [
-    {:ex_active_storage, "~> 0.1.0"}
+    {:active_storage, "~> 0.1.0"}
   ]
 end
 ```
 
 Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
 and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at [https://hexdocs.pm/ex_active_storage](https://hexdocs.pm/ex_active_storage).
+be found at [https://hexdocs.pm/active_storage](https://hexdocs.pm/active_storage).
 
 ## configuration:
 
 ### config:
 
 ```elixir
-
 
 config :ex_aws,
   debug_requests: true,
@@ -36,6 +35,8 @@ config :ex_aws,
   access_key_id: System.get_env("AWS_ACCESS_KEY_ID"),
   secret_access_key: System.get_env("AWS_SECRET_ACCESS_KEY")
 
+
+config :active_storage, repo: MyApp.Repo
 
 config :my_app, :storage,
   service: "amazon",
@@ -51,6 +52,36 @@ config :my_app, :storage,
     root: "tmp/storage"
   }
 ```
+
+### Setup
+
+Any Ecto schemas with attachments should have a `record_type` function in the schema module.  `ActiveRecord` has a `classify` method which would take a table name (like `people`) and turn it into a module name (like `Person`).  In Elixir / Ecto explicit definitions are preferred over automatic convention in such cases.  An example:
+
+```elixir
+defmodule MyApp.MyContext.Person do
+  use Ecto.Schema
+
+  schema "people" do
+    # ...
+  end
+
+  # Yes, this is the same as the suffix of the module, but it won't always be so.
+  # This corresponds directly to the `record_type` stored in the `active_storage_attachments` table.
+  def record_type do
+    "Person"
+  end
+```
+
+### Usage
+
+Ruby: `user.avatar`
+Elixir: `ActiveStorage.get_attachment(user, "avatar")
+
+Ruby: `user.images`
+Elixir: `ActiveStorage.get_attachments(post, "images")
+
+Ruby: `user.avatar.attached?`
+Elixir: `ActiveStorage.attached?(user, "avatar")
 
 ### router:
 

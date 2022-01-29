@@ -1,6 +1,6 @@
-# Mix.Task.run("ecto.create", ~w(-r ExActiveStorage.Repo))
-# Mix.Task.run("ecto.migrate", ~w(-r ExActiveStorage.Repo))
+# Mix.Task.run("ecto.create", ~w(-r ActiveStorage.Test.Repo))
+# Mix.Task.run("ecto.migrate", ~w(-r ActiveStorage.Test.Repo))
 
-ExActiveStorage.Repo.start_link()
+ActiveStorage.Test.Repo.start_link()
 
 ExUnit.start()

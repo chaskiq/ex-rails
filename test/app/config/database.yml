@@ -13,7 +13,7 @@ development:
   adapter: postgresql
   encoding: unicode
   host: db
-  database: ex_active_storage_test
+  database: active_storage_test
   pool: 5
   username: postgres
   password: postgres

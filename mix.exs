@@ -3,7 +3,7 @@ defmodule ExActiveStorage.MixProject do
 
   def project do
     [
-      app: :ex_active_storage,
+      app: :active_storage,
       version: "0.1.0",
       elixir: ">= 1.12.0",
       start_permanent: Mix.env() == :prod,

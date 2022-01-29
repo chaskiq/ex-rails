@@ -9,7 +9,7 @@ defmodule ActiveStorage.Service.Registry do
 
   def fetch(name) do
     service =
-      Application.get_env(:ex_active_storage, :storage)
+      Application.get_env(:active_storage, :storage)
       |> Keyword.get(name |> String.to_existing_atom())
 
     ActiveStorage.Service.Configurator.build(name, service)
