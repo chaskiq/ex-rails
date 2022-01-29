@@ -16,7 +16,8 @@ defmodule ActiveStorage.Blob do
 
     # I wasn't able to get the JSON to render.  Error:
     # cannot load `"{\"identified\":true,\"analyzed\":true}"` as type :map for field :metadata in %ActiveStorage.Blob{...
-    # field :metadata, :map
+    # --->> this field is text, so the problem is that it can be handled as a map. but we could cast it on a changeset.
+    field(:metadata, :string)
     field(:service_name, :string)
 
     has_many(:variant_records, ActiveStorage.VariantRecord)
