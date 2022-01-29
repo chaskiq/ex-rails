@@ -53,7 +53,7 @@ config :my_app, :storage,
   }
 ```
 
-### Usage:
+### Setup
 
 Any Ecto schemas with attachments should have a `record_type` function in the schema module.  `ActiveRecord` has a `classify` method which would take a table name (like `people`) and turn it into a module name (like `Person`).  In Elixir / Ecto explicit definitions are preferred over automatic convention in such cases.  An example:
 
@@ -71,6 +71,17 @@ defmodule MyApp.MyContext.Person do
     "Person"
   end
 ```
+
+### Usage
+
+Ruby: `user.avatar`
+Elixir: `ActiveStorage.get_attachment(user, "avatar")
+
+Ruby: `user.images`
+Elixir: `ActiveStorage.get_attachments(post, "images")
+
+Ruby: `user.avatar.attached?`
+Elixir: `ActiveStorage.attached?(user, "avatar")
 
 ### router:
 

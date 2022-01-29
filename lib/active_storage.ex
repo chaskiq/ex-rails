@@ -166,25 +166,43 @@ defmodule ActiveStorage do
   end
 
   @doc """
-  Gets a single attachment.
+  Gets a record's attachment.
 
-  Raises `Ecto.NoResultsError` if the attachment does not exist.
+  Returns `nil` if attachment doesn't exist.
 
   ## Examples
 
-      iex> get_attachment(123)
-      %Blob{}
-
-      iex> get_attachment(456)
-      ** (Ecto.NoResultsError)
-
+      iex> get_attachment(user, "avatar")
+      %ActiveStorage.Attachment{}
   """
-  def get_attachment!(%mod{} = record, attachment_name) do
+  def get_attachment(record, attachment_name) do
+    attachment_query(record, attachment_name)
+    |> repo().one()
+  end
+
+  def get_attachments(record, attachment_name) do
+    attachment_query(record, attachment_name)
+    |> repo().all()
+  end
+
+  @doc """
+  Checks if attachment(s) exists (works for `has_one_attached` and `has_many_attached`).
+
+  ## Examples
+
+      iex> attached?(user, "avatar")
+      true
+  """
+  def attached?(record, attachment_name) do
+    attachment_query(record, attachment_name)
+    |> repo().exists?()
+  end
+
+  defp attachment_query(%mod{id: record_id}, attachment_name) do
     record_type = mod.record_type()
 
-    from(a in Attachment, where: a.name == ^attachment_name and a.record_type == ^record_type and a.record_id == ^record.id)
+    from(a in Attachment, where: a.name == ^attachment_name and a.record_type == ^record_type and a.record_id == ^record_id)
     |> preload(:blob)
-    |> repo().one!()
   end
 
   defp repo do
