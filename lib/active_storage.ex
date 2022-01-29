@@ -179,8 +179,10 @@ defmodule ActiveStorage do
       ** (Ecto.NoResultsError)
 
   """
-  def get_attachment!(record_type, record_id) do
-    from(a in Attachment, where: a.record_type == ^record_type and a.record_id == ^record_id)
+  def get_attachment!(%mod{} = record, attachment_name) do
+    record_type = mod.record_type()
+
+    from(a in Attachment, where: a.name == ^attachment_name and a.record_type == ^record_type and a.record_id == ^record.id)
     |> preload(:blob)
     |> repo().one!()
   end

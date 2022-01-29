@@ -53,6 +53,25 @@ config :my_app, :storage,
   }
 ```
 
+### Usage:
+
+Any Ecto schemas with attachments should have a `record_type` function in the schema module.  `ActiveRecord` has a `classify` method which would take a table name (like `people`) and turn it into a module name (like `Person`).  In Elixir / Ecto explicit definitions are preferred over automatic convention in such cases.  An example:
+
+```elixir
+defmodule MyApp.MyContext.Person do
+  use Ecto.Schema
+
+  schema "people" do
+    # ...
+  end
+
+  # Yes, this is the same as the suffix of the module, but it won't always be so.
+  # This corresponds directly to the `record_type` stored in the `active_storage_attachments` table.
+  def record_type do
+    "Person"
+  end
+```
+
 ### router:
 
 ```elixir

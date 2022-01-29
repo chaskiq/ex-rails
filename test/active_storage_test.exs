@@ -1,12 +1,12 @@
-defmodule ExActiveStorageTest do
+defmodule ActiveStorageTest do
   alias Ecto.Adapters.SQL
-  alias ExActiveStorage.{StorageBlob}
+  alias ActiveStorage.{StorageBlob}
   import Ecto.Query
   # import Mix.Ecto, only: [build_repo_priv: 1]
 
   # alias Chaskiq.ActiveStorage
 
-  # doctest ExActiveStorage
+  # doctest ActiveStorage
 
   describe "storage_blob" do
     alias Chaskiq.ActiveStorage.StorageBlob

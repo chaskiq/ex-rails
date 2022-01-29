@@ -12,7 +12,7 @@ class RecordsController < ApplicationController
   def add_attachment
     record = Record.find(params[:id])
 
-    record.update(attachment: params[:file])
+    record.update({params[:attachment_name] => params[:file]})
 
     render json: record
   end
