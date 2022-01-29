@@ -5,19 +5,19 @@
 ## Installation
 
 If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `ex_active_storage` to your list of dependencies in `mix.exs`:
+by adding `active_storage` to your list of dependencies in `mix.exs`:
 
 ```elixir
 def deps do
   [
-    {:ex_active_storage, "~> 0.1.0"}
+    {:active_storage, "~> 0.1.0"}
   ]
 end
 ```
 
 Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
 and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at [https://hexdocs.pm/ex_active_storage](https://hexdocs.pm/ex_active_storage).
+be found at [https://hexdocs.pm/active_storage](https://hexdocs.pm/active_storage).
 
 ## configuration:
 
@@ -36,7 +36,7 @@ config :ex_aws,
   secret_access_key: System.get_env("AWS_SECRET_ACCESS_KEY")
 
 
-config :ex_active_storage, repo: MyApp.Repo
+config :active_storage, repo: MyApp.Repo
 
 config :my_app, :storage,
   service: "amazon",

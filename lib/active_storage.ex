@@ -206,7 +206,7 @@ defmodule ActiveStorage do
   end
 
   defp repo do
-    Application.fetch_env!(:ex_active_storage, :repo)
+    Application.fetch_env!(:active_storage, :repo)
   end
 
   # Downloads the blob to a tempfile on disk. Yields the tempfile.
