@@ -28,13 +28,13 @@ defmodule ActiveStorage.Blob.Representable do
   # variable, call ActiveStorage::Blob#variable?.
   def variant(blob, transformations) do
     if blob |> variable? do
-      variant_class.new(
+      variant_class().new(
         blob,
         ActiveStorage.Variation.wrap(transformations)
         |> ActiveStorage.Variation.default_to(default_variant_transformations(blob))
       )
 
-      # variant_class.new(self, ActiveStorage.Variation.wrap(transformations).default_to(default_variant_transformations))
+      # variant_class().new(self, ActiveStorage.Variation.wrap(transformations).default_to(default_variant_transformations))
     else
       raise "ActiveStorage::InvariableError"
     end
@@ -117,7 +117,7 @@ defmodule ActiveStorage.Blob.Representable do
     # end
   end
 
-  defp variant_class do
+  defp variant_class() do
     ActiveStorage.Variant
     # ActiveStorage.track_variants ? ActiveStorage::VariantWithRecord : ActiveStorage::Variant
   end

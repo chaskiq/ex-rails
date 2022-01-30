@@ -4,7 +4,7 @@ defmodule ActiveStorage.Test.Record do
   """
 
   use Ecto.Schema
-  import Ecto.Changeset
+  # import Ecto.Changeset
 
   schema "records" do
     timestamps(inserted_at: :created_at)
@@ -14,4 +14,3 @@ defmodule ActiveStorage.Test.Record do
     "Record"
   end
 end
-
