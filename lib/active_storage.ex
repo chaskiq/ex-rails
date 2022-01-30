@@ -4,12 +4,11 @@ defmodule ActiveStorage do
   """
 
   import Ecto.Query, warn: false
-  alias Chaskiq.Repo
 
-  alias ActiveStorage.{Attachment, Blob, Service}
+  alias ActiveStorage.{Attachment, Blob, RepoClient, Service, Verifier}
 
   def verifier do
-    Chaskiq.Verifier
+    Verifier
   end
 
   def graphql_resolver(
@@ -67,7 +66,7 @@ defmodule ActiveStorage do
   # end
 
   def service_url(blob) do
-    signed_blob_id = Chaskiq.Verifier.sign(blob.id)
+    signed_blob_id = Activestorage.verifier().sign(blob.id)
     "/active_storage/blobs/redirect/#{signed_blob_id}"
   end
 
@@ -81,7 +80,7 @@ defmodule ActiveStorage do
 
   """
   def list_storage_blob do
-    Repo.all(Blob)
+    repo().all(Blob)
   end
 
   @doc """
@@ -98,7 +97,7 @@ defmodule ActiveStorage do
       ** (Ecto.NoResultsError)
 
   """
-  def get_storage_blob!(id), do: Repo.get!(Blob, id)
+  def get_storage_blob!(id), do: repo().get!(Blob, id)
 
   @doc """
   Creates a storage_blob.
@@ -115,7 +114,7 @@ defmodule ActiveStorage do
   def create_storage_blob(attrs \\ %{}) do
     %Blob{}
     |> Blob.changeset(attrs)
-    |> Repo.insert()
+    |> repo().insert()
   end
 
   @doc """
@@ -133,7 +132,7 @@ defmodule ActiveStorage do
   def update_storage_blob(%Blob{} = storage_blob, attrs) do
     storage_blob
     |> Blob.changeset(attrs)
-    |> Repo.update()
+    |> repo().update()
   end
 
   @doc """
@@ -149,7 +148,7 @@ defmodule ActiveStorage do
 
   """
   def delete_storage_blob(%Blob{} = storage_blob) do
-    Repo.delete(storage_blob)
+    repo().delete(storage_blob)
   end
 
   @doc """
@@ -218,7 +217,10 @@ defmodule ActiveStorage do
   defp attachment_query(%mod{id: record_id}, attachment_name) do
     record_type = mod.record_type()
 
-    from(a in Attachment, where: a.name == ^attachment_name and a.record_type == ^record_type and a.record_id == ^record_id)
+    from(a in Attachment,
+      where:
+        a.name == ^attachment_name and a.record_type == ^record_type and a.record_id == ^record_id
+    )
   end
 
   defp repo do

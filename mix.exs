@@ -50,8 +50,9 @@ defmodule ExActiveStorage.MixProject do
       {:hackney, "~> 1.18"},
       {:sweet_xml, "~> 0.6"},
       {:mogrify, "~> 0.9.1"},
-
       {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
+      {:plug_crypto, "~> 1.0"},
+      {:ex_image_info, "~> 0.2.4"},
       {:postgrex, ">= 0.0.0", only: [:test]},
       {:httpoison, "~> 1.8", only: [:test]}
       # {:dep_from_hexpm, "~> 0.3.0"},

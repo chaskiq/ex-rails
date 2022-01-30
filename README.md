@@ -126,3 +126,10 @@ end
 
       a = ActiveStorage.Blob.Representable.variant(r, %{resize_to_limit: "100x100"}) |> ActiveStorage.Variant.processed()
 ```
+
+
+### Development
+
+use docker, run:
+
+> docker-compose up
