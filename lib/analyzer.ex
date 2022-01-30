@@ -8,7 +8,7 @@ defmodule ActiveStorage.Analyzer do
 
   # Implement this method in a concrete subclass. Have it return true when given a blob from which
   # the analyzer can extract metadata.
-  def accept?(blob) do
+  def accept?(_blob) do
     false
   end
 
@@ -18,8 +18,8 @@ defmodule ActiveStorage.Analyzer do
     true
   end
 
-  def new(blob) do
-    @blob = blob
+  def new(_blob) do
+    # @blob = blob
   end
 
   # Override this method in a concrete subclass. Have it return a Hash of metadata.

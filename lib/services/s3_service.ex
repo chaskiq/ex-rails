@@ -50,7 +50,8 @@ defmodule ActiveStorage.Service.S3Service do
   # def upload(key, io, %{checksum: nil, filename: nil, content_type: nil, disposition: nil}) do
   def upload(blob, io) do
     # stream(io)
-    bucket = System.fetch_env!("AWS_S3_BUCKET")
+    amazon = Application.fetch_env!(:active_storage, :storage) |> Keyword.get(:amazon)
+    bucket = amazon.bucket
 
     operation =
       ExAws.S3.put_object(
@@ -114,7 +115,7 @@ defmodule ActiveStorage.Service.S3Service do
       service_url: ActiveStorage.service_url(blob),
       headers: headers,
       blob_id: blob.id,
-      signed_blob_id: Chaskiq.Verifier.sign(blob.id)
+      signed_blob_id: ActiveStorage.verifier().sign(blob.id)
     }
   end
 
