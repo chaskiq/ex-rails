@@ -12,7 +12,7 @@ defmodule ActiveStorage.Blob do
     field(:checksum, :string)
     field(:content_type, :string)
     field(:filename, :string)
-    # field :key, :string
+    field(:key, :string)
 
     # I wasn't able to get the JSON to render.  Error:
     # cannot load `"{\"identified\":true,\"analyzed\":true}"` as type :map for field :metadata in %ActiveStorage.Blob{...
@@ -36,8 +36,10 @@ defmodule ActiveStorage.Blob do
       :metadata,
       :byte_size,
       :checksum,
-      :service_name
+      :service_name,
+      :key
     ])
+    |> prepare_changes(&set_defaults/1)
     |> validate_required([
       :filename,
       :content_type,
@@ -46,6 +48,27 @@ defmodule ActiveStorage.Blob do
       # :checksum,
       :service_name
     ])
+  end
+
+  def set_defaults(current_changeset) do
+    # self.team_schedule = []
+
+    current_changeset
+    # if encryption_key.blank?
+    |> generate_encryption_key()
+  end
+
+  def generate_encryption_key(current_changeset) do
+    binary = Ecto.UUID.bingenerate()
+    {:ok, k} = Ecto.UUID.load(binary)
+
+    case current_changeset do
+      %Ecto.Changeset{valid?: true} ->
+        put_change(current_changeset, :key, k)
+
+      _ ->
+        current_changeset
+    end
   end
 
   def creation_changeset(storage_blob, attrs) do
@@ -64,7 +87,8 @@ defmodule ActiveStorage.Blob do
       :metadata,
       :byte_size,
       :checksum,
-      :service_name
+      :service_name,
+      :key
     ])
   end
 
@@ -236,7 +260,7 @@ defmodule ActiveStorage.Blob do
 
     data = %{
       byte_size: bite_size,
-      metadata: %{identified: true},
+      metadata: Jason.encode!(%{identified: true}),
       checksum: checksum
     }
 

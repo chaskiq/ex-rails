@@ -5,8 +5,8 @@ defmodule ActiveStorageBlobTest do
 
   describe "blob" do
     test "upload " do
-      {:ok, file} = File.read("./uploads/github-social.png")
-      filename = "github-social.png"
+      {:ok, file} = File.read("./test/files/dog.jpg")
+      filename = "dog.jpg"
       {mime, _w, _h, _kind} = ExImageInfo.info(file)
 
       blob = %ActiveStorage.Blob{}
@@ -32,7 +32,7 @@ defmodule ActiveStorageBlobTest do
 
   describe "variation" do
     test "encode transformations" do
-      {:ok, "somekey"} = ActiveStorage.Variation.decode(ActiveStorage.Variation.encode("somekey"))
+      "somekey" = ActiveStorage.Variation.decode(ActiveStorage.Variation.encode("somekey"))
     end
 
     test "new" do

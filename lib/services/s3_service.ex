@@ -47,7 +47,8 @@ defmodule ActiveStorage.Service.S3Service do
   # def upload(key, io, %{checksum: nil, filename: nil, content_type: nil, disposition: nil}) do
   def upload(blob, io) do
     # stream(io)
-    bucket = System.fetch_env!("AWS_S3_BUCKET")
+    amazon = Application.fetch_env!(:active_storage, :storage) |> Keyword.get(:amazon)
+    bucket = amazon.bucket
 
     operation =
       ExAws.S3.put_object(

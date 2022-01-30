@@ -8,19 +8,19 @@ defmodule ActiveStorageFixtures do
   Generate a storage_blob.
   """
   def storage_blob_fixture(attrs \\ %{}) do
-    {:ok, storage_blob} =
+    params =
       attrs
       |> Enum.into(%{
         byte_size: 42,
         checksum: "some checksum",
         content_type: "some content_type",
         filename: "some filename",
-        key: "some key",
-        metadata: %{},
+        metadata: "",
         service_name: "some service_name"
       })
-      |> ActiveStorage.create_storage_blob()
 
-    storage_blob
+    {:ok, record} = params |> ActiveStorage.create_storage_blob()
+
+    record
   end
 end

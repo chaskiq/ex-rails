@@ -5,10 +5,10 @@ defmodule ActiveStorage do
 
   import Ecto.Query, warn: false
 
-  alias ActiveStorage.{Attachment, Blob, RepoClient}
+  alias ActiveStorage.{Attachment, Blob, RepoClient, Verifier}
 
   def verifier do
-    Chaskiq.Verifier
+    Verifier
   end
 
   def graphql_resolver(
