@@ -20,7 +20,7 @@ class RecordsController < ApplicationController
 
     render json: {
       attachment: new_attachment,
-      url: new_attachment.url,
+      url: (new_attachment.url rescue nil),
     }
   end
 end

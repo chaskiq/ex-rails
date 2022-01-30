@@ -23,25 +23,16 @@ be found at [https://hexdocs.pm/active_storage](https://hexdocs.pm/active_storag
 
 ### config:
 
+#### `config/config.ex`
+
 ```elixir
-
-config :ex_aws,
-  debug_requests: true,
-  # access_key_id: {:system, "AWS_ACCESS_KEY_ID"},
-  # security_token: {:system, "AWS_SESSION_TOKEN"},
-  # secret_access_key: {:system, "AWS_SECRET_ACCESS_KEY"},
-  # region: {:system, "AWS_S3_REGION"}
-  region: System.get_env("AWS_S3_REGION"),
-  access_key_id: System.get_env("AWS_ACCESS_KEY_ID"),
-  secret_access_key: System.get_env("AWS_SECRET_ACCESS_KEY")
-
-
 config :active_storage, repo: MyApp.Repo
 
-config :my_app, :storage,
+config :my_app, :sources, %{
   service: "amazon",
   amazon: %{
-    service: "S3",
+    service: :s3,
+    # Warning: Environment variables set at compile time unless in runtime.exs
     region: System.get_env("AWS_S3_REGION"),
     access_key_id: System.get_env("AWS_ACCESS_KEY_ID"),
     secret_access_key: System.get_env("AWS_SECRET_ACCESS_KEY")
@@ -51,6 +42,13 @@ config :my_app, :storage,
     service: "Disk",
     root: "tmp/storage"
   }
+}
+```
+
+#### `config/(dev|test|prod).ex`
+
+```
+config :active_storage, :default_source, :amazon
 ```
 
 ### Setup

@@ -6,6 +6,60 @@
 # require "action_dispatch/http/content_disposition"
 
 defmodule ActiveStorage.Service do
+  @callback url(ActiveStorage.Attachment.t) :: String.t
+  @callback delete(ActiveStorage.Attachment.t) :: :ok | :error
+
+  def url(attachment) do
+    {module, config} = implementation()
+
+    module.url(config, attachment.blob)
+  end
+
+  def delete(attachment) do
+    {module, config} = implementation()
+
+    module.delete(config, attachment.blob)
+  end
+
+  # TODO: Should later allow for per-attachment sources (not just default)
+  # i.e. we send in an attachment as an argument and it figures out the service
+  defp implementation do
+    source_config = default_source_config!()
+
+    {module_for!(source_config), source_config}
+  end
+
+  def module_for!(source_config) do
+    if Map.has_key?(source_config, :service) do
+      implementation_for_service(source_config.service)
+    else
+      raise "Source config needs to have a `service` key: #{inspect(source_config)}."
+    end
+  end
+
+
+  def source_config_for!(source) do
+    sources = Application.fetch_env!(:active_storage, :sources)
+
+    case sources[source] do
+      nil ->
+        raise "Source not found: #{source}.  Configured options: #{inspect(Map.keys(sources))}."
+
+      source_config -> source_config
+    end
+  end
+
+  def default_source_config! do
+    Application.fetch_env!(:active_storage, :default_source)
+    |> source_config_for!()
+  end
+
+  defp implementation_for_service(:s3), do: ActiveStorage.Service.S3
+
+  # ------------------------
+  # Need help with the below
+  # ------------------------
+
   # Abstract class serving as an interface for concrete services.
   #
   # The available services are:

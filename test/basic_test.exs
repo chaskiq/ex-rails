@@ -106,6 +106,7 @@ defmodule StartingTest do
       assert attachment.blob.checksum == "EaOUdw2PqEjswce87kCVow=="
       assert attachment.blob.filename == "dog.jpg"
 
+      # TODO: Put `url_for_attachment` in it's own test block
       {:ok, url} = ActiveStorage.url_for_attachment(attachment)
       {:ok, uri} = URI.new(url)
       query = URI.decode_query(uri.query)
@@ -122,6 +123,9 @@ defmodule StartingTest do
       # assert query["X-Amz-Date"] == ruby_query["X-Amz-Date"] # Can be off by a second, didn't want to bother parsing
       assert query["X-Amz-Expires"] == ruby_query["X-Amz-Expires"]
       assert query["X-Amz-SignedHeaders"] == ruby_query["X-Amz-SignedHeaders"]
+
+      {:ok, %HTTPoison.Response{status_code: 200, body: body}} = HTTPoison.get(url)
+      assert body == File.read!("test/files/dog.jpg")
     end
 
     # For `has_many_attached`
@@ -163,6 +167,30 @@ defmodule StartingTest do
 
       assert ActiveStorage.attached?(%Record{id: body.id}, "avatar") == true
       assert ActiveStorage.attached?(%Record{id: 999_999_999}, "avatar") == false
+    end
+
+    # Ruby equivalent: `user.minio_avatar.purge`
+    test "purge_attachment/2 - Minio" do
+      {:ok, body} = RailsApp.create_record()
+
+      {:ok, _} = RailsApp.add_record_attachment(body.id, "minio_avatar", "test/files/dog.jpg")
+
+      avatar_original = ActiveStorage.get_attachment(%Record{id: body.id}, "minio_avatar")
+      {:ok, url} = ActiveStorage.url_for_attachment(avatar_original)
+
+      attachment = ActiveStorage.purge_attachment(%Record{id: body.id}, "minio_avatar")
+
+      avatar = ActiveStorage.get_attachment(%Record{id: body.id}, "minio_avatar")
+
+      assert avatar == nil
+
+      assert Repo.get(ActiveStorage.Blob, avatar_original.blob.id) == nil
+
+      {:ok, response} = HTTPoison.get(url)
+      assert response.status_code == 404
+
+      # Test that it's all run inside transaction (Mox S3 delete to fail, if possible)
+      # TODO: Test that transaction works (??)
     end
   end
 end

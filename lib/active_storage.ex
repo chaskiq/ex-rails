@@ -6,7 +6,7 @@ defmodule ActiveStorage do
   import Ecto.Query, warn: false
   alias Chaskiq.Repo
 
-  alias ActiveStorage.{Attachment, Blob}
+  alias ActiveStorage.{Attachment, Blob, Service}
 
   def verifier do
     Chaskiq.Verifier
@@ -50,7 +50,7 @@ defmodule ActiveStorage do
 
     _service = blob |> ActiveStorage.Blob.service()
 
-    ActiveStorage.Service.S3Service.create_direct_upload(blob, %{
+    ActiveStorage.Service.S3.create_direct_upload(blob, %{
       byte_size: byte_size,
       checksum: checksum,
       content_type: content_type,
@@ -62,9 +62,9 @@ defmodule ActiveStorage do
   #  service(blob).url(blob)
   # end
 
-  def url(blob) do
-    ActiveStorage.Service.url(blob)
-  end
+  # def url(blob) do
+  #   ActiveStorage.Service.url(blob)
+  # end
 
   def service_url(blob) do
     signed_blob_id = Chaskiq.Verifier.sign(blob.id)
@@ -177,11 +177,13 @@ defmodule ActiveStorage do
   """
   def get_attachment(record, attachment_name) do
     attachment_query(record, attachment_name)
+    |> preload(:blob)
     |> repo().one()
   end
 
   def get_attachments(record, attachment_name) do
     attachment_query(record, attachment_name)
+    |> preload(:blob)
     |> repo().all()
   end
 
@@ -198,19 +200,25 @@ defmodule ActiveStorage do
     |> repo().exists?()
   end
 
-  # TODO: Requires blob.  Should be blob be given?  Can we assume that it's always there?  Or should we validate
-  # that it's there (probably...)?
-  def url_for_attachment(attachment) do
-    "http://minio:9000/active-storage-test/#{attachment.blob.key}"
+  @doc """
+  Remove attachment from database as well as the actual resource file.  Done in a transaction so that
+  nothing is left dangling.
+  """
+  def purge_attachment(record, attachment_name) do
+    attachment = get_attachment(record, attachment_name)
 
-    ActiveStorage.Service.S3Service.presigned_url(attachment.blob)
+    repo().delete(attachment)
+    repo().delete(%Blob{id: attachment.blob_id})
+
+    Service.delete(attachment)
   end
+
+  def url_for_attachment(attachment), do: Service.url(attachment)
 
   defp attachment_query(%mod{id: record_id}, attachment_name) do
     record_type = mod.record_type()
 
     from(a in Attachment, where: a.name == ^attachment_name and a.record_type == ^record_type and a.record_id == ^record_id)
-    |> preload(:blob)
   end
 
   defp repo do

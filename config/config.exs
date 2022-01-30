@@ -22,8 +22,9 @@ use Mix.Config
 #
 
 # Use rails credentials:edit to set the AWS secrets (as aws:access_key_id|secret_access_key)
-config :active_storage, :storage, %{
-  s3: %{
+config :active_storage, :sources, %{
+  amazon: %{
+    service: :s3,
     bucket: "active-storage-test",
     access_key_id: "root",
     secret_access_key: "active_storage_test",

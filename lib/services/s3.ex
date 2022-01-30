@@ -1,4 +1,24 @@
-defmodule ActiveStorage.Service.S3Service do
+defmodule ActiveStorage.Service.S3 do
+  @behaviour ActiveStorage.Service
+
+  @impl ActiveStorage.Service
+  def url(config, blob) do
+    bucket = config.bucket
+
+    ExAws.S3.presigned_url(aws_config(config), :get, bucket, blob.key, expires_in: 300)
+  end
+
+  def delete(config, blob) do
+    bucket = config.bucket
+
+    ExAws.S3.delete_object(bucket, blob.key)
+    |> ExAws.request(config)
+  end
+
+  # ------------------------
+  # Need help with the below
+  # ------------------------
+
   def service_name do
     :amazon
   end
@@ -12,16 +32,17 @@ defmodule ActiveStorage.Service.S3Service do
     }
   end
 
-  def presigned_url(blob) do
-    bucket = config().bucket
+  # def presigned_url(blob) do
+  #   bucket = config().bucket
 
-    ExAws.S3.presigned_url(config(), :get, bucket, blob.key, expires_in: 300)
+  #   ExAws.S3.presigned_url(config(), :get, bucket, blob.key, expires_in: 300)
+  # end
+
+  defp aws_config(config) do
+    ExAws.Config.new(:s3, config)
   end
 
-  defp config do
-    ExAws.Config.new(:s3, Application.get_env(:active_storage, :storage)[:s3])
-  end
-
+  # TODO: What is presigned_url vs private_url vs public_url?
   def private_url(blob) do
     bucket = System.fetch_env!("AWS_S3_BUCKET")
 
