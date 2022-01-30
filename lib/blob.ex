@@ -11,7 +11,7 @@ defmodule ActiveStorage.Blob do
     field :checksum, :string
     field :content_type, :string
     field :filename, :string
-    # field :key, :string
+    field :key, :string
 
     # I wasn't able to get the JSON to render.  Error:
     # cannot load `"{\"identified\":true,\"analyzed\":true}"` as type :map for field :metadata in %ActiveStorage.Blob{...

@@ -13,10 +13,13 @@ defmodule ActiveStorage.Service.S3Service do
   end
 
   def presigned_url(blob) do
-    bucket = System.fetch_env!("AWS_S3_BUCKET")
+    bucket = config().bucket
 
-    ExAws.Config.new(:s3)
-    |> ExAws.S3.presigned_url(:get, bucket, blob.id)
+    ExAws.S3.presigned_url(config(), :get, bucket, blob.key, expires_in: 300)
+  end
+
+  defp config do
+    ExAws.Config.new(:s3, Application.get_env(:active_storage, :storage)[:s3])
   end
 
   def private_url(blob) do

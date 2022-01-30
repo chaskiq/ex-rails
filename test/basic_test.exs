@@ -43,10 +43,30 @@ defmodule StartingTest do
 
   # TODO: Cleanup table before each test
 
+  setup do
+    ExAws.S3.put_bucket("active-storage-test", "us-east-1")
+    |> ExAws.request(access_key_id: "root", secret_access_key: "active_storage_test", scheme: "http://", host: "localhost", port: 9000, force_path_style: true)
+    |> case do
+      {:error, {:http_error, 409, _}} ->
+        # Bucket already exists, not a problem
+
+        nil
+
+      other -> other
+    end
+
+    Ecto.Adapters.SQL.query!(
+      ActiveStorage.Test.Repo,
+      "TRUNCATE active_storage_blobs, active_storage_attachments, active_storage_variant_records RESTART IDENTITY", []
+    )
+
+    :ok
+  end
+
   describe "attachments" do
     # For `has_one_attached`
     # Ruby equivalent: `record.avatar` or `record.favorite_tree_picture`
-    test "get_attachment/2" do
+    test "get_attachment/2 - Local" do
       {:ok, body} = RailsApp.create_record()
 
       {:ok, _} = RailsApp.add_record_attachment(body.id, "avatar", "test/files/dog.jpg")
@@ -74,11 +94,40 @@ defmodule StartingTest do
       assert attachment == nil
     end
 
+    test "get_attachment/2 - Minio" do
+      {:ok, body} = RailsApp.create_record()
+
+      {:ok, attachment_result_body} = RailsApp.add_record_attachment(body.id, "minio_avatar", "test/files/dog.jpg")
+
+      attachment = ActiveStorage.get_attachment(%Record{id: body.id}, "minio_avatar")
+
+      assert attachment.record_type == "Record"
+      assert attachment.blob.byte_size == 269595
+      assert attachment.blob.checksum == "EaOUdw2PqEjswce87kCVow=="
+      assert attachment.blob.filename == "dog.jpg"
+
+      {:ok, url} = ActiveStorage.url_for_attachment(attachment)
+      {:ok, uri} = URI.new(url)
+      query = URI.decode_query(uri.query)
+
+      {:ok, ruby_uri} = URI.new(attachment_result_body.url)
+      ruby_query = URI.decode_query(ruby_uri.query)
+
+      # Not testing hostname.  Ruby sees it as `minio`, Elixir sees it as `localhost`
+      assert uri.port == 9000
+      assert uri.path == ruby_uri.path
+
+      assert query["X-Amz-Algorithm"] == ruby_query["X-Amz-Algorithm"]
+      assert query["X-Amz-Credential"] == ruby_query["X-Amz-Credential"]
+      # assert query["X-Amz-Date"] == ruby_query["X-Amz-Date"] # Can be off by a second, didn't want to bother parsing
+      assert query["X-Amz-Expires"] == ruby_query["X-Amz-Expires"]
+      assert query["X-Amz-SignedHeaders"] == ruby_query["X-Amz-SignedHeaders"]
+    end
+
     # For `has_many_attached`
     # Ruby equivalent: `post.images`
     test "get_attachments/2" do
       {:ok, body} = RailsApp.create_record()
-                 |> IO.inspect(label: :record)
 
       images = ActiveStorage.get_attachments(%Record{id: body.id}, "images")
       assert images == []

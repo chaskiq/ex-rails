@@ -198,6 +198,14 @@ defmodule ActiveStorage do
     |> repo().exists?()
   end
 
+  # TODO: Requires blob.  Should be blob be given?  Can we assume that it's always there?  Or should we validate
+  # that it's there (probably...)?
+  def url_for_attachment(attachment) do
+    "http://minio:9000/active-storage-test/#{attachment.blob.key}"
+
+    ActiveStorage.Service.S3Service.presigned_url(attachment.blob)
+  end
+
   defp attachment_query(%mod{id: record_id}, attachment_name) do
     record_type = mod.record_type()
 

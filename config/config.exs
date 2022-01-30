@@ -22,18 +22,22 @@ use Mix.Config
 #
 
 # Use rails credentials:edit to set the AWS secrets (as aws:access_key_id|secret_access_key)
-config :active_storage, :storage,
-  amazon: %{
-    service: "S3",
-    region: System.get_env("AWS_S3_REGION"),
-    access_key_id: System.get_env("AWS_ACCESS_KEY_ID"),
-    secret_access_key: System.get_env("AWS_SECRET_ACCESS_KEY")
+config :active_storage, :storage, %{
+  s3: %{
+    bucket: "active-storage-test",
+    access_key_id: "root",
+    secret_access_key: "active_storage_test",
+    scheme: "http://",
+    host: "localhost",
+    port: 9000,
+    force_path_style: true
   },
   local: %{service: "Disk", root: "storage"},
   test: %{
     service: "Disk",
     root: "tmp/storage"
   }
+}
 
 # Configure mogrify command:
 
