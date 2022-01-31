@@ -55,12 +55,7 @@ defmodule StartingTest do
       other -> other
     end
 
-    Ecto.Adapters.SQL.query!(
-      ActiveStorage.Test.Repo,
-      "TRUNCATE active_storage_blobs, active_storage_attachments, active_storage_variant_records RESTART IDENTITY", []
-    )
-
-    :ok
+    ActiveStorage.Test.Setup.cleanup_db()
   end
 
   describe "attachments" do

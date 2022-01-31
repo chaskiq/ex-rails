@@ -25,16 +25,3 @@ config :ex_aws, :s3,
   host: "s3.amazonaws.com",
   region: "us-east-1"
 
-config :active_storage, :storage,
-  amazon: %{
-    service: "S3",
-    region: System.get_env("AWS_S3_REGION"),
-    access_key_id: "abcd1234",
-    secret_access_key: "efgh5678",
-    bucket: System.get_env("AWS_BUCKET")
-  },
-  local: %{service: "Disk", root: "storage"},
-  test: %{
-    service: "Disk",
-    root: "tmp/storage"
-  }

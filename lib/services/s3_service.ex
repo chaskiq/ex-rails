@@ -1,4 +1,4 @@
-defmodule ActiveStorage.Service.S3 do
+defmodule ActiveStorage.Service.S3Service do
   @behaviour ActiveStorage.Service
 
   @impl ActiveStorage.Service
@@ -37,6 +37,9 @@ defmodule ActiveStorage.Service.S3 do
 
   #   ExAws.S3.presigned_url(config(), :get, bucket, blob.key, expires_in: 300)
   # end
+
+  defp config_for_blob(blob) do
+  end
 
   defp aws_config(config) do
     ExAws.Config.new(:s3, config)

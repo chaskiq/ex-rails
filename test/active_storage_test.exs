@@ -1,5 +1,5 @@
 defmodule ActiveStorageTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case, async: false
 
   alias Ecto.Adapters.SQL
   alias ActiveStorage.{Blob}
@@ -9,6 +9,10 @@ defmodule ActiveStorageTest do
   # alias Chaskiq.ActiveStorage
 
   # doctest ActiveStorage
+
+  setup do
+    ActiveStorage.Test.Setup.cleanup_db()
+  end
 
   describe "storage_blob" do
     alias ActiveStorage.Blob
@@ -26,6 +30,9 @@ defmodule ActiveStorageTest do
 
     test "list_storage_blob/0 returns all storage_blob" do
       storage_blob = storage_blob_fixture()
+
+      result = ActiveStorage.list_storage_blob()
+
       assert ActiveStorage.list_storage_blob() == [storage_blob]
     end
 

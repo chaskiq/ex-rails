@@ -49,7 +49,7 @@ defmodule ActiveStorage do
 
     _service = blob |> ActiveStorage.Blob.service()
 
-    ActiveStorage.Service.S3.create_direct_upload(blob, %{
+    ActiveStorage.Service.S3Service.create_direct_upload(blob, %{
       byte_size: byte_size,
       checksum: checksum,
       content_type: content_type,

@@ -24,37 +24,37 @@ defmodule ActiveStorage.Service do
   # TODO: Should later allow for per-attachment sources (not just default)
   # i.e. we send in an attachment as an argument and it figures out the service
   defp implementation do
-    source_config = default_source_config!()
+    service_config = default_service_config!()
 
-    {module_for!(source_config), source_config}
+    {module_for!(service_config), service_config}
   end
 
-  def module_for!(source_config) do
-    if Map.has_key?(source_config, :service) do
-      implementation_for_service(source_config.service)
-    else
-      raise "Source config needs to have a `service` key: #{inspect(source_config)}."
-    end
-  end
+#   def module_for!(service_config) do
+#     if Map.has_key?(service_config, :service) do
+#       implementation_for_service(service_config.service)
+#     else
+#       raise "Source config needs to have a `service` key: #{inspect(service_config)}."
+#     end
+#   end
 
 
-  def source_config_for!(source) do
-    sources = Application.fetch_env!(:active_storage, :sources)
+#   def service_config_for!(service_name) do
+#     services = Application.fetch_env!(:active_storage, :services)
 
-    case sources[source] do
-      nil ->
-        raise "Source not found: #{source}.  Configured options: #{inspect(Map.keys(sources))}."
+#     case services[service_name] do
+#       nil ->
+#         raise "Source not found: #{service_name}.  Configured options: #{inspect(Map.keys(services))}."
 
-      source_config -> source_config
-    end
-  end
+#       service_config -> service_config
+#     end
+#   end
 
-  def default_source_config! do
-    Application.fetch_env!(:active_storage, :default_source)
-    |> source_config_for!()
-  end
+#   def default_service_config! do
+#     Application.fetch_env!(:active_storage, :default_service)
+#     |> service_config_for!()
+#   end
 
-  defp implementation_for_service(:s3), do: ActiveStorage.Service.S3
+  def implementation_for_service(:s3), do: ActiveStorage.Service.S3Service
 
   # ------------------------
   # Need help with the below
