@@ -8,14 +8,7 @@ defmodule ActiveStorage.Service.Configurator do
     # @service = service
   end
 
-  # def instance_build(service_name, configurations) do
-  #  config_instance = new(configurations)
-  #  build(service_name, config_instance)
-  # end
-
   def build(service_name, configurations) do
-    # new(configurations).instance_build(service_name)
-
     config_instance = new(configurations)
     instance_build(service_name, config_instance)
   end

@@ -18,9 +18,3 @@ config :active_storage, ActiveStorage.Test.Repo,
   port: 5433,
   hostname: "localhost",
   poolsize: 10
-
-# config :ex_aws, :s3,
-#  scheme: "http://",
-#  # <- not sure what is the minio endpoint
-#  host: "s3.amazonaws.com",
-#  region: "us-east-1"

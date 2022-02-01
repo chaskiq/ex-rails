@@ -1,12 +1,5 @@
 defmodule ActiveStorage.ConfiguratorTest do
-  use ExUnit.Case, async: false
-  alias Ecto.Adapters.SQL
-  alias ActiveStorage.{Blob}
-  import Ecto.Query
-
-  # setup do
-  # ActiveStorage.Test.Setup.cleanup_db()
-  # end
+  use ExUnit.Case, async: true
 
   test "builds correct service instance based on service name" do
     service =
