@@ -8,11 +8,11 @@ defmodule ActiveStorage.Blob do
 
   # @foreign_key_type :binary_id
   schema "active_storage_blobs" do
-    field :byte_size, :integer
-    field :checksum, :string
-    field :content_type, :string
-    field :filename, :string
-    field :key, :string
+    field(:byte_size, :integer)
+    field(:checksum, :string)
+    field(:content_type, :string)
+    field(:filename, :string)
+    field(:key, :string)
 
     # I wasn't able to get the JSON to render.  Error:
     # cannot load `"{\"identified\":true,\"analyzed\":true}"` as type :map for field :metadata in %ActiveStorage.Blob{...
@@ -288,8 +288,9 @@ defmodule ActiveStorage.Blob do
 
   def upload_without_unfurling(blob, io) do
     srv = blob |> service
+    mod = srv.__struct__
 
-    case srv.upload(blob, io) do
+    case mod.upload(srv, blob, io) do
       {:ok, _response} ->
         blob
 

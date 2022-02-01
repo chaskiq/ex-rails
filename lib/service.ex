@@ -6,8 +6,8 @@
 # require "action_dispatch/http/content_disposition"
 
 defmodule ActiveStorage.Service do
-  @callback url(ActiveStorage.Attachment.t) :: String.t
-  @callback delete(ActiveStorage.Attachment.t) :: :ok | :error
+  @callback url(ActiveStorage.Attachment.t()) :: String.t()
+  @callback delete(ActiveStorage.Attachment.t()) :: :ok | :error
 
   def url(attachment) do
     {module, config} = implementation()
@@ -24,35 +24,34 @@ defmodule ActiveStorage.Service do
   # TODO: Should later allow for per-attachment sources (not just default)
   # i.e. we send in an attachment as an argument and it figures out the service
   defp implementation do
-    service_config = default_service_config!()
+    # service_config = default_service_config!()
 
-    {module_for!(service_config), service_config}
+    # {module_for!(service_config), service_config}
   end
 
-#   def module_for!(service_config) do
-#     if Map.has_key?(service_config, :service) do
-#       implementation_for_service(service_config.service)
-#     else
-#       raise "Source config needs to have a `service` key: #{inspect(service_config)}."
-#     end
-#   end
+  #   def module_for!(service_config) do
+  #     if Map.has_key?(service_config, :service) do
+  #       implementation_for_service(service_config.service)
+  #     else
+  #       raise "Source config needs to have a `service` key: #{inspect(service_config)}."
+  #     end
+  #   end
 
+  #   def service_config_for!(service_name) do
+  #     services = Application.fetch_env!(:active_storage, :services)
 
-#   def service_config_for!(service_name) do
-#     services = Application.fetch_env!(:active_storage, :services)
+  #     case services[service_name] do
+  #       nil ->
+  #         raise "Source not found: #{service_name}.  Configured options: #{inspect(Map.keys(services))}."
 
-#     case services[service_name] do
-#       nil ->
-#         raise "Source not found: #{service_name}.  Configured options: #{inspect(Map.keys(services))}."
+  #       service_config -> service_config
+  #     end
+  #   end
 
-#       service_config -> service_config
-#     end
-#   end
-
-#   def default_service_config! do
-#     Application.fetch_env!(:active_storage, :default_service)
-#     |> service_config_for!()
-#   end
+  #   def default_service_config! do
+  #     Application.fetch_env!(:active_storage, :default_service)
+  #     |> service_config_for!()
+  #   end
 
   def implementation_for_service(:s3), do: ActiveStorage.Service.S3Service
 

@@ -72,19 +72,18 @@ defmodule ActiveStorage.Service.S3Service do
   # https://www.poeticoding.com/aws-s3-in-elixir-with-exaws/
 
   # def upload(key, io, %{checksum: nil, filename: nil, content_type: nil, disposition: nil}) do
-  def upload(blob, io) do
+  def upload(service, blob, io) do
     # stream(io)
-    amazon = Application.fetch_env!(:active_storage, :storage) |> Keyword.get(:amazon)
-    bucket = amazon.bucket
-
+    # amazon = Application.fetch_env!(:active_storage, :storage) |> Keyword.get(:amazon)
+    # bucket = amazon.bucket
     operation =
       ExAws.S3.put_object(
-        bucket,
-        blob.id,
+        service.bucket,
+        blob.key,
         io
       )
 
-    ExAws.request(operation)
+    ExAws.request(operation, service.client)
   end
 
   def download(key) do
@@ -162,6 +161,52 @@ defmodule ActiveStorage.Service.S3Service do
     bucket = System.fetch_env!("AWS_S3_BUCKET")
 
     ExAws.S3.get_object(bucket, key) |> ExAws.request()
+  end
+
+  defstruct [
+    :public,
+    :name,
+    :client,
+    :bucket,
+    :multipart_upload_threshold,
+    :upload_options
+  ]
+
+  def new(%{client: cli, public: public, bucket: bucket}) do
+    %__MODULE__{client: cli, public: public, bucket: bucket}
+    # @service = service
+  end
+
+  # def new(%{bucket: bucket, upload: upload, public: public}, options \\ []) do
+  def new(%{bucket: bucket, public: public}, options \\ []) do
+    # ExAws.Config.new(:s3, config)
+    client = ExAws.Config.new(:s3, options) |> Map.put(:bucket, bucket)
+
+    # @client = Aws::S3::Resource.new(**options)
+    # @bucket = @client.bucket(bucket)
+
+    # @multipart_upload_threshold = upload.delete(:multipart_threshold) || 100.megabytes
+    # @public = public
+
+    # @upload_options = upload
+    # @upload_options[:acl] = "public-read" if public?
+    %__MODULE__{
+      client: client,
+      bucket: bucket,
+      public: public
+    }
+  end
+
+  def build(%{configurator: _c, name: n, service: s}, config) do
+    new(
+      %{
+        bucket: config.bucket,
+        # upload: {},
+        public: config |> Map.get(:public)
+      },
+      config
+    )
+    |> Map.put(:name, n)
   end
 end
 

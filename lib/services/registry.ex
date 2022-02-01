@@ -8,11 +8,15 @@ defmodule ActiveStorage.Service.Registry do
   end
 
   def fetch(source_name) do
-    source_config =
-      Application.get_env(:active_storage, :sources)
-      |> Keyword.get(source_name |> String.to_existing_atom())
+    asource_name = source_name |> String.to_existing_atom()
 
-    ActiveStorage.Service.Configurator.build(source_name, source_config)
+    source_config =
+      Application.get_env(:active_storage, :services)
+      |> Keyword.get(asource_name)
+
+    args = [] |> Keyword.put(asource_name, source_config)
+
+    ActiveStorage.Service.Configurator.build(asource_name, args)
 
     # services.fetch(name.to_sym) do |key|
     #   if configurations.include?(key)
