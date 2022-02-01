@@ -337,9 +337,10 @@ defmodule ActiveStorage.Blob do
   # Raises ActiveStorage::IntegrityError if the downloaded data does not match the blob's checksum.
   # , tmpdir: nil, fn) do
   def open(blob, block) do
-    [ext] = MIME.extensions(MIME.from_path(blob.filename))
+    ext = MIME.extensions(MIME.from_path(blob.filename)) |> hd
     name = ["ActiveStorage-#{blob.id}-", ".#{ext}"]
-    service(blob).open(blob.id, %{checksum: blob.checksum, name: name}, block)
+    service = service(blob)
+    service.__struct__.open(service, blob.key, %{checksum: blob.checksum, name: name}, block)
     # service.open blob.key, checksum: blob.checksum,
     #  name: [ "ActiveStorage-#{id}-", blob.filename.extension_with_delimiter ], tmpdir: tmpdir, &block
   end

@@ -14,10 +14,11 @@ defmodule StartingTest do
     def add_record_attachment(record_id, attachment_name, path) do
       post(
         "/records/#{record_id}/add_attachment",
-        {:multipart, [
-          {"attachment_name", attachment_name},
-          {:file, path}
-        ]}
+        {:multipart,
+         [
+           {"attachment_name", attachment_name},
+           {:file, path}
+         ]}
       )
       |> return_body()
     end
@@ -45,14 +46,22 @@ defmodule StartingTest do
 
   setup do
     ExAws.S3.put_bucket("active-storage-test", "us-east-1")
-    |> ExAws.request(access_key_id: "root", secret_access_key: "active_storage_test", scheme: "http://", host: "localhost", port: 9000, force_path_style: true)
+    |> ExAws.request(
+      access_key_id: "root",
+      secret_access_key: "active_storage_test",
+      scheme: "http://",
+      host: "localhost",
+      port: 9000,
+      force_path_style: true
+    )
     |> case do
       {:error, {:http_error, 409, _}} ->
         # Bucket already exists, not a problem
 
         nil
 
-      other -> other
+      other ->
+        other
     end
 
     ActiveStorage.Test.Setup.cleanup_db()
@@ -66,12 +75,13 @@ defmodule StartingTest do
 
       {:ok, _} = RailsApp.add_record_attachment(body.id, "avatar", "test/files/dog.jpg")
 
-      {:ok, _} = RailsApp.add_record_attachment(body.id, "favorite_tree_picture", "test/files/tree.png")
+      {:ok, _} =
+        RailsApp.add_record_attachment(body.id, "favorite_tree_picture", "test/files/tree.png")
 
       attachment = ActiveStorage.get_attachment(%Record{id: body.id}, "avatar")
 
       assert attachment.record_type == "Record"
-      assert attachment.blob.byte_size == 269595
+      assert attachment.blob.byte_size == 269_595
       assert attachment.blob.checksum == "EaOUdw2PqEjswce87kCVow=="
       assert attachment.blob.filename == "dog.jpg"
 
@@ -92,21 +102,22 @@ defmodule StartingTest do
     test "get_attachment/2 - Minio" do
       {:ok, body} = RailsApp.create_record()
 
-      {:ok, attachment_result_body} = RailsApp.add_record_attachment(body.id, "minio_avatar", "test/files/dog.jpg")
+      {:ok, attachment_result_body} =
+        RailsApp.add_record_attachment(body.id, "minio_avatar", "test/files/dog.jpg")
 
       attachment = ActiveStorage.get_attachment(%Record{id: body.id}, "minio_avatar")
 
       assert attachment.record_type == "Record"
-      assert attachment.blob.byte_size == 269595
+      assert attachment.blob.byte_size == 269_595
       assert attachment.blob.checksum == "EaOUdw2PqEjswce87kCVow=="
       assert attachment.blob.filename == "dog.jpg"
 
       # TODO: Put `url_for_attachment` in it's own test block
-      {:ok, url} = ActiveStorage.url_for_attachment(attachment)
-      {:ok, uri} = URI.new(url)
+      {:ok, url} = ActiveStorage.url_for_attachment(attachment, expires_in: 300)
+      uri = URI.parse(url)
       query = URI.decode_query(uri.query)
 
-      {:ok, ruby_uri} = URI.new(attachment_result_body.url)
+      ruby_uri = URI.parse(attachment_result_body.url)
       ruby_query = URI.decode_query(ruby_uri.query)
 
       # Not testing hostname.  Ruby sees it as `minio`, Elixir sees it as `localhost`
@@ -115,6 +126,7 @@ defmodule StartingTest do
 
       assert query["X-Amz-Algorithm"] == ruby_query["X-Amz-Algorithm"]
       assert query["X-Amz-Credential"] == ruby_query["X-Amz-Credential"]
+
       # assert query["X-Amz-Date"] == ruby_query["X-Amz-Date"] # Can be off by a second, didn't want to bother parsing
       assert query["X-Amz-Expires"] == ruby_query["X-Amz-Expires"]
       assert query["X-Amz-SignedHeaders"] == ruby_query["X-Amz-SignedHeaders"]
@@ -143,13 +155,13 @@ defmodule StartingTest do
 
       image = Enum.at(images, 0)
       assert image.record_type == "Record"
-      assert image.blob.byte_size == 4198124
+      assert image.blob.byte_size == 4_198_124
       assert image.blob.checksum == "ykudRDSZnqMj/cQMEyX3ng=="
       assert image.blob.filename == "oops.tiff"
 
       image = Enum.at(images, 1)
       assert image.record_type == "Record"
-      assert image.blob.byte_size == 269595
+      assert image.blob.byte_size == 269_595
       assert image.blob.checksum == "EaOUdw2PqEjswce87kCVow=="
       assert image.blob.filename == "dog.jpg"
     end
@@ -171,6 +183,7 @@ defmodule StartingTest do
       {:ok, _} = RailsApp.add_record_attachment(body.id, "minio_avatar", "test/files/dog.jpg")
 
       avatar_original = ActiveStorage.get_attachment(%Record{id: body.id}, "minio_avatar")
+
       {:ok, url} = ActiveStorage.url_for_attachment(avatar_original)
 
       attachment = ActiveStorage.purge_attachment(%Record{id: body.id}, "minio_avatar")

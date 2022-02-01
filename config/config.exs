@@ -33,6 +33,16 @@ config :active_storage, :services,
     port: 9000,
     force_path_style: true
   },
+  minio: %{
+    service: "S3",
+    bucket: "active-storage-test",
+    access_key_id: "root",
+    secret_access_key: "active_storage_test",
+    scheme: "http://",
+    host: "localhost",
+    port: 9000,
+    force_path_style: true
+  },
   local: %{service: "Disk", root: "storage"},
   test: %{
     service: "Disk",

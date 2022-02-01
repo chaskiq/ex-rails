@@ -1,4 +1,4 @@
-defmodule ActiveStorageTest do
+defmodule ActiveStorage.ConfiguratorTest do
   use ExUnit.Case, async: false
   alias Ecto.Adapters.SQL
   alias ActiveStorage.{Blob}

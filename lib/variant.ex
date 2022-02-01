@@ -127,8 +127,8 @@ defmodule ActiveStorage.Variant do
   end
 
   defp processed?(variant) do
-    service = variant.blob |> ActiveStorage.Blob.service()
-    service.exist?(key(variant))
+    service = ActiveStorage.Blob.service(variant.blob)
+    service.__struct__.exist?(service, key(variant))
     # service.exist?(service.key)
   end
 
