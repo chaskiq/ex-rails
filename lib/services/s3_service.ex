@@ -65,8 +65,6 @@ defmodule ActiveStorage.Service.S3Service do
 
     config = ExAws.Config.new(:s3, service.client)
 
-    require IEx
-    IEx.pry()
 
     case config |> ExAws.S3.get_object(bucket, key) do
       {:ok, url} -> url
