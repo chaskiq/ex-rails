@@ -6,6 +6,55 @@
 # require "action_dispatch/http/content_disposition"
 
 defmodule ActiveStorage.Service do
+  @callback url(ActiveStorage.Attachment.t()) :: String.t()
+  @callback delete(ActiveStorage.Attachment.t()) :: :ok | :error
+
+  def delete(attachment = %ActiveStorage.Attachment{blob: blob}) do
+    service = ActiveStorage.Blob.service(blob)
+    service.__struct__.delete(service, attachment.blob)
+  end
+
+  # Returns the URL for the file at the +key+. This returns a permanent URL for public files, and returns a
+  # short-lived URL for private files. For private files you can provide the +disposition+ (+:inline+ or +:attachment+),
+  # +filename+, and +content_type+ that you wish the file to be served with on request. Additionally, you can also provide
+  # the amount of seconds the URL will be valid for, specified in +expires_in+.
+  def url(a, opts \\ [])
+
+  def url(%ActiveStorage.Attachment{blob: blob}, opts) do
+    case url(blob, opts) do
+      nil -> nil
+      u -> {:ok, u}
+    end
+  end
+
+  def url(blob = %ActiveStorage.Blob{}, opts) do
+    #  instrument :url, key: key do |payload|
+    is_public = false
+    service = ActiveStorage.Blob.service(blob)
+
+    generated_url =
+      if is_public do
+        service.__struct__.public_url(service, blob, opts)
+      else
+        service.__struct__.private_url(service, blob, opts)
+      end
+
+    # payload[:url] = generated_url
+    generated_url
+    # end
+  end
+
+  defdelegate service_url(blob), to: __MODULE__, as: :url
+
+  # def service_url(blob) do
+  #  signed_blob_id = Chaskiq.Verifier.sign(blob.id)
+  #  "/active_storage/blobs/redirect/#{signed_blob_id}"
+  # end
+
+  # ------------------------
+  # Need help with the below
+  # ------------------------
+
   # Abstract class serving as an interface for concrete services.
   #
   # The available services are:
@@ -108,26 +157,6 @@ defmodule ActiveStorage.Service do
   # def exist?(key)
   #  raise NotImplementedError
   # end
-
-  # Returns the URL for the file at the +key+. This returns a permanent URL for public files, and returns a
-  # short-lived URL for private files. For private files you can provide the +disposition+ (+:inline+ or +:attachment+),
-  # +filename+, and +content_type+ that you wish the file to be served with on request. Additionally, you can also provide
-  # the amount of seconds the URL will be valid for, specified in +expires_in+.
-  def url(blob) do
-    #  instrument :url, key: key do |payload|
-    is_public = false
-
-    generated_url =
-      if is_public do
-        ActiveStorage.Blob.service(blob).public_url(blob)
-      else
-        ActiveStorage.Blob.service(blob).private_url(blob)
-      end
-
-    # payload[:url] = generated_url
-    generated_url
-    # end
-  end
 
   # Returns a signed, temporary URL that a direct upload file can be PUT to on the +key+.
   # The URL will be valid for the amount of seconds specified in +expires_in+.

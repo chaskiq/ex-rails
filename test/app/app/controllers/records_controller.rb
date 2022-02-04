@@ -12,14 +12,15 @@ class RecordsController < ApplicationController
   def add_attachment
     record = Record.find(params[:id])
 
-    new_attachment =
-      case Record.attachment_reflections[params[:attachment_name]]
-      when ActiveStorage::Reflection::HasOneAttachedReflection
-        record.update({params[:attachment_name] => params[:file]})
-      when ActiveStorage::Reflection::HasManyAttachedReflection
-        record.send(params[:attachment_name]).attach(params[:file])
-      end
+    new_attachment = record.send(params[:attachment_name]).attach(params[:file])
 
-    render json: new_attachment
+    new_attachment = [record.send(params[:attachment_name])].flatten.last
+
+    # puts "attachment: #{attachment.to_json.inspect}"
+
+    render json: {
+      attachment: new_attachment,
+      url: (new_attachment.url rescue nil),
+    }
   end
 end

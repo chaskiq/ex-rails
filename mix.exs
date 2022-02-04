@@ -4,11 +4,28 @@ defmodule ExActiveStorage.MixProject do
   def project do
     [
       app: :active_storage,
-      version: "0.1.0",
+      version: "0.0.1",
       elixir: ">= 1.12.0",
       start_permanent: Mix.env() == :prod,
       elixirc_paths: elixirc_paths(Mix.env()),
+      description: description(),
+      package: package(),
       deps: deps()
+    ]
+  end
+
+  defp description() do
+    "A library which allows for file storage compatible with Ruby's activestorage gem"
+  end
+
+  defp package() do
+    [
+      # This option is only needed when you don't want to use the OTP application name
+      name: "active_storage",
+      # These are the default files included in the package
+      files: ~w(lib .formatter.exs mix.exs README* LICENSE* CHANGELOG*),
+      licenses: ["MIT"],
+      links: %{"GitHub" => "https://github.com/chaskiq/active_storage_ex"}
     ]
   end
 
@@ -28,9 +45,12 @@ defmodule ExActiveStorage.MixProject do
       {:jason, "~> 1.3"},
       {:ecto, "~> 3.6.2"},
       {:ecto_sql, "~> 3.6"},
-      {:ex_aws_s3, "~> 2.1"},
-      {:ex_aws, "~> 2.1"},
+      {:ex_aws_s3, "~> 2.3"},
+      {:ex_aws, "~> 2.2"},
+      {:hackney, "~> 1.18"},
+      {:sweet_xml, "~> 0.6"},
       {:mogrify, "~> 0.9.1"},
+      {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
       {:plug_crypto, "~> 1.0"},
       {:ex_image_info, "~> 0.2.4"},
       {:postgrex, ">= 0.0.0", only: [:test]},

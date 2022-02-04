@@ -5,7 +5,7 @@ defmodule ActiveStorage do
 
   import Ecto.Query, warn: false
 
-  alias ActiveStorage.{Attachment, Blob, RepoClient, Verifier}
+  alias ActiveStorage.{Attachment, Blob, RepoClient, Service, Verifier}
 
   def verifier do
     Verifier
@@ -66,8 +66,7 @@ defmodule ActiveStorage do
   end
 
   def service_url(blob) do
-    signed_blob_id = Activestorage.verifier().sign(blob.id)
-    "/active_storage/blobs/redirect/#{signed_blob_id}"
+    ActiveStorage.Service.service_url(blob)
   end
 
   @doc """
@@ -176,11 +175,13 @@ defmodule ActiveStorage do
   """
   def get_attachment(record, attachment_name) do
     attachment_query(record, attachment_name)
+    |> preload(:blob)
     |> repo().one()
   end
 
   def get_attachments(record, attachment_name) do
     attachment_query(record, attachment_name)
+    |> preload(:blob)
     |> repo().all()
   end
 
@@ -197,6 +198,21 @@ defmodule ActiveStorage do
     |> repo().exists?()
   end
 
+  @doc """
+  Remove attachment from database as well as the actual resource file.  Done in a transaction so that
+  nothing is left dangling.
+  """
+  def purge_attachment(record, attachment_name) do
+    attachment = get_attachment(record, attachment_name)
+
+    repo().delete(attachment)
+    repo().delete(%Blob{id: attachment.blob_id})
+
+    Service.delete(attachment)
+  end
+
+  def url_for_attachment(attachment, opts \\ []), do: Service.url(attachment, opts)
+
   defp attachment_query(%mod{id: record_id}, attachment_name) do
     record_type = mod.record_type()
 
@@ -204,7 +220,6 @@ defmodule ActiveStorage do
       where:
         a.name == ^attachment_name and a.record_type == ^record_type and a.record_id == ^record_id
     )
-    |> preload(:blob)
   end
 
   defp repo do

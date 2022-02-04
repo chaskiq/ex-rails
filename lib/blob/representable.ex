@@ -106,9 +106,7 @@ defmodule ActiveStorage.Blob.Representable do
   end
 
   defp format(blob) do
-    [ext] = MIME.extensions(blob.content_type)
-
-    ext
+    MIME.extensions(blob.content_type) |> hd
 
     # if filename.extension.present? && MiniMime.lookup_by_extension(filename.extension)&.content_type == content_type
     #  filename.extension

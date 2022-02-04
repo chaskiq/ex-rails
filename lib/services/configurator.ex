@@ -1,21 +1,39 @@
 # frozen_string_literal: true
 
 defmodule ActiveStorage.Service.Configurator do
-  # attr_reader :configurations
+  defstruct [:configurations]
+
+  def new(configurations) do
+    %__MODULE__{configurations: configurations}
+    # @service = service
+  end
 
   def build(service_name, configurations) do
-    # new(configurations).instance_build(service_name)
-    instance_build(service_name, configurations)
+    config_instance = new(configurations)
+    instance_build(service_name, config_instance)
   end
 
-  # def initialize(configurations) do
-  def new(_configurations) do
-    # @configurations = configurations.deep_symbolize_keys
-  end
-
-  def instance_build(_service_name, configurations) do
+  def instance_build(service_key, configurator = %__MODULE__{configurations: service_configs}) do
     # config = config_for(service_name.to_sym)
-    resolve(configurations.service)
+    case Keyword.get(service_configs, service_key) do
+      nil ->
+        raise "Source not found: #{service_key}."
+
+      _ ->
+        config = service_configs |> Keyword.get(service_key)
+        service_name = config |> Map.get(:service)
+        r = resolve(service_name)
+
+        r.build(
+          %{
+            configurator: configurator,
+            name: service_name,
+            service: r
+          },
+          config
+        )
+    end
+
     # .build(
     #  **config, configurator: self, name: service_name
     # )
@@ -25,6 +43,10 @@ defmodule ActiveStorage.Service.Configurator do
     # configurations.fetch name do
     #  raise "Missing configuration for the #{name.inspect} Active Storage service. Configurations available for #{configurations.keys.inspect}"
     # end
+  end
+
+  defp resolve(nil) do
+    raise "no service found!"
   end
 
   defp resolve(class_name) do

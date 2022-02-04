@@ -1,4 +1,24 @@
 defmodule ActiveStorage.Service.S3Service do
+  @behaviour ActiveStorage.Service
+
+  @impl ActiveStorage.Service
+  def url(config, blob) do
+    bucket = config.bucket
+
+    ExAws.S3.presigned_url(aws_config(config), :get, bucket, blob.key, expires_in: 300)
+  end
+
+  def delete(config, blob) do
+    bucket = config.bucket
+
+    ExAws.S3.delete_object(bucket, blob.key)
+    |> ExAws.request(config.client)
+  end
+
+  # ------------------------
+  # Need help with the below
+  # ------------------------
+
   def service_name do
     :amazon
   end
@@ -12,31 +32,41 @@ defmodule ActiveStorage.Service.S3Service do
     }
   end
 
-  def presigned_url(blob) do
-    bucket = System.fetch_env!("AWS_S3_BUCKET")
+  # def presigned_url(blob) do
+  #   bucket = config().bucket
 
-    ExAws.Config.new(:s3)
-    |> ExAws.S3.presigned_url(:get, bucket, blob.id)
+  #   ExAws.S3.presigned_url(config(), :get, bucket, blob.key, expires_in: 300)
+  # end
+
+  defp config_for_blob(blob) do
   end
 
-  def private_url(blob) do
-    bucket = System.fetch_env!("AWS_S3_BUCKET")
+  defp aws_config(config) do
+    ExAws.Config.new(:s3, config)
+  end
+
+  # TODO: What is presigned_url vs private_url vs public_url?
+  def private_url(service, blob, opts \\ []) do
+    bucket = service.bucket
 
     # object_for(key).presigned_url :get, expires_in: expires_in.to_i,
     #  response_content_disposition: content_disposition_with(type: disposition, filename: filename),
     #  response_content_type: content_type
-    case ExAws.Config.new(:s3) |> ExAws.S3.presigned_url(:get, bucket, blob.id) do
+    config = ExAws.Config.new(:s3, service.client)
+
+    case config |> ExAws.S3.presigned_url(:get, bucket, blob.key, opts) do
       {:ok, url} -> url
       _ -> nil
     end
   end
 
-  def public_url(key) do
-    bucket = System.fetch_env!("AWS_S3_BUCKET")
+  def public_url(service, key) do
+    bucket = service.bucket
 
-    # object_for(key).public_url
-    case ExAws.Config.new(:s3)
-         |> ExAws.S3.get_object(bucket, key) do
+    config = ExAws.Config.new(:s3, service.client)
+
+
+    case config |> ExAws.S3.get_object(bucket, key) do
       {:ok, url} -> url
       _ -> nil
     end
@@ -45,35 +75,25 @@ defmodule ActiveStorage.Service.S3Service do
   # https://www.poeticoding.com/aws-s3-in-elixir-with-exaws/
 
   # def upload(key, io, %{checksum: nil, filename: nil, content_type: nil, disposition: nil}) do
-  def upload(blob, io) do
+  def upload(service, blob, io) do
     # stream(io)
-    amazon = Application.fetch_env!(:active_storage, :storage) |> Keyword.get(:amazon)
-    bucket = amazon.bucket
-
+    # amazon = Application.fetch_env!(:active_storage, :storage) |> Keyword.get(:amazon)
+    # bucket = amazon.bucket
     operation =
       ExAws.S3.put_object(
-        bucket,
-        blob.id,
+        service.bucket,
+        blob.key,
         io
       )
 
-    ExAws.request(operation)
+    ExAws.request(operation, service.client)
   end
 
-  def download(key) do
-    _bucket = System.fetch_env!("AWS_S3_BUCKET")
-
-    case object_for(key) do
+  def download(service, key) do
+    case object_for(service, key) do
       {:ok, %{body: body}} -> body
       _ -> nil
     end
-
-    # ExAws.S3.download_file(
-    #  bucket,
-    #  key,
-    #  "local_file.txt"
-    # )
-    # |> ExAws.request!()
   end
 
   def stream(filename) do
@@ -87,9 +107,9 @@ defmodule ActiveStorage.Service.S3Service do
   # end
 
   # def open(*args, **options, &block) do
-  def open(blob, args, block) do
+  def open(service, blob, args, block) do
     # .open(*args, **options, &block)
-    ActiveStorage.Downloader.new(__MODULE__)
+    ActiveStorage.Downloader.new(service)
     |> ActiveStorage.Downloader.open(blob, args, block)
   end
 
@@ -116,11 +136,11 @@ defmodule ActiveStorage.Service.S3Service do
     }
   end
 
-  def exist?(key) do
-    bucket = System.fetch_env!("AWS_S3_BUCKET")
+  def exist?(service, key) do
+    bucket = service.bucket
     # instrument :exist, key: key do |payload|
     # answer = object_for(key)
-    case ExAws.S3.head_object(bucket, key) |> ExAws.request() do
+    case ExAws.S3.head_object(bucket, key) |> ExAws.request(service.client) do
       {:ok, _} -> true
       {:error, _} -> false
     end
@@ -131,10 +151,55 @@ defmodule ActiveStorage.Service.S3Service do
     # end
   end
 
-  def object_for(key) do
-    bucket = System.fetch_env!("AWS_S3_BUCKET")
+  def object_for(service, key) do
+    bucket = service.bucket
+    ExAws.S3.get_object(bucket, key) |> ExAws.request(service.client)
+  end
 
-    ExAws.S3.get_object(bucket, key) |> ExAws.request()
+  defstruct [
+    :public,
+    :name,
+    :client,
+    :bucket,
+    :multipart_upload_threshold,
+    :upload_options
+  ]
+
+  def new(%{client: cli, public: public, bucket: bucket}) do
+    %__MODULE__{client: cli, public: public, bucket: bucket}
+    # @service = service
+  end
+
+  # def new(%{bucket: bucket, upload: upload, public: public}, options \\ []) do
+  def new(%{bucket: bucket, public: public}, options \\ []) do
+    # ExAws.Config.new(:s3, config)
+    client = ExAws.Config.new(:s3, options) |> Map.put(:bucket, bucket)
+
+    # @client = Aws::S3::Resource.new(**options)
+    # @bucket = @client.bucket(bucket)
+
+    # @multipart_upload_threshold = upload.delete(:multipart_threshold) || 100.megabytes
+    # @public = public
+
+    # @upload_options = upload
+    # @upload_options[:acl] = "public-read" if public?
+    %__MODULE__{
+      client: client,
+      bucket: bucket,
+      public: public
+    }
+  end
+
+  def build(%{configurator: _c, name: n, service: s}, config) do
+    new(
+      %{
+        bucket: config.bucket,
+        # upload: {},
+        public: config |> Map.get(:public)
+      },
+      config
+    )
+    |> Map.put(:name, n)
   end
 end
 
