@@ -55,9 +55,6 @@ defmodule ActiveStorage.Blob.Analyzable do
   end
 
   defp analyzer_class(blob) do
-    require IEx
-    IEx.pry()
-
     # ActiveStorage.analyzers.detect { |klass| klass.accept?(self) } || ActiveStorage::Analyzer::NullAnalyzer
   end
 end

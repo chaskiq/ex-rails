@@ -295,8 +295,6 @@ defmodule ActiveStorage.Blob do
         blob
 
       {:error, err} ->
-        require IEx
-        IEx.pry()
         nil
     end
 

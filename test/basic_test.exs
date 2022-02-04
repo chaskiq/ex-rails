@@ -113,7 +113,7 @@ defmodule StartingTest do
       assert attachment.blob.filename == "dog.jpg"
 
       # TODO: Put `url_for_attachment` in it's own test block
-      {:ok, url} = ActiveStorage.url_for_attachment(attachment, expires_in: 300)
+      url = ActiveStorage.url_for_attachment(attachment, expires_in: 300)
       uri = URI.parse(url)
       query = URI.decode_query(uri.query)
 
@@ -184,7 +184,7 @@ defmodule StartingTest do
 
       avatar_original = ActiveStorage.get_attachment(%Record{id: body.id}, "minio_avatar")
 
-      {:ok, url} = ActiveStorage.url_for_attachment(avatar_original)
+      url = ActiveStorage.url_for_attachment(avatar_original)
 
       attachment = ActiveStorage.purge_attachment(%Record{id: body.id}, "minio_avatar")
 

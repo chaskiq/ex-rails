@@ -21,7 +21,7 @@ defmodule ActiveStorage.Service do
   # the amount of seconds the URL will be valid for, specified in +expires_in+.
   def url(a, opts \\ [])
 
-  def url(%ActiveStorage.Attachment{blob: blob}, opts)u do
+  def url(%ActiveStorage.Attachment{blob: blob}, opts) do
     url(blob, opts)
   end
 
