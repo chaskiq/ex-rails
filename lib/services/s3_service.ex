@@ -45,31 +45,21 @@ defmodule ActiveStorage.Service.S3Service do
     ExAws.Config.new(:s3, config)
   end
 
-  # TODO: What is presigned_url vs private_url vs public_url?
   def private_url(service, blob, opts \\ []) do
     bucket = service.bucket
 
     # object_for(key).presigned_url :get, expires_in: expires_in.to_i,
     #  response_content_disposition: content_disposition_with(type: disposition, filename: filename),
     #  response_content_type: content_type
-    config = ExAws.Config.new(:s3, service.client)
-
-    case config |> ExAws.S3.presigned_url(:get, bucket, blob.key, opts) do
-      {:ok, url} -> url
-      _ -> nil
-    end
+    ExAws.Config.new(:s3, service.client)
+    |> ExAws.S3.presigned_url(:get, bucket, blob.key, opts)
   end
 
   def public_url(service, key) do
     bucket = service.bucket
 
-    config = ExAws.Config.new(:s3, service.client)
-
-
-    case config |> ExAws.S3.get_object(bucket, key) do
-      {:ok, url} -> url
-      _ -> nil
-    end
+    ExAws.Config.new(:s3, service.client)
+    |> ExAws.S3.get_object(bucket, key)
   end
 
   # https://www.poeticoding.com/aws-s3-in-elixir-with-exaws/

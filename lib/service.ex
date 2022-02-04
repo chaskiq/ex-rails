@@ -6,7 +6,7 @@
 # require "action_dispatch/http/content_disposition"
 
 defmodule ActiveStorage.Service do
-  @callback url(ActiveStorage.Attachment.t()) :: String.t()
+  @callback url(ActiveStorage.Attachment.t()) :: String.t() | nil
   @callback delete(ActiveStorage.Attachment.t()) :: :ok | :error
 
   def delete(attachment = %ActiveStorage.Attachment{blob: blob}) do
@@ -20,11 +20,8 @@ defmodule ActiveStorage.Service do
   # the amount of seconds the URL will be valid for, specified in +expires_in+.
   def url(a, opts \\ [])
 
-  def url(%ActiveStorage.Attachment{blob: blob}, opts) do
-    case url(blob, opts) do
-      nil -> nil
-      u -> {:ok, u}
-    end
+  def url(%ActiveStorage.Attachment{blob: blob}, opts)u do
+    url(blob, opts)
   end
 
   def url(blob = %ActiveStorage.Blob{}, opts) do
@@ -32,15 +29,17 @@ defmodule ActiveStorage.Service do
     is_public = false
     service = ActiveStorage.Blob.service(blob)
 
-    generated_url =
-      if is_public do
-        service.__struct__.public_url(service, blob, opts)
-      else
-        service.__struct__.private_url(service, blob, opts)
-      end
+    if is_public do
+      service.__struct__.public_url(service, blob, opts)
+    else
+      service.__struct__.private_url(service, blob, opts)
+    end
+    |> case do
+      {:ok, value} -> value
+      {:error, _} -> nil
+    end
 
     # payload[:url] = generated_url
-    generated_url
     # end
   end
 
