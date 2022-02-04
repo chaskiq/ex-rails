@@ -61,13 +61,12 @@ defmodule ActiveStorage do
   #  service(blob).url(blob)
   # end
 
-  # def url(blob) do
-  #   ActiveStorage.Service.url(blob)
-  # end
+  def url(blob) do
+    ActiveStorage.Service.url(blob)
+  end
 
   def service_url(blob) do
-    signed_blob_id = Activestorage.verifier().sign(blob.id)
-    "/active_storage/blobs/redirect/#{signed_blob_id}"
+    ActiveStorage.Service.service_url(blob)
   end
 
   @doc """
@@ -212,7 +211,7 @@ defmodule ActiveStorage do
     Service.delete(attachment)
   end
 
-  def url_for_attachment(attachment), do: Service.url(attachment)
+  def url_for_attachment(attachment, opts \\ []), do: Service.url(attachment, opts)
 
   defp attachment_query(%mod{id: record_id}, attachment_name) do
     record_type = mod.record_type()

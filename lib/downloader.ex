@@ -10,7 +10,8 @@ defmodule ActiveStorage.Downloader do
 
   # def open(key, %{checksum: checksum, verify: verify, name: name, tmpdir: tmpdir}) do
   def open(downloader, key, args, block) do
-    a = downloader.service.download(key)
+    service = downloader.service
+    a = downloader.service.__struct__.download(service, key)
 
     dir = System.tmp_dir!()
     tmp_file = Path.join(dir, args.name)

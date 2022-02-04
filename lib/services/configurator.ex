@@ -1,32 +1,37 @@
 # frozen_string_literal: true
 
 defmodule ActiveStorage.Service.Configurator do
-  # attr_reader :configurations
+  defstruct [:configurations]
 
-  def build(service_name) do
-    # new(configurations).instance_build(service_name)
-
-    instance_build(service_name, Application.fetch_env!(:active_storage, :services)
+  def new(configurations) do
+    %__MODULE__{configurations: configurations}
+    # @service = service
   end
 
-  # def initialize(configurations) do
-  # def new(_configurations) do
-  #   # @configurations = configurations.deep_symbolize_keys
-  # end
+  def build(service_name, configurations) do
+    config_instance = new(configurations)
+    instance_build(service_name, config_instance)
+  end
 
-  def instance_build(service_name, service_configs) do
+  def instance_build(service_key, configurator = %__MODULE__{configurations: service_configs}) do
     # config = config_for(service_name.to_sym)
-
-    case Keyword.get(service_configs, service_name) do
+    case Keyword.get(service_configs, service_key) do
       nil ->
-        raise "Source not found: #{service_name}.  Configured options: #{inspect(Map.keys(services))}."
+        raise "Source not found: #{service_key}."
 
-      service_config ->
-        resolve(service_config)
-        # %{
-        #   module: resolve(service_config)
-        #   config: service_config
-        # }
+      _ ->
+        config = service_configs |> Keyword.get(service_key)
+        service_name = config |> Map.get(:service)
+        r = resolve(service_name)
+
+        r.build(
+          %{
+            configurator: configurator,
+            name: service_name,
+            service: r
+          },
+          config
+        )
     end
 
     # .build(
@@ -34,21 +39,19 @@ defmodule ActiveStorage.Service.Configurator do
     # )
   end
 
-  defp config_for(service_name) do
+  defp config_for(_name) do
     # configurations.fetch name do
     #  raise "Missing configuration for the #{name.inspect} Active Storage service. Configurations available for #{configurations.keys.inspect}"
     # end
   end
 
-  defp resolve(service_config) do
-    if Map.has_key?(service_config, :service) do
-      class_name = class_name |> Macro.camelize()
+  defp resolve(nil) do
+    raise "no service found!"
+  end
 
-      Module.concat(["ActiveStorage.Service.#{service_config.service}Service"])
-    else
-      raise "Missing service adapter for #{inspect(service_config)}."
-    end
-
+  defp resolve(class_name) do
+    class_name = class_name |> Macro.camelize()
+    Module.concat(["ActiveStorage.Service.#{class_name}Service"])
     # require "active_storage/service/#{class_name.to_s.underscore}_service"
     # ActiveStorage::Service.const_get(:"#{class_name.camelize}Service")
     # rescue LoadError

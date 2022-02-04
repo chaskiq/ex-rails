@@ -6,55 +6,50 @@
 # require "action_dispatch/http/content_disposition"
 
 defmodule ActiveStorage.Service do
-  @callback url(ActiveStorage.Attachment.t) :: String.t
-  @callback delete(ActiveStorage.Attachment.t) :: :ok | :error
+  @callback url(ActiveStorage.Attachment.t()) :: String.t()
+  @callback delete(ActiveStorage.Attachment.t()) :: :ok | :error
 
-  def url(attachment) do
-    {module, config} = implementation()
-
-    module.url(config, attachment.blob)
+  def delete(attachment = %ActiveStorage.Attachment{blob: blob}) do
+    service = ActiveStorage.Blob.service(blob)
+    service.__struct__.delete(service, attachment.blob)
   end
 
-  def delete(attachment) do
-    {module, config} = implementation()
+  # Returns the URL for the file at the +key+. This returns a permanent URL for public files, and returns a
+  # short-lived URL for private files. For private files you can provide the +disposition+ (+:inline+ or +:attachment+),
+  # +filename+, and +content_type+ that you wish the file to be served with on request. Additionally, you can also provide
+  # the amount of seconds the URL will be valid for, specified in +expires_in+.
+  def url(a, opts \\ [])
 
-    module.delete(config, attachment.blob)
+  def url(%ActiveStorage.Attachment{blob: blob}, opts) do
+    case url(blob, opts) do
+      nil -> nil
+      u -> {:ok, u}
+    end
   end
 
-  # TODO: Should later allow for per-attachment sources (not just default)
-  # i.e. we send in an attachment as an argument and it figures out the service
-  defp implementation do
-    service_config = default_service_config!()
+  def url(blob = %ActiveStorage.Blob{}, opts) do
+    #  instrument :url, key: key do |payload|
+    is_public = false
+    service = ActiveStorage.Blob.service(blob)
 
-    {module_for!(service_config), service_config}
+    generated_url =
+      if is_public do
+        service.__struct__.public_url(service, blob, opts)
+      else
+        service.__struct__.private_url(service, blob, opts)
+      end
+
+    # payload[:url] = generated_url
+    generated_url
+    # end
   end
 
-#   def module_for!(service_config) do
-#     if Map.has_key?(service_config, :service) do
-#       implementation_for_service(service_config.service)
-#     else
-#       raise "Source config needs to have a `service` key: #{inspect(service_config)}."
-#     end
-#   end
+  defdelegate service_url(blob), to: __MODULE__, as: :url
 
-
-#   def service_config_for!(service_name) do
-#     services = Application.fetch_env!(:active_storage, :services)
-
-#     case services[service_name] do
-#       nil ->
-#         raise "Source not found: #{service_name}.  Configured options: #{inspect(Map.keys(services))}."
-
-#       service_config -> service_config
-#     end
-#   end
-
-#   def default_service_config! do
-#     Application.fetch_env!(:active_storage, :default_service)
-#     |> service_config_for!()
-#   end
-
-  def implementation_for_service(:s3), do: ActiveStorage.Service.S3Service
+  # def service_url(blob) do
+  #  signed_blob_id = Chaskiq.Verifier.sign(blob.id)
+  #  "/active_storage/blobs/redirect/#{signed_blob_id}"
+  # end
 
   # ------------------------
   # Need help with the below
@@ -162,26 +157,6 @@ defmodule ActiveStorage.Service do
   # def exist?(key)
   #  raise NotImplementedError
   # end
-
-  # Returns the URL for the file at the +key+. This returns a permanent URL for public files, and returns a
-  # short-lived URL for private files. For private files you can provide the +disposition+ (+:inline+ or +:attachment+),
-  # +filename+, and +content_type+ that you wish the file to be served with on request. Additionally, you can also provide
-  # the amount of seconds the URL will be valid for, specified in +expires_in+.
-  def url(blob) do
-    #  instrument :url, key: key do |payload|
-    is_public = false
-
-    generated_url =
-      if is_public do
-        ActiveStorage.Blob.service(blob).public_url(blob)
-      else
-        ActiveStorage.Blob.service(blob).private_url(blob)
-      end
-
-    # payload[:url] = generated_url
-    generated_url
-    # end
-  end
 
   # Returns a signed, temporary URL that a direct upload file can be PUT to on the +key+.
   # The URL will be valid for the amount of seconds specified in +expires_in+.
