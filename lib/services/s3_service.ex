@@ -2,12 +2,6 @@ defmodule ActiveStorage.Service.S3Service do
   @behaviour ActiveStorage.Service
 
   @impl ActiveStorage.Service
-  def url(config, blob) do
-    bucket = config.bucket
-
-    ExAws.S3.presigned_url(aws_config(config), :get, bucket, blob.key, expires_in: 300)
-  end
-
   def delete(config, blob) do
     bucket = config.bucket
 
@@ -45,6 +39,7 @@ defmodule ActiveStorage.Service.S3Service do
     ExAws.Config.new(:s3, config)
   end
 
+  @impl ActiveStorage.Service
   def private_url(service, blob, opts \\ []) do
     bucket = service.bucket
 
@@ -55,6 +50,7 @@ defmodule ActiveStorage.Service.S3Service do
     |> ExAws.S3.presigned_url(:get, bucket, blob.key, opts)
   end
 
+  @impl ActiveStorage.Service
   def public_url(service, key) do
     bucket = service.bucket
 

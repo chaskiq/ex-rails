@@ -6,8 +6,9 @@
 # require "action_dispatch/http/content_disposition"
 
 defmodule ActiveStorage.Service do
-  @callback url(ActiveStorage.Attachment.t()) :: String.t() | nil
   @callback delete(ActiveStorage.Attachment.t()) :: :ok | :error
+  @callback public_url(ActiveStorage.Attachment.t()) :: :ok | :error
+  @callback private_url(ActiveStorage.Attachment.t()) :: :ok | :error
 
   def delete(attachment = %ActiveStorage.Attachment{blob: blob}) do
     service = ActiveStorage.Blob.service(blob)
