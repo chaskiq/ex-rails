@@ -72,14 +72,113 @@ defmodule MyApp.MyContext.Person do
 
 ### Usage
 
+#### Attaching from HTTP requests
+
+Ruby: `user.avatar.attach(params[:avatar])`
+Elixir: `?????`
+
+Ruby: `message.images.attach(params[:images])`
+Elixir: `?????`
+
+#### TODO: Attaching from File/IO Objects
+
+Ruby:
+    @message.images.attach(io: File.open('/path/to/file'), filename: 'file.pdf')
+
+has_one?
+
+#### Fetching files
+
 Ruby: `user.avatar`
 Elixir: `ActiveStorage.get_attachment(user, "avatar")
 
 Ruby: `user.images`
 Elixir: `ActiveStorage.get_attachments(post, "images")
 
+#### Checking if attachments exist
+
 Ruby: `user.avatar.attached?`
 Elixir: `ActiveStorage.attached?(user, "avatar")
+
+Ruby: `message.images.attached?`
+Elixir: `ActiveStorage.attached?(message, "images")
+
+#### TODO: Defining attachments in Ecto schemas
+
+#### TODO: Defining attachment variants
+
+Ruby:
+    has_one_attached :avatar do |attachable|
+      attachable.variant :thumb, resize_to_limit: [100, 100]
+    end
+    has_many_attached :images do |attachable|
+      attachable.variant :thumb, resize_to_limit: [100, 100]
+    end
+
+#### Removing attachments
+
+Ruby: `user.avatar.purge`
+Elixir: `ActiveStorage.purge_attachment(user, "avatar")
+
+TODO: `has_many`
+
+TODO? Should we support an alternative to `purge_later`?  Phoenix / Elixir doesn't have something like ActiveJob, but maybe with Elixir `Task`s?
+
+#### Redirect
+
+Ruby: `url_for(user.avatar)`
+
+Ruby: `rails_blob_path(user.avatar, disposition: "attachment")`
+
+TODO: Something for Plug/Phoenix?  Separate library?
+
+See note about XSS attacks: https://edgeguides.rubyonrails.org/active_storage_overview.html#redirect-mode
+
+#### TODO: Proxy mode
+
+https://edgeguides.rubyonrails.org/active_storage_overview.html#redirect-mode
+
+CDN instructions?
+
+#### TODO: Authenticated controllers?
+
+Leave to Plug/Phoenix?
+
+
+#### TODO: Downloading files
+
+https://edgeguides.rubyonrails.org/active_storage_overview.html#downloading-files
+
+#### TODO: Analyzing files
+
+https://edgeguides.rubyonrails.org/active_storage_overview.html#analyzing-files
+
+#### TODO: Displaying Images, Videos, and PDFs
+
+Phoenix thing???
+
+https://edgeguides.rubyonrails.org/active_storage_overview.html#displaying-images-videos-and-pdfs
+
+#### TODO: Direct Uploads
+
+https://edgeguides.rubyonrails.org/active_storage_overview.html#direct-uploads
+
+`activestorage.js`
+
+CORS config
+
+#### TODO: Testing
+
+https://edgeguides.rubyonrails.org/active_storage_overview.html#testing
+
+#### TODO: Implementing Support for Other Cloud Services
+
+https://edgeguides.rubyonrails.org/active_storage_overview.html#implementing-support-for-other-cloud-services
+
+#### TODO: Purging Unattached Uploads
+
+https://edgeguides.rubyonrails.org/active_storage_overview.html#purging-unattached-uploads
+
 
 ### router:
 
