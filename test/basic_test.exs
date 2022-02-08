@@ -1,5 +1,5 @@
 defmodule StartingTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case, async: false
 
   alias ActiveStorage.Test.{Record, Repo}
 

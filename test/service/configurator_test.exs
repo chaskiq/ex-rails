@@ -1,5 +1,5 @@
 defmodule ActiveStorage.ConfiguratorTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case, async: false
 
   test "builds correct service instance based on service name" do
     service =

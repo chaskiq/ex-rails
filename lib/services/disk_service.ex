@@ -34,6 +34,134 @@ defmodule ActiveStorage.Service.DiskService do
     #  service_instance.name = name
     # end
   end
+
+  def upload(service, key, io, options \\ []) do
+    default = [checksum: nil]
+    options = Keyword.merge(default, options)
+    # instrument :upload, key: key, checksum: checksum do
+    # IO.copy_stream(io, make_path_for(key))
+    p = make_path_for(service, key.key)
+    IO.inspect(p)
+
+    case File.write(p, io) do
+      :ok ->
+        # ensure_integrity_of(key, checksum) if checksum
+        {:ok, p}
+
+      _ ->
+        {:error, "could not upload file from disk service"}
+    end
+
+    # ensure_integrity_of(key, checksum) if checksum
+  end
+
+  def download(service, key, _block \\ nil) do
+    # if block_given?
+    #   instrument :streaming_download, key: key do
+    #     stream key, &block
+    #   end
+    # else
+    #   instrument :download, key: key do
+    #     File.binread path_for(key)
+    #   rescue Errno::ENOENT
+    #     raise ActiveStorage::FileNotFoundError
+    #   end
+    # end
+    File.read(path_for(service, key))
+  end
+
+  def download_chunk(key, range) do
+    # instrument :download_chunk, key: key, range: range do
+    #   File.open(path_for(key), "rb") do |file|
+    #     file.seek range.begin
+    #     file.read range.size
+    #   end
+    # rescue Errno::ENOENT
+    #   raise ActiveStorage::FileNotFoundError
+    # end
+  end
+
+  def delete(service, key) do
+    # instrument :delete, key: key do
+    #   File.delete path_for(key)
+    File.rm(path_for(service, key))
+    # rescue Errno::ENOENT
+    #   # Ignore files already deleted
+    # end
+  end
+
+  def delete_prefixed(service, prefix) do
+    # instrument :delete_prefixed, prefix: prefix do
+    File.rm_rf(path_for(service, "#{prefix}*"))
+    #   Dir.glob(path_for("#{prefix}*")).each do |path|
+    #     FileUtils.rm_rf(path)
+    #   end
+    # end
+  end
+
+  def exist?(service, key) do
+    # instrument :exist, key: key do |payload|
+    #   answer = File.exist? path_for(key)
+    #   payload[:exist] = answer
+    #   answer
+    # end
+    File.exist?(path_for(service, key))
+  end
+
+  def url_for_direct_upload(key, options \\ []) do
+    default = [expires_in: nil, content_type: nil, content_length: nil, checksum: nil]
+    options = Keyword.merge(default, options)
+
+    # instrument :url, key: key do |payload|
+    #  verified_token_with_expiration = ActiveStorage.verifier.generate(
+    #    {
+    #      key: key,
+    #      content_type: content_type,
+    #      content_length: content_length,
+    #      checksum: checksum,
+    #      service_name: name
+    #    },
+    #    expires_in: expires_in,
+    #    purpose: :blob_token
+    #  )
+
+    #  generated_url = url_helpers.update_rails_disk_service_url(verified_token_with_expiration, host: current_host)
+
+    #  payload[:url] = generated_url
+
+    #  generated_url
+    # end
+  end
+
+  def headers_for_direct_upload(key, options \\ []) do
+    default = [content_type: nil]
+    options = Keyword.merge(default, options)
+    %{"Content-Type" => options[:content_type]}
+  end
+
+  def path_for(service, key) do
+    # File.join root, folder_for(key), key
+    Path.join(service.root, folder_for(key)) |> Path.join(key)
+  end
+
+  def folder_for(key) do
+    key
+    # [ key[0..1], key[2..3] ].join("/")
+  end
+
+  def make_path_for(service, key) do
+    path = path_for(service, key)
+    File.mkdir_p!(Path.dirname(path))
+    path
+    # path_for(key).tap { |path| FileUtils.mkdir_p File.dirname(path) }
+  end
+
+  def ensure_integrity_of(key, checksum) do
+    # unless Digest::MD5.file(path_for(key)).base64digest == checksum
+    #  delete key
+    #  raise ActiveStorage::IntegrityError
+    # end
+  end
 end
 
 # <ActiveStorage::Service::DiskService:0x00007fb8d69dece8

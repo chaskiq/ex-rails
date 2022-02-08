@@ -116,13 +116,19 @@ defmodule ActiveStorage.Blob do
         service_name: service_name
       })
 
-    case n do
-      %Ecto.Changeset{valid?: true} ->
-        n |> unfurl(io, %{identify: identify})
+    n =
+      case n do
+        %Ecto.Changeset{valid?: true} ->
+          n |> unfurl(io, %{identify: identify})
 
-      %Ecto.Changeset{valid?: false} ->
-        n
-    end
+        %Ecto.Changeset{valid?: false} ->
+          n
+      end
+
+    # require IEx
+    # IEx.pry()
+
+    n
 
     # new(key: key, filename: filename, content_type: content_type, metadata: metadata, service_name: service_name).tap do |blob|
     #  blob.unfurl(io, identify: identify)
@@ -224,9 +230,12 @@ defmodule ActiveStorage.Blob do
   # Deletes the files on the service associated with the blob. This should only be done if the blob is going to be
   # deleted as well or you will essentially have a dead reference. It's recommended to use #purge and #purge_later
   # methods in most circumstances.
-  def delete(_blob) do
-    # service.delete(key)
-    # service.delete_prefixed("variants/#{key}/") if image?
+  def delete(service, blob) do
+    service.__struct__.delete(service, blob.key)
+
+    if image?(blob) do
+      service.__struct__.delete_prefixed("variants/#{blob.key}/")
+    end
   end
 
   # Destroys the blob record and then deletes the file on the service. This is the recommended way to dispose of unwanted
@@ -300,6 +309,13 @@ defmodule ActiveStorage.Blob do
 
     # srv.upload(blob, "./README.md")
     # service.upload key, io, checksum: checksum, **service_metadata
+  end
+
+  # Downloads the file associated with this blob. If no block is given, the entire file is read into memory and returned.
+  # That'll use a lot of RAM for very large files. If a block is given, then the download is streamed and yielded in chunks.
+  def download(blob, block \\ nil) do
+    s = service(blob)
+    s.__struct__.download(s, blob.key, block)
   end
 
   def compute_checksum_in_chunks(_blob, io) do
