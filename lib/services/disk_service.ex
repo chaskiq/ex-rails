@@ -106,7 +106,7 @@ defmodule ActiveStorage.Service.DiskService do
     #   payload[:exist] = answer
     #   answer
     # end
-    File.exist?(path_for(service, key))
+    File.exists?(path_for(service, key))
   end
 
   def url_for_direct_upload(key, options \\ []) do
@@ -162,6 +162,58 @@ defmodule ActiveStorage.Service.DiskService do
     #  delete key
     #  raise ActiveStorage::IntegrityError
     # end
+  end
+
+  @impl ActiveStorage.Service
+
+  def private_url(service, key, opts \\ []) do
+    defaults = [expires_in: nil, filename: nil, content_type: nil, disposition: nil]
+    options = Keyword.merge(defaults, opts)
+
+    generate_url(key,
+      expires_in: options[:expires_in],
+      filename: options[:filename],
+      content_type: options[:content_type],
+      disposition: options[:disposition]
+    )
+  end
+
+  @impl ActiveStorage.Service
+
+  def public_url(service, key, options \\ []) do
+    defaults = [expires_in: nil, filename: nil, content_type: nil, disposition: nil]
+    options = Keyword.merge(defaults, options)
+
+    generate_url(key,
+      expires_in: options[:expires_in],
+      filename: options[:filename],
+      content_type: options[:content_type],
+      disposition: options[:disposition]
+    )
+  end
+
+  def generate_url(key, options \\ []) do
+    defaults = [expires_in: nil, filename: nil, content_type: nil, disposition: nil]
+    options = Keyword.merge(defaults, options)
+
+    # content_disposition = content_disposition_with(type: disposition, filename: filename)
+    # verified_key_with_expiration = ActiveStorage.verifier.generate(
+    #  {
+    #    key: key,
+    #    disposition: content_disposition,
+    #    content_type: content_type,
+    #    service_name: name
+    #  },
+    #  expires_in: expires_in,
+    #  purpose: :blob_key
+    # )
+
+    # if url_options.blank?
+    #  raise ArgumentError, "Cannot generate URL for #{filename} using Disk service, please set ActiveStorage::Current.url_options."
+    # end
+
+    # url_helpers.rails_disk_service_url(verified_key_with_expiration, filename: filename, **url_options)
+    {:ok, "GENERATED_URL_HERE -- changeme in disk_service.ex"}
   end
 end
 

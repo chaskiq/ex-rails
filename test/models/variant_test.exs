@@ -16,15 +16,27 @@ defmodule VariantTest do
   # end
 
   test "variations have the same key for different types of the same transformation" do
+    blob = ActiveStorageTestHelpers.create_file_blob(filename: "racecar.jpg")
+
+    variant_a = ActiveStorage.Blob.Representable.variant(blob, %{resize_to_limit: "100x100"})
+    variant_b = ActiveStorage.Blob.Representable.variant(blob, %{resize_to_limit: "100x100"})
+
     # blob = create_file_blob(filename: "racecar.jpg")
     # variant_a = blob.variant(resize_to_limit: [100, 100])
     # variant_b = blob.variant("resize_to_limit" => [100, 100])
     #
     # assert_equal variant_a.key, variant_b.key
+    assert ActiveStorage.Variant.key(variant_a) == ActiveStorage.Variant.key(variant_b)
   end
 
-  @tag skip: "this test is incomplete"
   test "resized variation of JPEG blob" do
+    blob = ActiveStorageTestHelpers.create_file_blob(filename: "racecar.jpg")
+    variant = ActiveStorage.Blob.Representable.variant(blob, %{resize_to_limit: "100x100"})
+    processed = ActiveStorage.Variant.processed(variant)
+
+    url = variant |> ActiveStorage.Variant.url()
+    assert String.match?(url, ~r/racecar\.jpg/)
+
     # blob = create_file_blob(filename: "racecar.jpg")
     # variant = blob.variant(resize_to_limit: [100, 100]).processed
     # assert_match(/racecar\.jpg/, variant.url)
@@ -36,6 +48,19 @@ defmodule VariantTest do
 
   @tag skip: "this test is incomplete"
   test "resized and monochrome variation of JPEG blob" do
+    blob = ActiveStorageTestHelpers.create_file_blob(filename: "racecar.jpg")
+
+    variant =
+      ActiveStorage.Blob.Representable.variant(blob, %{
+        resize_to_limit: "100x100",
+        colourspace: "b-w"
+      })
+
+    processed = ActiveStorage.Variant.processed(variant)
+
+    url = variant |> ActiveStorage.Variant.url()
+    assert String.match?(url, ~r/racecar\.jpg/)
+
     # blob = create_file_blob(filename: "racecar.jpg")
     # variant = blob.variant(resize_to_limit: [100, 100], colourspace: "b-w").processed
     # assert_match(/racecar\.jpg/, variant.url)
@@ -48,6 +73,10 @@ defmodule VariantTest do
 
   @tag skip: "this test is incomplete"
   test "monochrome with default variant_processor" do
+    blob = ActiveStorageTestHelpers.create_file_blob(filename: "racecar.jpg")
+    variant = ActiveStorage.Blob.Representable.variant(blob, %{colourspace: "b-w"})
+    processed = ActiveStorage.Variant.processed(variant)
+
     # blob = create_file_blob(filename: "racecar.jpg")
     # variant = blob.variant(colourspace: "b-w").processed
     # image = read_image(variant)
@@ -56,6 +85,15 @@ defmodule VariantTest do
 
   @tag skip: "this test is incomplete"
   test "disabled variation of JPEG blob" do
+    blob = ActiveStorageTestHelpers.create_file_blob(filename: "racecar.jpg")
+
+    variant =
+      ActiveStorage.Blob.Representable.variant(blob, %{
+        resize_to_limit: [100, 100],
+        colourspace: "srgb"
+      })
+
+    processed = ActiveStorage.Variant.processed(variant)
     # blob = create_file_blob(filename: "racecar.jpg")
     # variant = blob.variant(resize_to_limit: [100, 100], colourspace: "srgb").processed
     # assert_match(/racecar\.jpg/, variant.url)
@@ -68,6 +106,9 @@ defmodule VariantTest do
 
   @tag skip: "this test is incomplete"
   test "center-weighted crop of JPEG blob using :resize_to_fill" do
+    blob = ActiveStorageTestHelpers.create_file_blob(filename: "racecar.jpg")
+    variant = ActiveStorage.Blob.Representable.variant(blob, %{resize_to_fill: [100, 100]})
+    processed = ActiveStorage.Variant.processed(variant)
     # blob = create_file_blob(filename: "racecar.jpg")
     # variant = blob.variant(resize_to_fill: [100, 100]).processed
     # assert_match(/racecar\.jpg/, variant.url)
@@ -78,6 +119,14 @@ defmodule VariantTest do
   end
 
   test "resized variation of PSD blob" do
+    blob =
+      ActiveStorageTestHelpers.create_file_blob(
+        filename: "icon.psd",
+        content_type: "image/vnd.adobe.photoshop"
+      )
+
+    variant = ActiveStorage.Blob.Representable.variant(blob, %{resize_to_limit: [20, 20]})
+    processed = ActiveStorage.Variant.processed(variant)
     # blob = create_file_blob(filename: "icon.psd", content_type: "image/vnd.adobe.photoshop")
     # variant = blob.variant(resize_to_limit: [20, 20]).processed
     # assert_match(/icon\.png/, variant.url)
@@ -89,6 +138,14 @@ defmodule VariantTest do
   end
 
   test "resized variation of ICO blob" do
+    blob =
+      ActiveStorageTestHelpers.create_file_blob(
+        filename: "favicon.ico",
+        content_type: "image/vnd.microsoft.icon"
+      )
+
+    variant = ActiveStorage.Blob.Representable.variant(blob, %{resize_to_limit: [20, 20]})
+    processed = ActiveStorage.Variant.processed(variant)
     # blob = create_file_blob(filename: "favicon.ico", content_type: "image/vnd.microsoft.icon")
     # variant = blob.variant(resize_to_limit: [20, 20]).processed
     # assert_match(/icon\.png/, variant.url)
@@ -100,6 +157,9 @@ defmodule VariantTest do
   end
 
   test "resized variation of TIFF blob" do
+    blob = ActiveStorageTestHelpers.create_file_blob(filename: "racecar.tif")
+    variant = ActiveStorage.Blob.Representable.variant(blob, %{resize_to_limit: [50, 50]})
+    processed = ActiveStorage.Variant.processed(variant)
     # blob = create_file_blob(filename: "racecar.tif")
     # variant = blob.variant(resize_to_limit: [50, 50]).processed
     # assert_match(/racecar\.png/, variant.url)
@@ -111,6 +171,14 @@ defmodule VariantTest do
   end
 
   test "resized variation of BMP blob" do
+    blob =
+      ActiveStorageTestHelpers.create_file_blob(
+        filename: "colors.bmp",
+        content_type: "image/x-bmp"
+      )
+
+    variant = ActiveStorage.Blob.Representable.variant(blob, %{resize_to_limit: [15, 15]})
+    processed = ActiveStorage.Variant.processed(variant)
     # blob = create_file_blob(filename: "colors.bmp", content_type: "image/x-bmp")
     # variant = blob.variant(resize_to_limit: [15, 15]).processed
     # assert_match(/colors\.png/, variant.url)
@@ -122,6 +190,9 @@ defmodule VariantTest do
   end
 
   test "optimized variation of GIF blob" do
+    blob =
+      ActiveStorageTestHelpers.create_file_blob(filename: "image.gif", content_type: "image/gif")
+
     # blob = create_file_blob(filename: "image.gif", content_type: "image/gif")
 
     # process_variants_with :vips do
@@ -138,6 +209,8 @@ defmodule VariantTest do
   end
 
   test "PNG variation of JPEG blob with lowercase format" do
+    blob = ActiveStorageTestHelpers.create_file_blob(filename: "racecar.jpg")
+
     # blob = create_file_blob(filename: "racecar.jpg")
     # variant = blob.variant(format: :png).processed
     # assert_equal "racecar.png", variant.filename.to_s
@@ -146,6 +219,8 @@ defmodule VariantTest do
   end
 
   test "PNG variation of JPEG blob with uppercase format" do
+    blob = ActiveStorageTestHelpers.create_file_blob(filename: "racecar.jpg")
+
     # blob = create_file_blob(filename: "racecar.jpg")
     # variant = blob.variant(format: "PNG").processed
     # assert_equal "racecar.png", variant.filename.to_s
@@ -193,6 +268,12 @@ defmodule VariantTest do
   end
 
   test "passes content_type on upload" do
+    blob =
+      ActiveStorageTestHelpers.create_file_blob(
+        filename: "racecar.jpg",
+        content_type: "image/jpeg"
+      )
+
     # blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
     #
     # mock_upload = lambda do |_, _, options = {}|
@@ -205,6 +286,8 @@ defmodule VariantTest do
   end
 
   test "doesn't crash content_type not recognized by mini_mime" do
+    blob = ActiveStorageTestHelpers.create_file_blob(filename: "racecar.jpg")
+
     # blob = create_file_blob(filename: "racecar.jpg")
     #
     # # image/jpg is not recognised by mini_mime (image/jpeg is correct)

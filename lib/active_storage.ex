@@ -61,7 +61,7 @@ defmodule ActiveStorage do
   #  service(blob).url(blob)
   # end
 
-  def url(blob) do
+  def url(blob, _options \\ []) do
     ActiveStorage.Service.url(blob)
   end
 
