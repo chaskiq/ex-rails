@@ -265,7 +265,8 @@ defmodule ActiveStorage do
       "image/bmp",
       "image/vnd.adobe.photoshop",
       "image/vnd.microsoft.icon",
-      "image/webp"
+      "image/webp",
+      "image/psd"
     ]
 
   def web_image_content_types,
