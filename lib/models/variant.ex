@@ -134,12 +134,14 @@ defmodule ActiveStorage.Variant do
 
   defp process(variant) do
     variant.blob
-    |> ActiveStorage.Blob.open(fn input ->
-      variant.variation
-      |> ActiveStorage.Variation.transform(input, fn output ->
-        variant.blob |> ActiveStorage.Blob.service().upload(variant.blob, output)
-      end)
-    end)
+    |> ActiveStorage.Blob.open(
+      block: fn input ->
+        variant.variation
+        |> ActiveStorage.Variation.transform(input, fn output ->
+          variant.blob |> ActiveStorage.Blob.service().upload(variant.blob, output)
+        end)
+      end
+    )
 
     # blob.open do |input|
     #  variation.transform(input) do |output|

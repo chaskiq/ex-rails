@@ -9,22 +9,60 @@ defmodule ActiveStorage.Downloader do
   end
 
   # def open(key, %{checksum: checksum, verify: verify, name: name, tmpdir: tmpdir}) do
-  def open(downloader, key, args, block) do
+  def open(downloader, key, options \\ []) do
+    defaults = [checksum: nil, name: "ActiveStorage-", tmpdir: nil, block: nil]
+    options = Keyword.merge(defaults, options)
+
     service = downloader.service
-    a = downloader.service.__struct__.download(service, key)
 
-    dir = System.tmp_dir!()
-    tmp_file = Path.join(dir, args.name)
-    IO.inspect(tmp_file)
+    open_tempfile(options[:name], fn file ->
+      {:ok, file_contents} = download(service, key, file)
 
-    {:ok, _file} =
-      open_tempfile(tmp_file, fn file ->
-        verify_integrity_of(a, args)
-        IO.binwrite(file, a)
-        File.close(file)
-      end)
+      # a = IO.read(file, :line)
+      # https://pspdfkit.com/blog/2021/the-perils-of-large-files-in-elixir/
+      # article on how to handle large files.
+      verify_integrity_of(file_contents, checksum: options[:checksum])
 
-    block.(tmp_file)
+      {:ok, file_contents}
+
+      {:ok, tmp_file} = File.open(file, [:write])
+      IO.binwrite(tmp_file, file_contents)
+      File.close(tmp_file)
+
+      if(options[:block]) do
+        options[:block].(file)
+      else
+        file
+      end
+    end)
+  end
+
+  # not using this
+  def open_disabled(downloader, key, args, block) do
+    service = downloader.service
+
+    case downloader.service.__struct__.download(service, key) do
+      {:ok, a} ->
+        dir = System.tmp_dir!()
+        tmp_file = Path.join(dir, args.name)
+        # IO.inspect(tmp_file)
+
+        {:ok, file} =
+          open_tempfile(tmp_file, fn file ->
+            verify_integrity_of(a, args)
+            IO.binwrite(file, a)
+            File.close(file)
+          end)
+
+        if(block) do
+          block.(file)
+        else
+          file
+        end
+
+      {:error, _} ->
+        {:error, nil}
+    end
 
     # IO.binwrite(file, a)
     # File.close(file)
@@ -39,8 +77,13 @@ defmodule ActiveStorage.Downloader do
   end
 
   defp open_tempfile(tmp_file, block) do
-    # File.open(tmp_file, [:write])
-    File.open(tmp_file, [:read, :write], block)
+    case Temp.path(%{prefix: tmp_file}) do
+      {:ok, tmp_path} ->
+        block.(tmp_path)
+
+      _ ->
+        nil
+    end
 
     # file = Tempfile.open(name, tmpdir)
 
@@ -51,21 +94,42 @@ defmodule ActiveStorage.Downloader do
     # end
   end
 
-  defp download(_service, _key, _file) do
+  defp download(service, key, file) do
+    {:ok, downloaded_file} = service.__struct__.download(service, key)
+
+    # IO.binwrite(file, downloaded_file)
     # file.binmode
     # service.download(key) { |chunk| file.write(chunk) }
     # file.flush
     # file.rewind
   end
 
-  defp verify_integrity_of(file, %{checksum: checksum}) do
+  defp verify_integrity_of(file, checksum: checksum) do
+    # 8MB
+    # line_or_bytes = 8_000_000
+    # stream = File.stream!(file, [], line_or_bytes)
+    # initial_digest = :crypto.hash_init(:md5)
+    #
+    # digest =
+    #  stream
+    #  |> Enum.reduce(initial_digest, fn chunk, digest ->
+    #    :crypto.hash_update(digest, chunk)
+    #  end)
+    #  |> :crypto.hash_final()
+    #  |> Base.encode64(case: :lower, padding: false)
+    #
+    # case digest == checksum do
+    #  true -> true
+    #  false -> raise "ActiveStorage::IntegrityError"
+    # end
+
     case :crypto.hash(:md5, file) |> Base.encode64() == checksum do
       true -> true
       false -> raise "ActiveStorage::IntegrityError"
     end
 
     # unless OpenSSL::Digest::MD5.file(file).base64digest == checksum
-    #   raise ActiveStorage::IntegrityError
+    #  raise ActiveStorage::IntegrityError
     # end
   end
 end

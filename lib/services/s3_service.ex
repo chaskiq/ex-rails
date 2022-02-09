@@ -17,6 +17,8 @@ defmodule ActiveStorage.Service.S3Service do
     :amazon
   end
 
+  defdelegate open(service, key, options), to: ActiveStorage.Service
+
   def upload_headers(content_type, blob) do
     %{
       "Content-Type": content_type,
@@ -77,7 +79,7 @@ defmodule ActiveStorage.Service.S3Service do
 
   def download(service, key) do
     case object_for(service, key) do
-      {:ok, %{body: body}} -> body
+      {:ok, %{body: body}} -> {:ok, body}
       _ -> nil
     end
   end

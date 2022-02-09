@@ -138,6 +138,11 @@ defmodule ActiveStorage.Service do
   #  raise NotImplementedError
   # end
 
+  def open(service, key, options) do
+    ActiveStorage.Downloader.new(service)
+    |> ActiveStorage.Downloader.open(key, options)
+  end
+
   # Concatenate multiple files into a single "composed" file.
   # def compose(source_keys, destination_key, filename: nil, content_type: nil, disposition: nil, custom_metadata: {})
   #  raise NotImplementedError
@@ -171,9 +176,9 @@ defmodule ActiveStorage.Service do
   #  {}
   # end
 
-  # def public? do
-  #  @public
-  # end
+  def public?(blob) do
+    # @public
+  end
 
   # defp private_url(key, expires_in:, filename:, disposition:, content_type:, **) do
   #  #raise NotImplementedError
@@ -187,11 +192,11 @@ defmodule ActiveStorage.Service do
   # raise NotImplementedError
   # end
 
-  # defp instrument(operation, payload = {}, &block) do
-  # ActiveSupport::Notifications.instrument(
-  #  "service_#{operation}.active_storage",
-  #  payload.merge(service: service_name), &block)
-  # end
+  defp instrument(operation, payload \\ %{}, block) do
+    # ActiveSupport::Notifications.instrument(
+    #  "service_#{operation}.active_storage",
+    #  payload.merge(service: service_name), &block)
+  end
 
   # defp service_name do
   # ActiveStorage::Service::DiskService => Disk

@@ -22,6 +22,7 @@ defmodule BlobTest do
     first = ActiveStorageTestHelpers.create_blob(filename: "funky.jpg")
     second = ActiveStorageTestHelpers.create_blob(filename: "town.jpg")
 
+    {:ok, user} = User.changeset(%User{}, %{name: "Jason"}) |> Repo.insert()
     # [ create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg") ].tap do |blobs|
     #  User.create! name: "DHH", avatar: blobs.first
     #  assert_includes ActiveStorage::Blob.unattached, blobs.second
@@ -51,46 +52,69 @@ defmodule BlobTest do
     blob = ActiveStorageTestHelpers.create_blob(data: data)
 
     {:ok, downloaded} = blob.__struct__.download(blob)
-    #
+
+    assert downloaded = data
+    assert data |> String.length() == downloaded |> String.length()
+    data_checksum = :crypto.hash(:md5, data) |> Base.encode64()
+    assert data_checksum == blob.checksum
+
     # assert_equal data, blob.download
     # assert_equal data.length, blob.byte_size
     # assert_equal OpenSSL::Digest::MD5.base64digest(data), blob.checksum
   end
 
-  @tag skip: "this test is incomplete"
   test "create_and_upload extracts content type from data" do
+    blob = ActiveStorageTestHelpers.create_file_blob(content_type: "application/octet-stream")
+    assert "image/jpeg" == blob.content_type
     # blob = create_file_blob content_type: "application/octet-stream"
     # assert_equal "image/jpeg", blob.content_type
   end
 
-  @tag skip: "this test is incomplete"
   test "create_and_upload extracts content type from filename" do
+    blob = ActiveStorageTestHelpers.create_blob(content_type: "application/octet-stream")
+    assert "text/plain" == blob.content_type
     # blob = create_blob content_type: "application/octet-stream"
     # assert_equal "text/plain", blob.content_type
   end
 
-  @tag skip: "this test is incomplete"
   test "create_and_upload extracts content_type from io when no content_type given and identify: false" do
+    blob =
+      ActiveStorageTestHelpers.create_blob(
+        content_type: nil,
+        identify: false
+      )
+
+    assert "text/plain" == blob.content_type
     # blob = create_blob content_type: nil, identify: false
     # assert_equal "text/plain", blob.content_type
   end
 
-  @tag skip: "this test is incomplete"
   test "create_and_upload uses content_type when identify: false" do
+    blob =
+      ActiveStorageTestHelpers.create_blob(
+        data: "Article,dates,analysis\n1, 2, 3",
+        filename: "table.csv",
+        content_type: "text/csv",
+        identify: false
+      )
+
+    assert "text/csv" == blob.content_type
+
     # blob = create_blob data: "Article,dates,analysis\n1, 2, 3", filename: "table.csv", content_type: "text/csv", identify: false
     # assert_equal "text/csv", blob.content_type
   end
 
-  @tag skip: "this test is incomplete"
   test "create_and_upload generates a 28-character base36 key" do
+    blob = ActiveStorageTestHelpers.create_blob()
     # assert_match(/^[a-z0-9]{28}$/, create_blob.key)
   end
 
-  @tag skip: "this test is incomplete"
   test "create_and_upload accepts a custom key" do
-    # key  = SecureRandom.base36(28)
-    # data = "Hello world!"
-    # blob = create_blob key: key, data: data
+    # SecureRandom.base36(28)
+    key = "123456"
+    data = "Hello world!"
+    blob = ActiveStorageTestHelpers.create_blob(key: key, data: data)
+    assert key == blob.key
     #
     # assert_equal key, blob.key
     # assert_equal data, blob.download
@@ -104,15 +128,26 @@ defmodule BlobTest do
     # end
   end
 
-  @tag skip: "this test is incomplete"
-
   test "build_after_unfurling generates a 28-character base36 key" do
+    a = ActiveStorageTestHelpers.build_blob_after_unfurling()
+    assert String.match?(a.changes.key, ~r/^[a-z0-9]{27,28}$/)
+    # TODO: not sure about this one
     # assert_match(/^[a-z0-9]{28}$/, build_blob_after_unfurling.key)
   end
 
   @tag skip: "this test is incomplete"
-
   test "compose" do
+    blobs =
+      0..2
+      |> Enum.map(fn x ->
+        ActiveStorageFixtures.create_blob(
+          data: "123",
+          filename: "numbers.txt",
+          content_type: "text/plain",
+          identify: false
+        )
+      end)
+
     # blobs = 3.times.map { create_blob(data: "123", filename: "numbers.txt", content_type: "text/plain", identify: false) }
     # blob = ActiveStorage::Blob.compose(blobs, filename: "all_numbers.txt")
     #
@@ -134,25 +169,30 @@ defmodule BlobTest do
     # assert_equal "All blobs must be persisted.", error.message
   end
 
-  @tag skip: "this test is incomplete"
-
   test "image?" do
-    # blob = create_file_blob filename: "racecar.jpg"
+    blob = ActiveStorageTestHelpers.create_file_blob(filename: "racecar.jpg")
+    assert ActiveStorage.Blob.image?(blob)
+    assert ActiveStorage.Blob.audio?(blob) != true
     # assert_predicate blob, :image?
     # assert_not_predicate blob, :audio?
   end
 
-  @tag skip: "this test is incomplete"
-
+  @tag skip: "Not completed"
   test "video?" do
+    blob =
+      ActiveStorageTestHelpers.create_file_blob(filename: "video.mp4", content_type: "video/mp4")
+
+    assert ActiveStorage.Blob.video?(blob)
+    assert ActiveStorage.Blob.audio?(blob) != true
     # blob = create_file_blob(filename: "video.mp4", content_type: "video/mp4")
     # assert_predicate blob, :video?
     # assert_not_predicate blob, :audio?
   end
 
-  @tag skip: "this test is incomplete"
-
   test "text?" do
+    blob = ActiveStorageTestHelpers.create_blob(data: "Hello world!")
+    assert ActiveStorage.Blob.text?(blob)
+    assert ActiveStorage.Blob.audio?(blob) != true
     # blob = create_blob data: "Hello world!"
     # assert_predicate blob, :text?
     # assert_not_predicate blob, :audio?
@@ -174,8 +214,11 @@ defmodule BlobTest do
   end
 
   @tag skip: "this test is incomplete"
-
   test "open with integrity" do
+    blob = ActiveStorageTestHelpers.create_file_blob(filename: "racecar.jpg")
+
+    open_blob = ActiveStorage.Blob.open(blob)
+
     # create_file_blob(filename: "racecar.jpg").tap do |blob|
     #   blob.open do |file|
     #     assert file.binmode?
@@ -187,9 +230,20 @@ defmodule BlobTest do
     # end
   end
 
-  @tag skip: "this test is incomplete"
-
   test "open without integrity" do
+    blob = ActiveStorageTestHelpers.create_blob(data: "Hello, world!")
+
+    {:ok, blob} =
+      blob
+      |> ActiveStorage.Blob.changeset(%{checksum: "12345"})
+      |> ActiveStorage.RepoClient.repo().update()
+
+    assert_raise RuntimeError, fn ->
+      ActiveStorage.Blob.open(blob)
+    end
+
+    # assert_raise)
+
     # create_blob(data: "Hello, world!").tap do |blob|
     #  blob.update! checksum: OpenSSL::Digest::MD5.base64digest("Goodbye, world!")
     #
@@ -350,7 +404,12 @@ defmodule BlobTest do
 
   @tag skip: "this test is incomplete"
   test "updating the metadata updates service metadata" do
-    # blob = directly_upload_file_blob(filename: "racecar.jpg", content_type: "application/octet-stream")
+    blob =
+      ActiveStorageTestHelpers.directly_upload_file_blob(
+        filename: "racecar.jpg",
+        content_type: "application/octet-stream"
+      )
+
     #
     # expected_arguments = [
     #   blob.key,
@@ -423,12 +482,16 @@ defmodule BlobTest do
     #   ActiveStorage.silence_invalid_content_types_warning = warning_was
   end
 
-  # defp expected_url_for(blob, disposition: :attachment, filename: nil, content_type: nil, service_name: :local)
-  #   filename ||= blob.filename
-  #   content_type ||= blob.content_type
+  defp expected_url_for(blob, options \\ []) do
+    defaults = [disposition: :attachment, filename: nil, content_type: nil, service_name: :local]
+    options = Keyword.merge(defaults, options)
+    filename = options[:filename] || blob.filename
+    content_type = options[:content_type] || blob.content_type
+    #   filename ||= blob.filename
+    #   content_type ||= blob.content_type
 
-  #   key_params = { key: blob.key, disposition: ActionDispatch::Http::ContentDisposition.format(disposition: disposition, filename: filename.sanitized), content_type: content_type, service_name: service_name }
+    #   key_params = { key: blob.key, disposition: ActionDispatch::Http::ContentDisposition.format(disposition: disposition, filename: filename.sanitized), content_type: content_type, service_name: service_name }
 
-  #   "https://example.com/rails/active_storage/disk/#{ActiveStorage.verifier.generate(key_params, expires_in: 5.minutes, purpose: :blob_key)}/#{filename}"
-  # end
+    #   "https://example.com/rails/active_storage/disk/#{ActiveStorage.verifier.generate(key_params, expires_in: 5.minutes, purpose: :blob_key)}/#{filename}"
+  end
 end

@@ -1,15 +1,14 @@
 defmodule ActiveStorage.Service.DiskService do
   defstruct [:root, :public, :name]
 
-  def new(%{root: root, public: public}) do
+  def new(%{root: root, public: public}, options \\ []) do
+    defaults = []
+    options = Keyword.merge(defaults, options)
     %__MODULE__{root: root, public: public}
     # @service = service
   end
 
-  def new(%{root: root, public: public}, _options \\ nil) do
-    %__MODULE__{root: root, public: public}
-    # @service = service
-  end
+  defdelegate open(service, key, options), to: ActiveStorage.Service
 
   # Configure an Active Storage service by name from a set of configurations,
   # typically loaded from a YAML file. The Active Storage engine uses this
@@ -41,7 +40,7 @@ defmodule ActiveStorage.Service.DiskService do
     # instrument :upload, key: key, checksum: checksum do
     # IO.copy_stream(io, make_path_for(key))
     p = make_path_for(service, key.key)
-    IO.inspect(p)
+    # IO.inspect(p)
 
     case File.write(p, io) do
       :ok ->
@@ -67,6 +66,8 @@ defmodule ActiveStorage.Service.DiskService do
     #     raise ActiveStorage::FileNotFoundError
     #   end
     # end
+
+    # TODO, implement streaming here, not ram wise
     File.read(path_for(service, key))
   end
 

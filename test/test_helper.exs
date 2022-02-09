@@ -3,7 +3,7 @@
 
 # ActiveStorage.Test.Repo.start_link()
 
-ExUnit.start()
+ExUnit.start(timeout: 100_000_000)
 
 alias ActiveStorage.Test.Repo
 
@@ -30,23 +30,21 @@ defmodule ActiveStorageTestHelpers do
       identify: true,
       # nil,
       service_name: "local",
-      record: nil
+      record: nil,
+      identify: true
     ]
 
     options = Keyword.merge(default, options)
 
-    {:ok, file} = File.read("./test/files/dog.jpg")
-    # filename = "dog.jpg"
-    # {mime, _w, _h, _kind} = ExImageInfo.info(file)
-
-    ActiveStorage.Blob.create_and_upload!(%ActiveStorage.Blob{}, %{
-      io: file,
+    ActiveStorage.Blob.create_and_upload!(%ActiveStorage.Blob{},
+      key: options[:key],
+      io: options[:data],
       filename: options[:filename],
       content_type: options[:content_type],
       metadata: options[:metadata],
       service_name: options[:service_name],
-      identify: true
-    })
+      identify: options[:identify]
+    )
 
     # ActiveStorage::Blob.create_and_upload! key: key, io: StringIO.new(data), filename: filename, content_type: content_type, identify: identify, service_name: service_name, record: record
   end
@@ -57,26 +55,26 @@ defmodule ActiveStorageTestHelpers do
       filename: "racecar.jpg",
       content_type: "image/jpeg",
       metadata: nil,
-      service_name: nil,
+      service_name: "local",
       record: nil
     ]
 
     options = Keyword.merge(default, options)
 
-    {:ok, file} = File.read("./test/files/dog.jpg")
+    {:ok, file} = File.read("./test/files/#{options[:filename]}")
     # filename = "dog.jpg"
     # {mime, _w, _h, _kind} = ExImageInfo.info(file)
 
     blob = %ActiveStorage.Blob{}
 
-    ActiveStorage.Blob.create_and_upload!(blob, %{
+    ActiveStorage.Blob.create_and_upload!(blob,
       io: file,
-      filename: options.filename,
-      content_type: options.content_type,
-      metadata: options.metadata,
-      service_name: options.service_name,
+      filename: options[:filename],
+      content_type: options[:content_type],
+      metadata: options[:metadata],
+      service_name: options[:service_name],
       identify: true
-    })
+    )
 
     # ActiveStorage::Blob.create_and_upload! io: file_fixture(filename).open, filename: filename, content_type: content_type, metadata: metadata, service_name: service_name, record: record
   end
@@ -100,15 +98,42 @@ defmodule ActiveStorageTestHelpers do
 
     options = Keyword.merge(default, options)
 
+    ActiveStorage.Blob.build_after_unfurling(%ActiveStorage.Blob{},
+      key: options[:key],
+      io: options[:data],
+      filename: options[:filename],
+      content_type: options[:content_type],
+      identify: options[:identify],
+      record: options[:record]
+    )
+
     # ActiveStorage::Blob.build_after_unfurling key: key, io: StringIO.new(data), filename: filename, content_type: content_type, identify: identify, record: record
   end
 
   def directly_upload_file_blob(options \\ []) do
     default = [filename: "racecar.jpg", content_type: "image/jpeg", record: nil]
     options = Keyword.merge(default, options)
+
+    {:ok, file} = File.read("./test/files/#{options[:filename]}")
+    io = File.read!(file)
+
     # file = file_fixture(filename)
     # byte_size = file.size
     # checksum = OpenSSL::Digest::MD5.file(file).base64digest
+    byte_size = 1234
+    checksum = :crypto.hash(:md5, io) |> Base.encode64()
+
+    blob =
+      ActiveStorage.Blob.create_blob_before_direct_upload(
+        filename: options[:filename],
+        byte_size: byte_size,
+        checksum: checksum,
+        content_type: options[:content_type],
+        record: options[:record]
+      )
+
+    require IEx
+    IEx.pry()
 
     # create_blob_before_direct_upload(filename: filename, byte_size: byte_size, checksum: checksum, content_type: content_type, record: record).tap do |blob|
     #  service = ActiveStorage::Blob.service.try(:primary) || ActiveStorage::Blob.service
@@ -122,7 +147,7 @@ defmodule User do
   import Ecto.Changeset
 
   schema "users" do
-    field(:name, :integer)
+    field(:name, :string)
   end
 
   def changeset(record, attrs) do
