@@ -200,5 +200,9 @@ defmodule StartingTest do
       # Test that it's all run inside transaction (Mox S3 delete to fail, if possible)
       # TODO: Test that transaction works (??)
     end
+
+    test "user test" do
+      User.insert(%User{}, %{a: 1})
+    end
   end
 end

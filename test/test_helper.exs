@@ -150,6 +150,8 @@ defmodule User do
     field(:name, :string)
   end
 
+  use ActiveStorage.Attached.Model
+
   def changeset(record, attrs) do
     record
     |> cast(attrs, [
