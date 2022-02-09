@@ -125,7 +125,7 @@ defmodule ActiveStorage.Downloader do
 
     case :crypto.hash(:md5, file) |> Base.encode64() == checksum do
       true -> true
-      false -> raise "ActiveStorage::IntegrityError"
+      false -> raise ActiveStorage.IntegrityError
     end
 
     # unless OpenSSL::Digest::MD5.file(file).base64digest == checksum

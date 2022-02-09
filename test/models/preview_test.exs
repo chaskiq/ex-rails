@@ -6,8 +6,15 @@
 defmodule PreviewTest do
   use ExUnit.Case, async: false
 
-  @tag skip: "this test is incomplete"
   test "previewing a PDF" do
+    blob =
+      ActiveStorageTestHelpers.create_file_blob(
+        filename: "report.pdf",
+        content_type: "application/pdf"
+      )
+
+    require IEx
+    IEx.pry()
     # blob = create_file_blob(filename: "report.pdf", content_type: "application/pdf")
     # preview = blob.preview(resize_to_limit: [640, 280]).processed
     #

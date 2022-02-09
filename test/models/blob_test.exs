@@ -238,7 +238,7 @@ defmodule BlobTest do
       |> ActiveStorage.Blob.changeset(%{checksum: "12345"})
       |> ActiveStorage.RepoClient.repo().update()
 
-    assert_raise RuntimeError, fn ->
+    assert_raise ActiveStorage.IntegrityError, fn ->
       ActiveStorage.Blob.open(blob)
     end
 
