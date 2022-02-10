@@ -6,8 +6,9 @@
 # require "action_dispatch/http/content_disposition"
 
 defmodule ActiveStorage.Service do
-  @callback url(ActiveStorage.Attachment.t()) :: String.t()
   @callback delete(ActiveStorage.Attachment.t()) :: :ok | :error
+  @callback public_url(ActiveStorage.Attachment.t()) :: :ok | :error
+  @callback private_url(ActiveStorage.Attachment.t()) :: :ok | :error
 
   def delete(attachment = %ActiveStorage.Attachment{blob: blob}) do
     service = ActiveStorage.Blob.service(blob)
@@ -21,10 +22,7 @@ defmodule ActiveStorage.Service do
   def url(a, opts \\ [])
 
   def url(%ActiveStorage.Attachment{blob: blob}, opts) do
-    case url(blob, opts) do
-      nil -> nil
-      u -> {:ok, u}
-    end
+    url(blob, opts)
   end
 
   def url(blob = %ActiveStorage.Blob{}, opts) do
@@ -32,15 +30,17 @@ defmodule ActiveStorage.Service do
     is_public = false
     service = ActiveStorage.Blob.service(blob)
 
-    generated_url =
-      if is_public do
-        service.__struct__.public_url(service, blob, opts)
-      else
-        service.__struct__.private_url(service, blob, opts)
-      end
+    if is_public do
+      service.__struct__.public_url(service, blob, opts)
+    else
+      service.__struct__.private_url(service, blob, opts)
+    end
+    |> case do
+      {:ok, value} -> value
+      {:error, _} -> nil
+    end
 
     # payload[:url] = generated_url
-    generated_url
     # end
   end
 
@@ -138,6 +138,11 @@ defmodule ActiveStorage.Service do
   #  raise NotImplementedError
   # end
 
+  def open(service, key, options) do
+    ActiveStorage.Downloader.new(service)
+    |> ActiveStorage.Downloader.open(key, options)
+  end
+
   # Concatenate multiple files into a single "composed" file.
   # def compose(source_keys, destination_key, filename: nil, content_type: nil, disposition: nil, custom_metadata: {})
   #  raise NotImplementedError
@@ -171,9 +176,9 @@ defmodule ActiveStorage.Service do
   #  {}
   # end
 
-  # def public? do
-  #  @public
-  # end
+  def public?(_blob) do
+    # @public
+  end
 
   # defp private_url(key, expires_in:, filename:, disposition:, content_type:, **) do
   #  #raise NotImplementedError
@@ -187,19 +192,31 @@ defmodule ActiveStorage.Service do
   # raise NotImplementedError
   # end
 
-  # defp instrument(operation, payload = {}, &block) do
-  # ActiveSupport::Notifications.instrument(
-  #  "service_#{operation}.active_storage",
-  #  payload.merge(service: service_name), &block)
-  # end
+  def instrument(_operation, _payload \\ %{}, _block) do
+    # ActiveSupport::Notifications.instrument(
+    #  "service_#{operation}.active_storage",
+    #  payload.merge(service: service_name), &block)
+  end
 
   # defp service_name do
   # ActiveStorage::Service::DiskService => Disk
   # self.class.name.split("::").third.remove("Service")
   # end
 
-  # defp content_disposition_with(type: "inline", filename:) do
-  # disposition = (type.to_s.presence_in(%w( attachment inline )) || "inline")
-  # ActionDispatch::Http::ContentDisposition.format(disposition: disposition, filename: filename.sanitized)
-  # end
+  def content_disposition_with(options \\ []) do
+    defaults = [type: "inline", filename: nil]
+    options = Keyword.merge(defaults, options)
+
+    type = options[:type]
+
+    disposition =
+      case ["attachment", "inline"] |> Enum.member?(type) do
+        true -> type
+        _ -> "inline"
+      end
+
+    ContentDisposition.format(disposition: disposition, filename: options[:filename])
+
+    # ActionDispatch::Http::ContentDisposition.format(disposition: disposition, filename: filename.sanitized)
+  end
 end

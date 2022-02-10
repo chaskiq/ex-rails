@@ -2,12 +2,6 @@ defmodule ActiveStorage.Service.S3Service do
   @behaviour ActiveStorage.Service
 
   @impl ActiveStorage.Service
-  def url(config, blob) do
-    bucket = config.bucket
-
-    ExAws.S3.presigned_url(aws_config(config), :get, bucket, blob.key, expires_in: 300)
-  end
-
   def delete(config, blob) do
     bucket = config.bucket
 
@@ -22,6 +16,8 @@ defmodule ActiveStorage.Service.S3Service do
   def service_name do
     :amazon
   end
+
+  defdelegate open(service, key, options), to: ActiveStorage.Service
 
   def upload_headers(content_type, blob) do
     %{
@@ -38,38 +34,30 @@ defmodule ActiveStorage.Service.S3Service do
   #   ExAws.S3.presigned_url(config(), :get, bucket, blob.key, expires_in: 300)
   # end
 
-  defp config_for_blob(blob) do
+  def config_for_blob(_blob) do
   end
 
-  defp aws_config(config) do
+  def aws_config(config) do
     ExAws.Config.new(:s3, config)
   end
 
-  # TODO: What is presigned_url vs private_url vs public_url?
+  @impl ActiveStorage.Service
   def private_url(service, blob, opts \\ []) do
     bucket = service.bucket
 
     # object_for(key).presigned_url :get, expires_in: expires_in.to_i,
     #  response_content_disposition: content_disposition_with(type: disposition, filename: filename),
     #  response_content_type: content_type
-    config = ExAws.Config.new(:s3, service.client)
-
-    case config |> ExAws.S3.presigned_url(:get, bucket, blob.key, opts) do
-      {:ok, url} -> url
-      _ -> nil
-    end
+    ExAws.Config.new(:s3, service.client)
+    |> ExAws.S3.presigned_url(:get, bucket, blob.key, opts)
   end
 
+  @impl ActiveStorage.Service
   def public_url(service, key) do
     bucket = service.bucket
 
-    config = ExAws.Config.new(:s3, service.client)
-
-
-    case config |> ExAws.S3.get_object(bucket, key) do
-      {:ok, url} -> url
-      _ -> nil
-    end
+    ExAws.Config.new(:s3, service.client)
+    |> ExAws.S3.get_object(bucket, key)
   end
 
   # https://www.poeticoding.com/aws-s3-in-elixir-with-exaws/
@@ -91,7 +79,7 @@ defmodule ActiveStorage.Service.S3Service do
 
   def download(service, key) do
     case object_for(service, key) do
-      {:ok, %{body: body}} -> body
+      {:ok, %{body: body}} -> {:ok, body}
       _ -> nil
     end
   end
@@ -190,7 +178,7 @@ defmodule ActiveStorage.Service.S3Service do
     }
   end
 
-  def build(%{configurator: _c, name: n, service: s}, config) do
+  def build(%{configurator: _c, name: n, service: _s}, config) do
     new(
       %{
         bucket: config.bucket,

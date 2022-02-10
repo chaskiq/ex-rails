@@ -46,12 +46,12 @@ defmodule ActiveStorage.Analyzer.VideoAnalyzer do
     # end
   end
 
-  defp duration do
+  def duration do
     #  duration = video_stream["duration"] || container["duration"]
     #  Float(duration) if duration
   end
 
-  defp angle do
+  def angle do
     #  Integer(tags["rotate"]) if tags["rotate"]
   end
 

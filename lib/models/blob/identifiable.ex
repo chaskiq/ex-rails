@@ -15,11 +15,11 @@ defmodule ActiveStorage.Blob.Identifiable do
     blob.metadata.identified
   end
 
-  defp identify_content_type(_blob) do
+  def identify_content_type(_blob) do
     # Marcel::MimeType.for download_identifiable_chunk, name: filename.to_s, declared_type: content_type
   end
 
-  defp download_identifiable_chunk(_blob) do
+  def download_identifiable_chunk(_blob) do
     # if byte_size.positive? do
     #  service.download_chunk key, 0...4.kilobytes
     # else

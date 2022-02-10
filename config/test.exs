@@ -14,7 +14,9 @@ config :active_storage, ActiveStorage.Test.Repo,
   adapter: Ecto.Adapters.Postgres,
   username: "postgres",
   password: "postgres",
-  database: "active_storage_test",
+  database: "active_storage_test#{System.get_env("MIX_TEST_PARTITION")}",
   port: 5433,
   hostname: "localhost",
-  poolsize: 10
+  pool: Ecto.Adapters.SQL.Sandbox,
+  ownership_timeout: 300_000_000,
+  timeout: 300_000_000

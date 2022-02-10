@@ -1,5 +1,5 @@
 defmodule StartingTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case, async: false
 
   alias ActiveStorage.Test.{Record, Repo}
 
@@ -113,7 +113,7 @@ defmodule StartingTest do
       assert attachment.blob.filename == "dog.jpg"
 
       # TODO: Put `url_for_attachment` in it's own test block
-      {:ok, url} = ActiveStorage.url_for_attachment(attachment, expires_in: 300)
+      url = ActiveStorage.url_for_attachment(attachment, expires_in: 300)
       uri = URI.parse(url)
       query = URI.decode_query(uri.query)
 
@@ -184,9 +184,9 @@ defmodule StartingTest do
 
       avatar_original = ActiveStorage.get_attachment(%Record{id: body.id}, "minio_avatar")
 
-      {:ok, url} = ActiveStorage.url_for_attachment(avatar_original)
+      url = ActiveStorage.url_for_attachment(avatar_original)
 
-      attachment = ActiveStorage.purge_attachment(%Record{id: body.id}, "minio_avatar")
+      _attachment = ActiveStorage.purge_attachment(%Record{id: body.id}, "minio_avatar")
 
       avatar = ActiveStorage.get_attachment(%Record{id: body.id}, "minio_avatar")
 
@@ -199,6 +199,10 @@ defmodule StartingTest do
 
       # Test that it's all run inside transaction (Mox S3 delete to fail, if possible)
       # TODO: Test that transaction works (??)
+    end
+
+    test "user test" do
+      User.insert(%User{}, %{a: 1})
     end
   end
 end

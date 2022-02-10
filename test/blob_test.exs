@@ -12,14 +12,14 @@ defmodule ActiveStorageBlobTest do
       blob = %ActiveStorage.Blob{}
 
       r =
-        ActiveStorage.Blob.create_and_upload!(blob, %{
+        ActiveStorage.Blob.create_and_upload!(blob,
           io: file,
           filename: filename,
           content_type: mime,
           metadata: nil,
           service_name: "amazon",
           identify: true
-        })
+        )
 
       assert ActiveStorage.url(r)
       assert ActiveStorage.service_url(r)

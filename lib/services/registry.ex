@@ -35,7 +35,7 @@ defmodule ActiveStorage.Service.Registry do
   # private
   # attr_reader :configurations, :services
 
-  defp configurator do
+  def configurator do
     # @configurator ||= ActiveStorage::Service::Configurator.new(configurations)
   end
 end
