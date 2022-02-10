@@ -186,7 +186,7 @@ defmodule StartingTest do
 
       url = ActiveStorage.url_for_attachment(avatar_original)
 
-      attachment = ActiveStorage.purge_attachment(%Record{id: body.id}, "minio_avatar")
+      _attachment = ActiveStorage.purge_attachment(%Record{id: body.id}, "minio_avatar")
 
       avatar = ActiveStorage.get_attachment(%Record{id: body.id}, "minio_avatar")
 

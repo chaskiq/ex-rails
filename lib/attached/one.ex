@@ -56,7 +56,7 @@ defmodule ActiveStorage.Attached.OneRails do
   #   person.avatar.attach(params[:signed_blob_id]) # Signed reference to blob from direct upload
   #   person.avatar.attach(io: File.open("/path/to/face.jpg"), filename: "face.jpg", content_type: "image/jpeg")
   #   person.avatar.attach(avatar_blob) # ActiveStorage::Blob object
-  def attach(instance, attachable) do
+  def attach(_instance, _attachable) do
     # if record.persisted? && !record.changed?
     #   record.public_send("#{name}=", attachable)
     #   record.save
@@ -72,15 +72,15 @@ defmodule ActiveStorage.Attached.OneRails do
   #   end
   #
   #   User.new.avatar.attached? # => false
-  def attached?(instance) do
+  def attached?(_instance) do
     # attachment.present?
   end
 
-  defp purge_one(instance) do
+  defp purge_one(_instance) do
     # Attached::Changes::PurgeOne.new(name, record, attachment)
   end
 
-  defp detach_one(instance) do
+  defp detach_one(_instance) do
     # Attached::Changes::DetachOne.new(name, record, attachment)
   end
 end

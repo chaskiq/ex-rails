@@ -46,15 +46,15 @@ defmodule ActiveStorage.Blob.Analyzable do
     blob.metadata.analyzed
   end
 
-  defp extract_metadata_via_analyzer(blob) do
+  def extract_metadata_via_analyzer(blob) do
     analyzer(blob).metadata |> Map.merge(%{analyzed: true})
   end
 
-  defp analyzer(blob) do
+  def analyzer(blob) do
     analyzer_class(blob).new(blob)
   end
 
-  defp analyzer_class(blob) do
+  def analyzer_class(blob) do
     # ActiveStorage.analyzers.detect { |klass| klass.accept?(self) } || ActiveStorage::Analyzer::NullAnalyzer
   end
 end

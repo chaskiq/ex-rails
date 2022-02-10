@@ -228,7 +228,7 @@ defmodule ActiveStorage.Blob do
       record: nil
     ]
 
-    options = Keyword.merge(defaults, options)
+    _options = Keyword.merge(defaults, options)
 
     # create! key: key, filename: filename, byte_size: byte_size, checksum: checksum, content_type: content_type, metadata: metadata, service_name: service_name
   end

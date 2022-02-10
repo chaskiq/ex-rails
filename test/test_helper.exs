@@ -81,7 +81,7 @@ defmodule ActiveStorageTestHelpers do
 
   def create_blob_before_direct_upload(options \\ []) do
     default = [key: nil, filename: "hello.txt", content_type: "text/plain", record: nil]
-    options = Keyword.merge(default, options)
+    _options = Keyword.merge(default, options)
 
     # ActiveStorage::Blob.create_before_direct_upload! key: key, filename: filename, byte_size: byte_size, checksum: checksum, content_type: content_type, record: record
   end

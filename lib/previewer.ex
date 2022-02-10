@@ -10,7 +10,7 @@ defmodule ActiveStorage.Previewer do
 
   # Implement this method in a concrete subclass. Have it return true when given a blob from which
   # the previewer can generate an image.
-  def accept?(blob) do
+  def accept?(_blob) do
     false
   end
 
@@ -27,7 +27,7 @@ defmodule ActiveStorage.Previewer do
 
   # Downloads the blob to a tempfile on disk. Yields the tempfile.
   # :doc:
-  defp download_blob_to_tempfile(block) do
+  defp download_blob_to_tempfile(_block) do
     # blob.open tmpdir: tmpdir, block
   end
 
@@ -46,7 +46,7 @@ defmodule ActiveStorage.Previewer do
   #
   # The output tempfile is opened in the directory returned by #tmpdir.
   # :doc:
-  defp draw(argv) do
+  defp draw(_argv) do
     # open_tempfile do |file|
     #  instrument :preview, key: blob.key do
     #    capture(*argv, to: file)
@@ -66,11 +66,11 @@ defmodule ActiveStorage.Previewer do
     # end
   end
 
-  defp instrument(operation, payload = %{}, block) do
+  defp instrument(_operation, _payload = %{}, _block) do
     # ActiveSupport::Notifications.instrument "#{operation}.active_storage", payload, &block
   end
 
-  defp capture(argv, to) do
+  defp capture(_argv, _to) do
     # to.binmode
 
     # open_tempfile do |err|

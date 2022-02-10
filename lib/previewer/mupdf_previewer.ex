@@ -17,7 +17,7 @@ defmodule ActiveStorage.Previewer.MuPDFPreviewer do
     # @mutool_exists = $?.exitstatus == 1
   end
 
-  def preview(previewer, options) do
+  def preview(_previewer, _options) do
     # download_blob_to_tempfile do |input|
     #  draw_first_page_from input do |output|
     #    yield io: output, filename: "#{blob.filename.base}.png", content_type: "image/png", **options
@@ -25,7 +25,7 @@ defmodule ActiveStorage.Previewer.MuPDFPreviewer do
     # end
   end
 
-  defp draw_first_page_from(previewer, file, block) do
+  defp draw_first_page_from(_previewer, _file, _block) do
     # draw self.class.mutool_path, "draw", "-F", "png", "-o", "-", file.path, "1", &block
   end
 end

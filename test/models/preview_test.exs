@@ -7,7 +7,7 @@ defmodule PreviewTest do
   use ExUnit.Case, async: false
 
   test "previewing a PDF" do
-    blob =
+    _blob =
       ActiveStorageTestHelpers.create_file_blob(
         filename: "report.pdf",
         content_type: "application/pdf"

@@ -3,7 +3,7 @@
 defmodule ActiveStorage.VariantWithRecord do
   # attr_reader :blob, :variation
 
-  alias __MODULE__
+  # alias __MODULE__
   defstruct [:blob, :variation, :record]
 
   def new(blob, variation) do

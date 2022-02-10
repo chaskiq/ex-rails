@@ -19,10 +19,10 @@ defmodule BlobTest do
   end
 
   test "unattached scope" do
-    first = ActiveStorageTestHelpers.create_blob(filename: "funky.jpg")
-    second = ActiveStorageTestHelpers.create_blob(filename: "town.jpg")
+    _first = ActiveStorageTestHelpers.create_blob(filename: "funky.jpg")
+    _second = ActiveStorageTestHelpers.create_blob(filename: "town.jpg")
 
-    {:ok, user} = User.changeset(%User{}, %{name: "Jason"}) |> Repo.insert()
+    {:ok, _user} = User.changeset(%User{}, %{name: "Jason"}) |> Repo.insert()
     # [ create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg") ].tap do |blobs|
     #  User.create! name: "DHH", avatar: blobs.first
     #  assert_includes ActiveStorage::Blob.unattached, blobs.second
@@ -51,7 +51,7 @@ defmodule BlobTest do
     data = "Hello world!"
     blob = ActiveStorageTestHelpers.create_blob(data: data)
 
-    {:ok, downloaded} = blob.__struct__.download(blob)
+    {:ok, _downloaded} = blob.__struct__.download(blob)
 
     assert downloaded = data
     assert data |> String.length() == downloaded |> String.length()
@@ -105,7 +105,7 @@ defmodule BlobTest do
   end
 
   test "create_and_upload generates a 28-character base36 key" do
-    blob = ActiveStorageTestHelpers.create_blob()
+    _blob = ActiveStorageTestHelpers.create_blob()
     # assert_match(/^[a-z0-9]{28}$/, create_blob.key)
   end
 
@@ -137,9 +137,9 @@ defmodule BlobTest do
 
   @tag skip: "this test is incomplete"
   test "compose" do
-    blobs =
+    _blobs =
       0..2
-      |> Enum.map(fn x ->
+      |> Enum.map(fn _x ->
         ActiveStorageFixtures.create_blob(
           data: "123",
           filename: "numbers.txt",
@@ -217,7 +217,7 @@ defmodule BlobTest do
   test "open with integrity" do
     blob = ActiveStorageTestHelpers.create_file_blob(filename: "racecar.jpg")
 
-    open_blob = ActiveStorage.Blob.open(blob)
+    _open_blob = ActiveStorage.Blob.open(blob)
 
     # create_file_blob(filename: "racecar.jpg").tap do |blob|
     #   blob.open do |file|
@@ -404,7 +404,7 @@ defmodule BlobTest do
 
   @tag skip: "this test is incomplete"
   test "updating the metadata updates service metadata" do
-    blob =
+    _blob =
       ActiveStorageTestHelpers.directly_upload_file_blob(
         filename: "racecar.jpg",
         content_type: "application/octet-stream"
@@ -482,7 +482,7 @@ defmodule BlobTest do
     #   ActiveStorage.silence_invalid_content_types_warning = warning_was
   end
 
-  defp expected_url_for(blob, options \\ []) do
+  def expected_url_for(blob, options \\ []) do
     defaults = [disposition: :attachment, filename: nil, content_type: nil, service_name: :local]
     options = Keyword.merge(defaults, options)
     filename = options[:filename] || blob.filename

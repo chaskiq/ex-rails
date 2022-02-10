@@ -5,7 +5,7 @@ defmodule ActiveStorage.ConfiguratorTest do
     service =
       ActiveStorage.Service.Configurator.build(:foo, foo: %{service: "Disk", root: "path"})
 
-    assert service = %ActiveStorage.Service.DiskService{name: "Disk", public: true, root: "path"}
+    assert service == %ActiveStorage.Service.DiskService{name: "Disk", public: true, root: "path"}
     assert "path", service.root
     # assert_instance_of ActiveStorage.Service.DiskService, service
     # assert_equal "path", service.root
@@ -15,7 +15,7 @@ defmodule ActiveStorage.ConfiguratorTest do
     service =
       ActiveStorage.Service.Configurator.build(:foo, foo: %{service: "disk", root: "path"})
 
-    assert service = %ActiveStorage.Service.DiskService{name: "Disk", root: "path"}
+    assert service == %ActiveStorage.Service.DiskService{name: "disk", root: "path"}
     assert "path", service.root
 
     # service = ActiveStorage::Service::Configurator.build(:foo, foo: { service: "disk", root: "path" })
