@@ -13,7 +13,7 @@
 # The options map directly to {ImageProcessing}[https://github.com/janko-m/image_processing] commands.
 defmodule ActiveStorage.Variation do
   # <- this is the magic
-  alias __MODULE__
+  # alias __MODULE__
   @derive Jason.Encoder
 
   defstruct [:transformations]

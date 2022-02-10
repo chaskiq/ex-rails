@@ -20,7 +20,7 @@ defmodule ActiveStorage.VariantWithRecord do
     instance |> record()
   end
 
-  def process(instance) do
+  def process(_instance) do
     # transform_blob { |image| create_or_find_record(image: image) } unless processed?
   end
 

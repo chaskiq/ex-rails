@@ -441,4 +441,8 @@ defmodule ActiveStorage.Blob do
   def text?(blob) do
     blob.content_type |> String.starts_with?("text")
   end
+
+  def record_type() do
+    "blob"
+  end
 end

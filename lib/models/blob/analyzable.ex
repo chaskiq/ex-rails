@@ -54,7 +54,7 @@ defmodule ActiveStorage.Blob.Analyzable do
     analyzer_class(blob).new(blob)
   end
 
-  def analyzer_class(blob) do
+  def analyzer_class(_blob) do
     # ActiveStorage.analyzers.detect { |klass| klass.accept?(self) } || ActiveStorage::Analyzer::NullAnalyzer
   end
 end

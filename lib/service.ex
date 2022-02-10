@@ -176,7 +176,7 @@ defmodule ActiveStorage.Service do
   #  {}
   # end
 
-  def public?(blob) do
+  def public?(_blob) do
     # @public
   end
 
@@ -192,7 +192,7 @@ defmodule ActiveStorage.Service do
   # raise NotImplementedError
   # end
 
-  defp instrument(operation, payload \\ %{}, block) do
+  def instrument(_operation, _payload \\ %{}, _block) do
     # ActiveSupport::Notifications.instrument(
     #  "service_#{operation}.active_storage",
     #  payload.merge(service: service_name), &block)

@@ -68,8 +68,12 @@ defmodule ActiveStorage.Blob.Representable do
   end
 
   # Returns true if any registered previewer accepts the blob. By default, this will return true for videos and PDF documents.
-  def previewable?(_blob) do
-    # ActiveStorage.previewers |> Enum.any? |klass| klass.accept?(self)
+  def previewable?(blob) do
+    # ActiveStorage.previewers() |> Enu
+    ActiveStorage.previewers()
+    |> Enum.any?(fn mod ->
+      mod.accept?(blob)
+    end)
   end
 
   # Returns an ActiveStorage::Preview for a previewable blob or an ActiveStorage::Variant for a variable image blob.

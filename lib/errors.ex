@@ -37,3 +37,7 @@ end
 defmodule ActiveStorage.PreviewError do
   defexception message: "an example error has occurred"
 end
+
+defmodule ActiveStorage.UnprocessedError do
+  defexception message: "an example error has occurred"
+end

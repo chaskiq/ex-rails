@@ -7,12 +7,17 @@ defmodule PreviewTest do
   use ExUnit.Case, async: false
 
   test "previewing a PDF" do
-    _blob =
+    blob =
       ActiveStorageTestHelpers.create_file_blob(
         filename: "report.pdf",
         content_type: "application/pdf"
       )
 
+    preview = ActiveStorage.Blob.Representable.preview(blob, resize_to_limit: [640, 280])
+
+    processed = ActiveStorage.Preview.processed(preview)
+
+    IO.inspect("FIND THIS TEST!!!!!!!! in preview tests")
     # blob = create_file_blob(filename: "report.pdf", content_type: "application/pdf")
     # preview = blob.preview(resize_to_limit: [640, 280]).processed
     #

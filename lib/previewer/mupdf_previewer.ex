@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 defmodule ActiveStorage.Previewer.MuPDFPreviewer do
-  def accept?(blob) do
+  def accept?(_blob) do
     # blob.content_type == "application/pdf" && mutool_exists?
   end
 
@@ -25,7 +25,7 @@ defmodule ActiveStorage.Previewer.MuPDFPreviewer do
     # end
   end
 
-  defp draw_first_page_from(_previewer, _file, _block) do
+  def draw_first_page_from(_previewer, _file, _block) do
     # draw self.class.mutool_path, "draw", "-F", "png", "-o", "-", file.path, "1", &block
   end
 end

@@ -53,7 +53,7 @@ defmodule ActiveStorage.Variant do
   # delegate :service, to: :blob
   # delegate :content_type, to: :variation
 
-  alias __MODULE__
+  # alias __MODULE__
   defstruct [:blob, :variation]
 
   def new(blob, variation_or_variation_key) do

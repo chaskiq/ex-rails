@@ -25,7 +25,7 @@ defmodule ActiveStorage.Transformers.Transformer do
   # Returns an open Tempfile containing a transformed image in the given +format+.
   # All subclasses implement this method.
   # :doc:
-  defp process(_file, %{format: _format}) do
+  def process(_file, %{format: _format}) do
     # raise NotImplementedError
   end
 end

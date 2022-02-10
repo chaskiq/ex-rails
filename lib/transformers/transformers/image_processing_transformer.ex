@@ -11,7 +11,7 @@
 
 defmodule ActiveStorage.Transformers.ImageProcessingTransformer do
   import Mogrify
-  alias __MODULE__
+  # alias __MODULE__
 
   defstruct [:transformations]
   # A Transformer applies a set of transformations to an image.

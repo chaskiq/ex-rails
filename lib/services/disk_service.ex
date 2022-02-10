@@ -26,7 +26,7 @@ defmodule ActiveStorage.Service.DiskService do
   #
   # See MirrorService for an example.
   # :nodoc:
-  def build(%{configurator: _c, name: n, service: s}, config) do
+  def build(%{configurator: _c, name: n, service: _s}, config) do
     new(%{root: config.root, public: true}) |> Map.put(:name, n)
     # new(service_config)
     # .tap do |service_instance|
@@ -81,7 +81,7 @@ defmodule ActiveStorage.Service.DiskService do
     File.read(path_for(service, key))
   end
 
-  def download_chunk(key, range) do
+  def download_chunk(_key, _range) do
     # instrument :download_chunk, key: key, range: range do
     #   File.open(path_for(key), "rb") do |file|
     #     file.seek range.begin
@@ -121,7 +121,7 @@ defmodule ActiveStorage.Service.DiskService do
 
   def url_for_direct_upload(key, options \\ []) do
     default = [expires_in: nil, content_type: nil, content_length: nil, checksum: nil]
-    options = Keyword.merge(default, options)
+    _options = Keyword.merge(default, options)
 
     # instrument :url, key: key do |payload|
     #  verified_token_with_expiration = ActiveStorage.verifier.generate(
@@ -182,7 +182,7 @@ defmodule ActiveStorage.Service.DiskService do
 
   @impl ActiveStorage.Service
 
-  def private_url(service, blob, opts \\ []) do
+  def private_url(_service, blob, opts \\ []) do
     defaults = [expires_in: nil, filename: blob.filename, content_type: nil, disposition: nil]
     options = Keyword.merge(defaults, opts)
 

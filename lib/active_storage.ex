@@ -194,8 +194,7 @@ defmodule ActiveStorage do
       true
   """
   def attached?(record, attachment_name) do
-    attachment_query(record, attachment_name)
-    |> repo().exists?()
+    attachment_query(record, attachment_name) |> repo().exists?
   end
 
   @doc """
@@ -213,12 +212,14 @@ defmodule ActiveStorage do
 
   def url_for_attachment(attachment, opts \\ []), do: Service.url(attachment, opts)
 
-  defp attachment_query(%mod{id: record_id}, attachment_name) do
+  def attachment_query(%mod{id: record_id}, attachment_name) do
     record_type = mod.record_type()
 
     from(a in Attachment,
       where:
-        a.name == ^attachment_name and a.record_type == ^record_type and a.record_id == ^record_id
+        a.name == ^attachment_name and
+          a.record_type == ^record_type and
+          a.record_id == ^record_id
     )
   end
 
@@ -314,6 +315,12 @@ defmodule ActiveStorage do
 
   def analyzers,
     do: [ActiveStorage.Analyzer.ImageAnalyzer, ActiveStorage.Analyzer.VideoAnalyzer]
+
+  def paths,
+    do: [
+      ffprobe: "/usr/local/bin/ffprobe",
+      pdftoppm: "/usr/local/Cellar/poppler/21.12.0/bin/pdftoppm"
+    ]
 
   # def paths, do: ActiveSupport :: OrderedOptions.new()
   # def queues, do: ActiveSupport :: InheritableOptions.new()

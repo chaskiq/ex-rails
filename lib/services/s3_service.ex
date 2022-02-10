@@ -34,10 +34,10 @@ defmodule ActiveStorage.Service.S3Service do
   #   ExAws.S3.presigned_url(config(), :get, bucket, blob.key, expires_in: 300)
   # end
 
-  defp config_for_blob(blob) do
+  def config_for_blob(_blob) do
   end
 
-  defp aws_config(config) do
+  def aws_config(config) do
     ExAws.Config.new(:s3, config)
   end
 
@@ -178,7 +178,7 @@ defmodule ActiveStorage.Service.S3Service do
     }
   end
 
-  def build(%{configurator: _c, name: n, service: s}, config) do
+  def build(%{configurator: _c, name: n, service: _s}, config) do
     new(
       %{
         bucket: config.bucket,

@@ -76,11 +76,11 @@ defmodule ActiveStorage.Attached.OneRails do
     # attachment.present?
   end
 
-  defp purge_one(_instance) do
+  def purge_one(_instance) do
     # Attached::Changes::PurgeOne.new(name, record, attachment)
   end
 
-  defp detach_one(_instance) do
+  def detach_one(_instance) do
     # Attached::Changes::DetachOne.new(name, record, attachment)
   end
 end

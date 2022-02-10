@@ -29,15 +29,15 @@ defmodule ActiveStorage.Analyzer do
 
   # Downloads the blob to a tempfile on disk. Yields the tempfile.
   # defp download_blob_to_tempfile(&block) #:doc:
-  defp download_blob_to_tempfile do
+  def download_blob_to_tempfile do
     # blob.open tmpdir: tmpdir, &block
   end
 
-  defp logger do
+  def logger do
     ActiveStorage.logger()
   end
 
-  defp tmpdir do
+  def tmpdir do
     # Dir.tmpdir()
   end
 end

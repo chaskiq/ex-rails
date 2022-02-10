@@ -5,7 +5,7 @@ defmodule ActiveStorage.Previewer do
   # ActiveStorage::Previewer::MuPDFPreviewer and ActiveStorage::Previewer::VideoPreviewer for
   # examples of concrete subclasses.
 
-  alias __MODULE__
+  # alias __MODULE__
   defstruct [:blob]
 
   # Implement this method in a concrete subclass. Have it return true when given a blob from which
@@ -27,7 +27,10 @@ defmodule ActiveStorage.Previewer do
 
   # Downloads the blob to a tempfile on disk. Yields the tempfile.
   # :doc:
-  defp download_blob_to_tempfile(_block) do
+  def download_blob_to_tempfile(blob, options \\ []) do
+    defaults = [block: nil, tmpdir: tmpdir()]
+    options = Keyword.merge(defaults, options)
+    ActiveStorage.Blob.open(blob, options)
     # blob.open tmpdir: tmpdir, block
   end
 
@@ -66,11 +69,11 @@ defmodule ActiveStorage.Previewer do
     # end
   end
 
-  defp instrument(_operation, _payload = %{}, _block) do
+  def instrument(_operation, _payload = %{}, _block) do
     # ActiveSupport::Notifications.instrument "#{operation}.active_storage", payload, &block
   end
 
-  defp capture(_argv, _to) do
+  def capture(_argv, _to) do
     # to.binmode
 
     # open_tempfile do |err|
@@ -86,12 +89,13 @@ defmodule ActiveStorage.Previewer do
   end
 
   # :doc:
-  defp logger do
+  def logger do
     # ActiveStorage.logger
   end
 
   # :doc:
-  defp tmpdir do
-    Dir.tmpdir()
+  def tmpdir do
+    "/tmp"
+    # Dir.tmpdir()
   end
 end
