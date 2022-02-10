@@ -61,6 +61,9 @@ defmodule MyApp.MyContext.Person do
 
   schema "people" do
     # ...
+
+    # has_one :avatar, ActiveStorage.Attachment, [...]
+    # has_one_attached :avatar, [...]
   end
 
   # Yes, this is the same as the suffix of the module, but it won't always be so.
@@ -68,18 +71,190 @@ defmodule MyApp.MyContext.Person do
   def record_type do
     "Person"
   end
+end
+
+Person.attached?(person, :avatar)
+
+
+ActiveStorage.attached?(record, :avatar)
+
+
+Person.all()
+
+ActiveStorage.attachment_query(person, :avatar)
+|> MyApp.Repo.all()
 ```
 
 ### Usage
 
+The `active_storage` Elixir library is based on and compatible with the `activestorage` Ruby gem.  While Elixir was inspired by Ruby two differences are important with regard to `active_storage`:
+
+ * Ruby is (mostly) object-oriented while Elixir is (mostly) functional.  Therefore API design best-practices difer
+ * `active_storage` is specifically built on the `ecto` library which is built using the "repository" pattern.  The `activestorage` Ruby gem is built on the `activerecord` gem which is build using the "active record" pattern.
+
+This library provides APIs to use both "standard" and "ruby-flavored" APIs.  The "standard" API is designed to be compatible with the `ecto` library philosophy, while the "ruby-flavored" API exists to provide a more comfortable alternative for Rubyists transitioning their apps.
+
+#### Attaching from HTTP requests
+
+The following is assuming a parameter from a Phoenix controller's `params` argument.
+
+Ruby: `user.avatar.attach(params[:avatar])`
+Elixir (standard): `ActiveStorage.attach(user, :avatar, params[:avatar])`
+Elixir (ruby-flavored): `User.attach(user, :avatar, params[:avatar])`
+
+Ruby: `message.images.attach(params[:images])`
+Elixir (standard): `ActiveStorage.attach(message, :images, params[:images])`
+Elixir (ruby-flavored): `Message.attach(message, :images, params[:images])`
+
+#### Attaching from File/IO Objects
+
+Ruby: `@message.images.attach(io: File.open('/path/to/file'), filename: 'file.pdf')`
+Elixir (standard): `ActiveStorage.attach(message, :images, io: File.open!("/path/to/file"), filename: "file.pdf")`
+Elixir (ruby-flavored): `Message.attach(message, :images, io: File.open!("/path/to/file"), filename: "file.pdf")`
+
+#### Fetching files
+
 Ruby: `user.avatar`
-Elixir: `ActiveStorage.get_attachment(user, "avatar")
+Elixir (standard): `ActiveStorage.attachment_query(user, "avatar") |> MyApp.Repo.one()
+Elixir (ruby-flavored): `User.avatar(user)`
 
 Ruby: `user.images`
-Elixir: `ActiveStorage.get_attachments(post, "images")
+Elixir (standard): `ActiveStorage.attachment_query(user, "avatar") |> MyApp.Repo.all()
+Elixir (ruby-flavored): `User.images(user)`
 
 Ruby: `user.avatar.attached?`
-Elixir: `ActiveStorage.attached?(user, "avatar")
+Elixir (standard): `ActiveStorage.attachment_query(user, "avatar") |> MyApp.Repo.exists?()
+Elixir (ruby-flavored): `User.avatar?(user)`
+
+Ruby: `message.images.attached?`
+Elixir (standard): `ActiveStorage.attachment_query(message, "images") |> MyApp.Repo.exists?()
+Elixir (ruby-flavored): `User.images?(user)`
+
+#### Defining attachments in Ecto schemas
+
+```
+defmodule MyApp.Person do
+  use Ecto.Schema
+
+  schema "people" do
+    field :name, :string, null: false
+    field :age, :integer, null: false
+
+    timestamps(inserted_at: :created_at)
+
+    # TODO: Still thinking this through
+    # it would be ideal if the "standard" version didn't use
+    # a macro to avoid compile dependency
+    # Maybe there could be a different, simpler macro?
+
+    # Standard:
+    has_one :avatar, ActiveStorage.Attachment, where: [record_type: "Person"], foreign_key: :record_id
+    has_many :documents, ActiveStorage.Attachment, where: [record_type: "Person"], foreign_key: :record_id
+
+    # Ruby-flavored:
+    has_one_attached :avatar
+    has_many_attached :documents
+  end
+end
+```
+
+
+#### Defining attachment variants
+
+Ruby:
+
+```
+  has_one_attached :avatar do |attachable|
+    attachable.variant :thumb, resize_to_limit: [100, 100]
+  end
+```
+
+Elixir (standard):
+
+```
+  has_one :avatar, ActiveStorage.Attachment, where: [record_type: "Person"], foreign_key: :record_id
+  attachment_variants :avatar, [
+    {:thumb, resize_to_limit: [100, 100]}
+  ]
+```
+
+Elixir (ruby-flavored):
+
+```
+  # Ruby-flavored
+  has_one_attached :avatar, variants: [
+    {:thumb, resize_to_limit: [100, 100]}
+  ]
+```
+
+
+#### Removing attachments
+
+Ruby: `user.avatar.purge`
+Elixir (standard): `ActiveStorage.purge(user, "avatar")`
+Elixir (ruby-flavored): `User.purge_attachments(user, "avatar")`
+
+Ruby: `user.images.purge`
+Elixir (standard): `ActiveStorage.purge(user, "images")`
+Elixir (ruby-flavored): `User.purge_attachments(user, "images")`
+
+TODO? Should we support an alternative to `purge_later`?  Phoenix / Elixir doesn't have something like ActiveJob, but maybe with Elixir `Task`s?
+
+#### Redirect
+
+Ruby: `url_for(user.avatar)`
+
+Ruby: `rails_blob_path(user.avatar, disposition: "attachment")`
+
+TODO: Something for Plug/Phoenix?  Separate library?
+
+See note about XSS attacks: https://edgeguides.rubyonrails.org/active_storage_overview.html#redirect-mode
+
+#### TODO: Proxy mode
+
+https://edgeguides.rubyonrails.org/active_storage_overview.html#redirect-mode
+
+CDN instructions?
+
+#### TODO: Authenticated controllers?
+
+Leave to Plug/Phoenix?
+
+
+#### TODO: Downloading files
+
+https://edgeguides.rubyonrails.org/active_storage_overview.html#downloading-files
+
+#### TODO: Analyzing files
+
+https://edgeguides.rubyonrails.org/active_storage_overview.html#analyzing-files
+
+#### TODO: Displaying Images, Videos, and PDFs
+
+Phoenix thing???
+
+https://edgeguides.rubyonrails.org/active_storage_overview.html#displaying-images-videos-and-pdfs
+
+#### TODO: Direct Uploads
+
+https://edgeguides.rubyonrails.org/active_storage_overview.html#direct-uploads
+
+`activestorage.js`
+
+CORS config
+
+#### TODO: Testing
+
+https://edgeguides.rubyonrails.org/active_storage_overview.html#testing
+
+#### TODO: Implementing Support for Other Cloud Services
+
+https://edgeguides.rubyonrails.org/active_storage_overview.html#implementing-support-for-other-cloud-services
+
+#### TODO: Purging Unattached Uploads
+
+https://edgeguides.rubyonrails.org/active_storage_overview.html#purging-unattached-uploads
+
 
 ### router:
 
