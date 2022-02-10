@@ -36,7 +36,7 @@ defmodule ActiveStorage.Blob.Representable do
 
       # variant_class().new(self, ActiveStorage.Variation.wrap(transformations).default_to(default_variant_transformations))
     else
-      raise "ActiveStorage::InvariableError"
+      raise ActiveStorage.InvariableError
     end
   end
 
@@ -63,7 +63,7 @@ defmodule ActiveStorage.Blob.Representable do
     if blob |> previewable? do
       ActiveStorage.Preview.new(blob, transformations)
     else
-      raise "ActiveStorage::UnpreviewableError"
+      raise ActiveStorage.UnpreviewableError
     end
   end
 
@@ -84,7 +84,7 @@ defmodule ActiveStorage.Blob.Representable do
     cond do
       blob |> previewable? -> preview(blob, transformations)
       blob |> variable? -> variant(blob, transformations)
-      true -> raise "ActiveStorage :: UnrepresentableError"
+      true -> raise ActiveStorage.UnrepresentableError
     end
   end
 

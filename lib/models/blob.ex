@@ -336,7 +336,7 @@ defmodule ActiveStorage.Blob do
     srv = blob |> service
     mod = srv.__struct__
 
-    case mod.upload(srv, blob, io) do
+    case mod.upload(srv, blob.key, io) do
       {:ok, _response} ->
         blob
 

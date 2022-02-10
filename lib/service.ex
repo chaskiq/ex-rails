@@ -203,8 +203,20 @@ defmodule ActiveStorage.Service do
   # self.class.name.split("::").third.remove("Service")
   # end
 
-  # defp content_disposition_with(type: "inline", filename:) do
-  # disposition = (type.to_s.presence_in(%w( attachment inline )) || "inline")
-  # ActionDispatch::Http::ContentDisposition.format(disposition: disposition, filename: filename.sanitized)
-  # end
+  def content_disposition_with(options \\ []) do
+    defaults = [type: "inline", filename: nil]
+    options = Keyword.merge(defaults, options)
+
+    type = options[:type]
+
+    disposition =
+      case ["attachment", "inline"] |> Enum.member?(type) do
+        true -> type
+        _ -> "inline"
+      end
+
+    ContentDisposition.format(disposition: disposition, filename: options[:filename])
+
+    # ActionDispatch::Http::ContentDisposition.format(disposition: disposition, filename: filename.sanitized)
+  end
 end

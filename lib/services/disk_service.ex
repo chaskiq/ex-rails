@@ -39,13 +39,23 @@ defmodule ActiveStorage.Service.DiskService do
     options = Keyword.merge(default, options)
     # instrument :upload, key: key, checksum: checksum do
     # IO.copy_stream(io, make_path_for(key))
-    p = make_path_for(service, key.key)
-    # IO.inspect(p)
+    p = make_path_for(service, key)
 
+    # IO.inspect(p)
     case File.write(p, io) do
       :ok ->
-        # ensure_integrity_of(key, checksum) if checksum
-        {:ok, p}
+        path = __MODULE__.path_for(service, key)
+
+        case options[:checksum] do
+          nil ->
+            {:ok, p}
+
+          checksum ->
+            cond do
+              ensure_integrity_of(path, checksum) -> {:ok, p}
+              true -> nil
+            end
+        end
 
       _ ->
         {:error, "could not upload file from disk service"}
@@ -142,7 +152,8 @@ defmodule ActiveStorage.Service.DiskService do
 
   def path_for(service, key) do
     # File.join root, folder_for(key), key
-    Path.join(service.root, folder_for(key)) |> Path.join(key)
+    # |> Path.join(key)
+    Path.join(service.root, folder_for(key))
   end
 
   def folder_for(key) do
@@ -157,7 +168,12 @@ defmodule ActiveStorage.Service.DiskService do
     # path_for(key).tap { |path| FileUtils.mkdir_p File.dirname(path) }
   end
 
-  def ensure_integrity_of(key, checksum) do
+  def ensure_integrity_of(path, checksum) do
+    case :crypto.hash(:md5, path) |> Base.encode64() == checksum do
+      true -> true
+      false -> raise ActiveStorage.IntegrityError
+    end
+
     # unless Digest::MD5.file(path_for(key)).base64digest == checksum
     #  delete key
     #  raise ActiveStorage::IntegrityError
@@ -166,11 +182,11 @@ defmodule ActiveStorage.Service.DiskService do
 
   @impl ActiveStorage.Service
 
-  def private_url(service, key, opts \\ []) do
-    defaults = [expires_in: nil, filename: nil, content_type: nil, disposition: nil]
+  def private_url(service, blob, opts \\ []) do
+    defaults = [expires_in: nil, filename: blob.filename, content_type: nil, disposition: nil]
     options = Keyword.merge(defaults, opts)
 
-    generate_url(key,
+    generate_url(blob.key,
       expires_in: options[:expires_in],
       filename: options[:filename],
       content_type: options[:content_type],
@@ -180,11 +196,17 @@ defmodule ActiveStorage.Service.DiskService do
 
   @impl ActiveStorage.Service
 
-  def public_url(service, key, options \\ []) do
-    defaults = [expires_in: nil, filename: nil, content_type: nil, disposition: nil]
+  def public_url(service, blob, options \\ []) do
+    defaults = [
+      expires_in: nil,
+      filename: blob.filename,
+      content_type: nil,
+      disposition: "attachment"
+    ]
+
     options = Keyword.merge(defaults, options)
 
-    generate_url(key,
+    generate_url(blob.key,
       expires_in: options[:expires_in],
       filename: options[:filename],
       content_type: options[:content_type],
@@ -193,7 +215,13 @@ defmodule ActiveStorage.Service.DiskService do
   end
 
   def generate_url(key, options \\ []) do
-    defaults = [expires_in: nil, filename: nil, content_type: nil, disposition: nil]
+    defaults = [
+      expires_in: nil,
+      filename: options[:filename],
+      content_type: nil,
+      disposition: "inline"
+    ]
+
     options = Keyword.merge(defaults, options)
 
     # content_disposition = content_disposition_with(type: disposition, filename: filename)
@@ -208,14 +236,38 @@ defmodule ActiveStorage.Service.DiskService do
     #  purpose: :blob_key
     # )
 
+    content_disposition =
+      ActiveStorage.Service.content_disposition_with(
+        disposition: options[:disposition],
+        filename: options[:filename]
+      )
+
+    verified_key_with_expiration =
+      ActiveStorage.verifier().sign(
+        Jason.encode!(%{
+          key: key,
+          disposition: content_disposition,
+          content_type: options[:content_type],
+          service_name: options[:name]
+        })
+        # ,
+        # expires_in: options[:expires_in],
+        # purpose: :blob_key
+      )
+
     # if url_options.blank?
     #  raise ArgumentError, "Cannot generate URL for #{filename} using Disk service, please set ActiveStorage::Current.url_options."
     # end
 
     # url_helpers.rails_disk_service_url(verified_key_with_expiration, filename: filename, **url_options)
-    {:ok, "GENERATED_URL_HERE -- changeme in disk_service.ex"}
+    u = "/active_storage/disk/#{verified_key_with_expiration}/#{options[:filename]}"
+    {:ok, u}
   end
 end
+
+# rails_disk_service GET      /rails/active_storage/disk/:encoded_key/*filename(.:format)                                       active_storage/disk#show
+# update_rails_disk_service PUT      /rails/active_storage/disk/:encoded_token(.:format)                                               active_storage/disk#update
+# rails_direct_uploads POST     /rails/active_storage/direct_uploads(.:format)                                                    active_storage/direct_uploads#create
 
 # <ActiveStorage::Service::DiskService:0x00007fb8d69dece8
 # @name=:local,

@@ -13,8 +13,6 @@ defmodule PreviewTest do
         content_type: "application/pdf"
       )
 
-    require IEx
-    IEx.pry()
     # blob = create_file_blob(filename: "report.pdf", content_type: "application/pdf")
     # preview = blob.preview(resize_to_limit: [640, 280]).processed
     #

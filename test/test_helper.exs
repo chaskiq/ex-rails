@@ -140,6 +140,17 @@ defmodule ActiveStorageTestHelpers do
     #  service.upload(blob.key, file.open)
     # end
   end
+
+  def read_image(blob_or_variant = %ActiveStorage.Variant{}) do
+    srv = blob_or_variant.blob |> ActiveStorage.Blob.service()
+    key = ActiveStorage.Variant.key(blob_or_variant)
+    Mogrify.open(srv.__struct__.path_for(srv, key)) |> Mogrify.verbose()
+  end
+
+  def read_image(blob_or_variant) do
+    srv = blob_or_variant |> ActiveStorage.Blob.service()
+    Mogrify.open(srv.__struct__.path_for(srv, blob_or_variant.key)) |> Mogrify.verbose()
+  end
 end
 
 defmodule User do

@@ -97,10 +97,8 @@ defmodule ActiveStorage.Attached.One do
       alias Ecto.Multi
 
       def insert(%__MODULE__{} = resource, attrs) do
-        IO.puts("OLAALALA")
+        IO.puts("FIND ME IN ActiveStorage.Attached.One")
         IO.inspect(attrs)
-        require IEx
-        IEx.pry()
         # new_changeset(resource, attrs)
       end
 

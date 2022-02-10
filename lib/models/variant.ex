@@ -83,7 +83,7 @@ defmodule ActiveStorage.Variant do
     key = variant.blob.id
     variation_key = ActiveStorage.Variation.key(variant.variation)
     hash = :crypto.hash(:sha256, variation_key) |> Base.encode16()
-    "variants/#{key}/#{hash}"
+    "variants/#{key}/#{hash}/#{variant.blob.filename}"
   end
 
   # Returns the URL of the blob variant on the service. See {ActiveStorage::Blob#url} for details.
@@ -138,9 +138,12 @@ defmodule ActiveStorage.Variant do
     variant.blob
     |> ActiveStorage.Blob.open(
       block: fn input ->
+        key = key(variant)
+
         variant.variation
         |> ActiveStorage.Variation.transform(input, fn output ->
-          variant.blob |> ActiveStorage.Blob.service().upload(variant.blob, output)
+          srv = ActiveStorage.Blob.service(variant.blob)
+          srv.__struct__.upload(srv, key, output)
         end)
       end
     )
