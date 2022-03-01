@@ -39,7 +39,8 @@ defmodule ActiveStorage.Blob do
       :service_name,
       :key
     ])
-    |> prepare_changes(&set_defaults/1)
+    |> key
+    # |> prepare_changes(&set_defaults/1)
     |> validate_required([
       :filename,
       :content_type,
@@ -51,23 +52,49 @@ defmodule ActiveStorage.Blob do
   end
 
   def set_defaults(current_changeset) do
-    # self.team_schedule = []
+    cond do
+      current_changeset.changes |> Map.get(:key) ->
+        current_changeset
 
-    current_changeset
-    # if encryption_key.blank?
-    |> generate_encryption_key()
+      true ->
+        current_changeset
+        |> key()
+    end
   end
 
-  def generate_encryption_key(current_changeset) do
-    binary = Ecto.UUID.bingenerate()
-    {:ok, k} = Ecto.UUID.load(binary)
+  # To prevent problems with case-insensitive filesystems, especially in combination
+  # with databases which treat indices as case-sensitive, all blob keys generated are going
+  # to only contain the base-36 character alphabet and will therefore be lowercase. To maintain
+  # the same or higher amount of entropy as in the base-58 encoding used by `has_secure_token`
+  # the number of bytes used is increased to 28 from the standard 24
+  # def generate_unique_secure_token(length: MINIMUM_TOKEN_LENGTH)
+  #  SecureRandom.base36(length)
+  # end
+  def generate_unique_secure_token(current_changeset, _length) do
+    # binary = Ecto.UUID.bingenerate()
+    # {:ok, k} = Ecto.UUID.load(binary)
+    put_change(
+      current_changeset,
+      :key,
+      SecureRandom.urlsafe_base64(13) |> String.downcase() |> String.replace("=", "")
+    )
+  end
 
-    case current_changeset do
-      %Ecto.Changeset{valid?: true} ->
-        put_change(current_changeset, :key, k)
+  # Returns the key pointing to the file on the service that's associated with this blob. The key is the
+  # secure-token format from Rails in lower case. So it'll look like: xtapjjcjiudrlk3tmwyjgpuobabd.
+  # This key is not intended to be revealed directly to the user.
+  # Always refer to blobs using the signed_id or a verified form of the key.
+  def key(changeset) do
+    # We can't wait until the record is first saved to have a key for it
+    case changeset.changes |> Map.get(:key) do
+      nil ->
+        case changeset.data |> Map.get(:key) do
+          nil -> generate_unique_secure_token(changeset, length: 2)
+          _ -> changeset
+        end
 
       _ ->
-        current_changeset
+        changeset
     end
   end
 
@@ -94,60 +121,54 @@ defmodule ActiveStorage.Blob do
 
   # active storage ported methods
 
-  def build_after_unfurling(blob, %{
-        # key: k,
-        io: io,
-        filename: filename,
-        content_type: content_type,
-        metadata: metadata,
-        service_name: service_name,
-        identify: identify
-        # record: record
-      }) do
+  def build_after_unfurling(blob, options \\ []) do
+    defaults = [
+      key: nil,
+      io: nil,
+      filename: nil,
+      content_type: nil,
+      metadata: nil,
+      service_name: "local",
+      identify: true
+      # record: record
+    ]
+
+    options = Keyword.merge(defaults, options)
+
     n =
       blob
       |> ActiveStorage.Blob.changeset(%{
-        # byte_size: byte_size,
-        # checksum: checksum,
-        content_type: content_type,
-        filename: filename,
-        # :key:   key,
-        metadata: metadata,
-        service_name: service_name
+        byte_size: options[:byte_size],
+        checksum: options[:checksum],
+        content_type: options[:content_type],
+        filename: options[:filename],
+        key: options[:key],
+        metadata: options[:metadata],
+        service_name: options[:service_name]
       })
 
-    case n do
-      %Ecto.Changeset{valid?: true} ->
-        n |> unfurl(io, %{identify: identify})
-
-      %Ecto.Changeset{valid?: false} ->
-        n
-    end
+    n |> unfurl(options[:io], identify: options[:identify])
 
     # new(key: key, filename: filename, content_type: content_type, metadata: metadata, service_name: service_name).tap do |blob|
     #  blob.unfurl(io, identify: identify)
     # end
   end
 
-  def create_after_unfurling!(blob, %{
-        # key: k,
-        io: io,
-        filename: filename,
-        content_type: content_type,
-        metadata: metadata,
-        service_name: service_name,
-        identify: identify
-        # record: record
-      }) do
-    build_after_unfurling(blob, %{
-      # key: k,
-      io: io,
-      filename: filename,
-      content_type: content_type,
-      metadata: metadata,
-      service_name: service_name,
-      identify: identify
-    })
+  def create_after_unfurling!(blob, options \\ []) do
+    defaults = [
+      key: nil,
+      io: nil,
+      filename: nil,
+      content_type: nil,
+      metadata: nil,
+      service_name: "local",
+      identify: true
+      # record: record
+    ]
+
+    options = Keyword.merge(defaults, options)
+
+    build_after_unfurling(blob, options)
     |> repo().insert!()
 
     # changeset.tap(&:save!)
@@ -158,27 +179,32 @@ defmodule ActiveStorage.Blob do
   # be saved before the upload begins to prevent the upload clobbering another due to key collisions.
   # When providing a content type, pass <tt>identify: false</tt> to bypass
   # automatic content type inference.
-  def create_and_upload!(blob, %{
-        # key: k,
-        io: io,
-        filename: filename,
-        content_type: content_type,
-        metadata: metadata,
-        service_name: service_name,
-        identify: identify
-        # record: record
-      }) do
-    blob =
-      create_after_unfurling!(blob, %{
-        io: io,
-        filename: filename,
-        content_type: content_type,
-        metadata: metadata,
-        service_name: service_name,
-        identify: identify
-      })
+  def create_and_upload!(blob, options \\ []) do
+    defaults = [
+      key: nil,
+      io: nil,
+      filename: nil,
+      content_type: nil,
+      metadata: nil,
+      service_name: "local",
+      identify: true
+      # record: record
+    ]
 
-    blob |> upload_without_unfurling(io)
+    options = Keyword.merge(defaults, options)
+
+    blob =
+      create_after_unfurling!(blob,
+        key: options[:key],
+        io: options[:io],
+        filename: options[:filename],
+        content_type: options[:content_type],
+        metadata: options[:metadata],
+        service_name: options[:service_name],
+        identify: options[:identify]
+      )
+
+    upload_without_unfurling(blob, options[:io])
 
     # create_after_unfurling!(%{key: key, io: io, filename: filename, content_type: content_type, metadata: metadata, service_name: service_name, identify: identify}) .tap do |blob|
     #  blob.upload_without_unfurling(io)
@@ -190,16 +216,20 @@ defmodule ActiveStorage.Blob do
   # in order to produce the signed URL for uploading. This signed URL points to the key generated by the blob.
   # Once the form using the direct upload is submitted, the blob can be associated with the right record using
   # the signed ID.
-  def create_before_direct_upload!(_blob, %{
-        key: _k,
-        io: _io,
-        filename: _filename,
-        content_type: _content_type,
-        metadata: _metadata,
-        service_name: _service_name,
-        identify: _identify,
-        record: _record
-      }) do
+  def create_before_direct_upload!(_blob, options \\ []) do
+    defaults = [
+      key: nil,
+      io: nil,
+      filename: nil,
+      content_type: nil,
+      metadata: nil,
+      service_name: "local",
+      identify: true,
+      record: nil
+    ]
+
+    _options = Keyword.merge(defaults, options)
+
     # create! key: key, filename: filename, byte_size: byte_size, checksum: checksum, content_type: content_type, metadata: metadata, service_name: service_name
   end
 
@@ -215,18 +245,24 @@ defmodule ActiveStorage.Blob do
   # Normally, you do not have to call this method directly at all. Use the +create_and_upload!+ class method instead.
   # If you do use this method directly, make sure you are using it on a persisted Blob as otherwise another blob's
   # data might get overwritten on the service.
-  def upload(blob, io, %{identify: true} = identify) do
+  def upload(blob, io, options \\ []) do
+    defaults = [identify: true]
+    options = Keyword.merge(defaults, options)
+
     blob
-    |> unfurl(io, identify)
+    |> unfurl(io, options)
     |> upload_without_unfurling(io)
   end
 
   # Deletes the files on the service associated with the blob. This should only be done if the blob is going to be
   # deleted as well or you will essentially have a dead reference. It's recommended to use #purge and #purge_later
   # methods in most circumstances.
-  def delete(_blob) do
-    # service.delete(key)
-    # service.delete_prefixed("variants/#{key}/") if image?
+  def delete(service, blob) do
+    service.__struct__.delete(service, blob.key)
+
+    if image?(blob) do
+      service.__struct__.delete_prefixed("variants/#{blob.key}/")
+    end
   end
 
   # Destroys the blob record and then deletes the file on the service. This is the recommended way to dispose of unwanted
@@ -252,7 +288,11 @@ defmodule ActiveStorage.Blob do
   end
 
   # :nodoc:
-  def unfurl(blob, io, _identify) do
+  def unfurl(blob, io, options \\ []) do
+    defaults = [identify: true]
+
+    options = Keyword.merge(defaults, options)
+
     checksum = compute_checksum_in_chunks(blob, io)
     # ExImageInfo.seems?(io)
     <<head::size(8), _rest::binary>> = io
@@ -265,16 +305,22 @@ defmodule ActiveStorage.Blob do
     }
 
     data =
-      if blob.changes |> Map.has_key?(:content_type) != true do
-        {mime, _w, _h, _} = ExImageInfo.info(io)
-        content_type = mime
-        data |> Map.merge(%{content_type: content_type})
+      if options[:identify] do
+        case ExImageInfo.info(io) do
+          nil ->
+            content_type = MIME.from_path(blob.changes.filename)
+            data |> Map.merge(%{content_type: content_type})
+
+          {mime, _w, _h, _} ->
+            content_type = mime
+            data |> Map.merge(%{content_type: content_type})
+        end
       else
-        data
+        content_type = MIME.from_path(blob.changes.filename)
+        data |> Map.merge(%{content_type: content_type})
       end
 
-    blob
-    |> Ecto.Changeset.change(data)
+    __MODULE__.changeset(%__MODULE__{}, blob.changes |> Map.merge(data))
 
     # content_type = extract_content_type(io) if content_type.nil? || identify
     # byte_size    = io.size
@@ -290,18 +336,23 @@ defmodule ActiveStorage.Blob do
     srv = blob |> service
     mod = srv.__struct__
 
-    case mod.upload(srv, blob, io) do
+    case mod.upload(srv, blob.key, io) do
       {:ok, _response} ->
         blob
 
       {:error, err} ->
-        require IEx
-        IEx.pry()
         nil
     end
 
     # srv.upload(blob, "./README.md")
     # service.upload key, io, checksum: checksum, **service_metadata
+  end
+
+  # Downloads the file associated with this blob. If no block is given, the entire file is read into memory and returned.
+  # That'll use a lot of RAM for very large files. If a block is given, then the download is streamed and yielded in chunks.
+  def download(blob, block \\ nil) do
+    s = service(blob)
+    s.__struct__.download(s, blob.key, block)
   end
 
   def compute_checksum_in_chunks(_blob, io) do
@@ -336,11 +387,21 @@ defmodule ActiveStorage.Blob do
   #
   # Raises ActiveStorage::IntegrityError if the downloaded data does not match the blob's checksum.
   # , tmpdir: nil, fn) do
-  def open(blob, block) do
+  def open(blob, options \\ []) do
+    defaults = [tmpdir: nil, block: nil]
+    options = Keyword.merge(defaults, options)
+
     ext = MIME.extensions(MIME.from_path(blob.filename)) |> hd
     name = ["ActiveStorage-#{blob.id}-", ".#{ext}"]
     service = service(blob)
-    service.__struct__.open(service, blob.key, %{checksum: blob.checksum, name: name}, block)
+
+    service.__struct__.open(service, blob.key,
+      checksum: blob.checksum,
+      tmpdir: options[:tmpdir],
+      name: name,
+      block: options[:block]
+    )
+
     # service.open blob.key, checksum: blob.checksum,
     #  name: [ "ActiveStorage-#{id}-", blob.filename.extension_with_delimiter ], tmpdir: tmpdir, &block
   end
@@ -379,5 +440,9 @@ defmodule ActiveStorage.Blob do
   # Returns true if the content_type of this blob is in the text range, like text/plain.
   def text?(blob) do
     blob.content_type |> String.starts_with?("text")
+  end
+
+  def record_type() do
+    "blob"
   end
 end

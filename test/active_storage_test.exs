@@ -1,9 +1,9 @@
 defmodule ActiveStorageTest do
   use ExUnit.Case, async: false
 
-  alias Ecto.Adapters.SQL
+  # alias Ecto.Adapters.SQL
   alias ActiveStorage.{Blob}
-  import Ecto.Query
+  # import Ecto.Query
   # import Mix.Ecto, only: [build_repo_priv: 1]
 
   # alias Chaskiq.ActiveStorage
@@ -30,10 +30,8 @@ defmodule ActiveStorageTest do
 
     test "list_storage_blob/0 returns all storage_blob" do
       storage_blob = storage_blob_fixture()
-
       result = ActiveStorage.list_storage_blob()
-
-      assert ActiveStorage.list_storage_blob() == [storage_blob]
+      assert result == [storage_blob]
     end
 
     test "get_storage_blob!/1 returns the storage_blob with given id" do

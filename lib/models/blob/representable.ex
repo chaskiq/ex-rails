@@ -36,7 +36,7 @@ defmodule ActiveStorage.Blob.Representable do
 
       # variant_class().new(self, ActiveStorage.Variation.wrap(transformations).default_to(default_variant_transformations))
     else
-      raise "ActiveStorage::InvariableError"
+      raise ActiveStorage.InvariableError
     end
   end
 
@@ -63,13 +63,17 @@ defmodule ActiveStorage.Blob.Representable do
     if blob |> previewable? do
       ActiveStorage.Preview.new(blob, transformations)
     else
-      raise "ActiveStorage::UnpreviewableError"
+      raise ActiveStorage.UnpreviewableError
     end
   end
 
   # Returns true if any registered previewer accepts the blob. By default, this will return true for videos and PDF documents.
-  def previewable?(_blob) do
-    # ActiveStorage.previewers |> Enum.any? |klass| klass.accept?(self)
+  def previewable?(blob) do
+    # ActiveStorage.previewers() |> Enu
+    ActiveStorage.previewers()
+    |> Enum.any?(fn mod ->
+      mod.accept?(blob)
+    end)
   end
 
   # Returns an ActiveStorage::Preview for a previewable blob or an ActiveStorage::Variant for a variable image blob.
@@ -84,7 +88,7 @@ defmodule ActiveStorage.Blob.Representable do
     cond do
       blob |> previewable? -> preview(blob, transformations)
       blob |> variable? -> variant(blob, transformations)
-      true -> raise "ActiveStorage :: UnrepresentableError"
+      true -> raise ActiveStorage.UnrepresentableError
     end
   end
 

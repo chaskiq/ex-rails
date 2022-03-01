@@ -39,7 +39,7 @@ defmodule ActiveStorage.Service.Configurator do
     # )
   end
 
-  defp config_for(_name) do
+  def config_for(_name) do
     # configurations.fetch name do
     #  raise "Missing configuration for the #{name.inspect} Active Storage service. Configurations available for #{configurations.keys.inspect}"
     # end

@@ -11,7 +11,7 @@
 
 defmodule ActiveStorage.Transformers.ImageProcessingTransformer do
   import Mogrify
-  alias __MODULE__
+  # alias __MODULE__
 
   defstruct [:transformations]
   # A Transformer applies a set of transformations to an image.
@@ -26,14 +26,26 @@ defmodule ActiveStorage.Transformers.ImageProcessingTransformer do
     %__MODULE__{transformations: transformations}
   end
 
-  def process(transformer, file, %{format: format}, _block \\ nil) do
+  def process(transformer, file, %{format: format}, block \\ nil) do
     # image = open(file) |> resize("100x100") |> save
 
-    _image =
-      open(file)
-      |> format(format)
-      |> operations(transformer.transformations)
-      |> save
+    case open(file)
+         |> format(format)
+         |> operations(transformer.transformations)
+         |> save()
+         |> verbose do
+      nil ->
+        nil
+
+      %Mogrify.Image{} = p ->
+        if(block) do
+          {:ok, io} = File.read(p.path)
+          block.(io)
+        else
+          {:ok, io} = File.read(p.path)
+          io
+        end
+    end
 
     # processor.
     #   source(file).

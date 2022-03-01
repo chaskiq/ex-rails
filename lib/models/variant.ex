@@ -53,7 +53,7 @@ defmodule ActiveStorage.Variant do
   # delegate :service, to: :blob
   # delegate :content_type, to: :variation
 
-  alias __MODULE__
+  # alias __MODULE__
   defstruct [:blob, :variation]
 
   def new(blob, variation_or_variation_key) do
@@ -68,12 +68,11 @@ defmodule ActiveStorage.Variant do
   end
 
   # Returns the variant instance itself after it's been processed or an existing processing has been found on the service.
-  def processed(blob) do
-    if !processed?(blob) do
-      process(blob)
+  def processed(variant) do
+    cond do
+      !processed?(variant) -> process(variant)
+      true -> variant
     end
-
-    blob
 
     # process unless processed?
     # self
@@ -84,7 +83,7 @@ defmodule ActiveStorage.Variant do
     key = variant.blob.id
     variation_key = ActiveStorage.Variation.key(variant.variation)
     hash = :crypto.hash(:sha256, variation_key) |> Base.encode16()
-    "variants/#{key}/#{hash}"
+    "variants/#{key}/#{hash}/#{variant.blob.filename}"
   end
 
   # Returns the URL of the blob variant on the service. See {ActiveStorage::Blob#url} for details.
@@ -93,8 +92,11 @@ defmodule ActiveStorage.Variant do
   # for a variant that points to the ActiveStorage::RepresentationsController, which in turn will use this +service_call+ method
   # for its redirection.
   # %{expires_in: ActiveStorage.service_urls_expire_in(), disposition: :inline}
-  def url(variant, %{expires_in: _expires_in, disposition: _disposition}) do
-    variant.blob |> ActiveStorage.url()
+  def url(variant, options \\ []) do
+    defaults = [expires_in: 3600, disposition: :inline]
+    options = Keyword.merge(defaults, options)
+
+    variant.blob |> ActiveStorage.url(options)
 
     # service.url key, expires_in: expires_in, disposition: disposition, filename: filename, content_type: content_type
   end
@@ -134,12 +136,17 @@ defmodule ActiveStorage.Variant do
 
   defp process(variant) do
     variant.blob
-    |> ActiveStorage.Blob.open(fn input ->
-      variant.variation
-      |> ActiveStorage.Variation.transform(input, fn output ->
-        variant.blob |> ActiveStorage.Blob.service().upload(variant.blob, output)
-      end)
-    end)
+    |> ActiveStorage.Blob.open(
+      block: fn input ->
+        key = key(variant)
+
+        variant.variation
+        |> ActiveStorage.Variation.transform(input, fn output ->
+          srv = ActiveStorage.Blob.service(variant.blob)
+          srv.__struct__.upload(srv, key, output)
+        end)
+      end
+    )
 
     # blob.open do |input|
     #  variation.transform(input) do |output|
