@@ -151,6 +151,15 @@ defmodule ActiveStorageTestHelpers do
     srv = blob_or_variant |> ActiveStorage.Blob.service()
     Mogrify.open(srv.__struct__.path_for(srv, blob_or_variant.key)) |> Mogrify.verbose()
   end
+
+  def read_image(blob_or_variant) do
+    # MiniMagick :: Image.open(blob_or_variant.service.send(:path_for, blob_or_variant.key))
+  end
+
+  def extract_metadata_from(blob) do
+    # IO.inspect(ActiveStorage.Blob.analyze(blob))
+    ActiveStorage.Blob.analyze(blob).metadata
+  end
 end
 
 defmodule User do

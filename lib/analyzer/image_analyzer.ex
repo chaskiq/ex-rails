@@ -10,8 +10,10 @@
 # This analyzer relies on the third-party {MiniMagick}[https://github.com/minimagick/minimagick] gem. MiniMagick requires
 # the {ImageMagick}[http://www.imagemagick.org] system library.
 defmodule ActiveStorage.Analyzer.ImageAnalyzer do
+  use ActiveStorage.Analyzer
+
   def accept?(blob) do
-    blob.image?
+    blob |> ActiveStorage.Blob.image?()
   end
 
   def metadata(_blob) do
