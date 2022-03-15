@@ -52,7 +52,7 @@ defmodule ActiveStorage.Blob.Analyzable do
         if analyzer_class(blob).analyze_later? do
           # ActiveStorage.AnalyzeJob.perform_later(self)
         else
-          # analyze
+          analyze(blob)
         end
       end
 
@@ -72,14 +72,8 @@ defmodule ActiveStorage.Blob.Analyzable do
       end
 
       def analyzer_class(blob) do
-        # IO.inspect("ANALIZERS")
-        # IO.inspect(ActiveStorage.analyzers())
-
         ActiveStorage.analyzers()
         |> Enum.find(fn mod ->
-          # IO.inspect(mod)
-          # IO.inspect(mod.accept?(blob))
-          # IO.puts("###")
           mod.accept?(blob)
         end) || ActiveStorage.Analyzer.NullAnalyzer
 
