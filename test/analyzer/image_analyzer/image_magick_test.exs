@@ -1,9 +1,18 @@
 defmodule ActiveStorage.Analyzer.ImageAnalyzer.ImageMagickTest do
   use ExUnit.Case, async: false
 
-  @tag skip: "this test is incomplete"
-
   test "analyzing a JPEG image" do
+    blob =
+      ActiveStorageTestHelpers.create_file_blob(
+        filename: "racecar.jpg",
+        content_type: "image/jpeg"
+      )
+
+    metadata = ActiveStorageTestHelpers.extract_metadata_from(blob) |> Jason.decode!()
+
+    assert 4104 == metadata["width"]
+    assert 2736 == metadata["height"]
+
     # analyze_with_image_magick do
     #  blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
     #  metadata = extract_metadata_from(blob)
@@ -13,9 +22,18 @@ defmodule ActiveStorage.Analyzer.ImageAnalyzer.ImageMagickTest do
     # end
   end
 
-  @tag skip: "this test is incomplete"
-
   test "analyzing a rotated JPEG image" do
+    blob =
+      ActiveStorageTestHelpers.create_file_blob(
+        filename: "racecar_rotated.jpg",
+        content_type: "image/jpeg"
+      )
+
+    metadata = ActiveStorageTestHelpers.extract_metadata_from(blob) |> Jason.decode!()
+
+    assert 2736 == metadata["width"]
+    assert 4104 == metadata["height"]
+
     # analyze_with_image_magick do
     #  blob = create_file_blob(filename: "racecar_rotated.jpg", content_type: "image/jpeg")
     #  metadata = extract_metadata_from(blob)
@@ -25,8 +43,18 @@ defmodule ActiveStorage.Analyzer.ImageAnalyzer.ImageMagickTest do
     # end
   end
 
-  @tag skip: "this test is incomplete"
   test "analyzing an SVG image without an XML declaration" do
+    blob =
+      ActiveStorageTestHelpers.create_file_blob(
+        filename: "icon.svg",
+        content_type: "image/svg+xml"
+      )
+
+    metadata = ActiveStorageTestHelpers.extract_metadata_from(blob) |> Jason.decode!()
+
+    assert 792 == metadata["width"]
+    assert 584 == metadata["height"]
+
     # analyze_with_image_magick do
     #  blob = create_file_blob(filename: "icon.svg", content_type: "image/svg+xml")
     #  metadata = extract_metadata_from(blob)
@@ -36,8 +64,19 @@ defmodule ActiveStorage.Analyzer.ImageAnalyzer.ImageMagickTest do
     # end
   end
 
-  @tag skip: "this test is incomplete"
   test "analyzing an unsupported image type" do
+    blob =
+      ActiveStorageTestHelpers.create_file_blob(
+        data: "bad",
+        filename: "bad_file.bad",
+        content_type: "image/bad_type"
+      )
+
+    metadata = ActiveStorageTestHelpers.extract_metadata_from(blob) |> Jason.decode!()
+
+    assert nil == metadata["width"]
+    assert nil == metadata["height"]
+
     # analyze_with_image_magick do
     #  blob = create_blob(data: "bad", filename: "bad_file.bad", content_type: "image/bad_type")
     #  metadata = extract_metadata_from(blob)
