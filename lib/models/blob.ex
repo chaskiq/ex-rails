@@ -5,6 +5,7 @@ defmodule ActiveStorage.Blob do
   # import ActiveStorage.Blob.Representable
   # import ActiveStorage.Blob.Identifiable
   # import ActiveStorage.Blob.Analyzable
+  use ActiveStorage.Blob.Analyzable
 
   # @foreign_key_type :binary_id
   schema "active_storage_blobs" do
@@ -193,18 +194,16 @@ defmodule ActiveStorage.Blob do
 
     options = Keyword.merge(defaults, options)
 
-    blob =
-      create_after_unfurling!(blob,
-        key: options[:key],
-        io: options[:io],
-        filename: options[:filename],
-        content_type: options[:content_type],
-        metadata: options[:metadata],
-        service_name: options[:service_name],
-        identify: options[:identify]
-      )
-
-    upload_without_unfurling(blob, options[:io])
+    create_after_unfurling!(blob,
+      key: options[:key],
+      io: options[:io],
+      filename: options[:filename],
+      content_type: options[:content_type],
+      metadata: options[:metadata],
+      service_name: options[:service_name],
+      identify: options[:identify]
+    )
+    |> upload_without_unfurling(options[:io])
 
     # create_after_unfurling!(%{key: key, io: io, filename: filename, content_type: content_type, metadata: metadata, service_name: service_name, identify: identify}) .tap do |blob|
     #  blob.upload_without_unfurling(io)
@@ -306,15 +305,8 @@ defmodule ActiveStorage.Blob do
 
     data =
       if options[:identify] do
-        case ExImageInfo.info(io) do
-          nil ->
-            content_type = MIME.from_path(blob.changes.filename)
-            data |> Map.merge(%{content_type: content_type})
-
-          {mime, _w, _h, _} ->
-            content_type = mime
-            data |> Map.merge(%{content_type: content_type})
-        end
+        content_type = extract_content_type(blob, io)
+        data |> Map.merge(%{content_type: content_type})
       else
         content_type = MIME.from_path(blob.changes.filename)
         data |> Map.merge(%{content_type: content_type})
@@ -341,6 +333,7 @@ defmodule ActiveStorage.Blob do
         blob
 
       {:error, err} ->
+        IO.inspect(err)
         nil
     end
 
@@ -406,7 +399,15 @@ defmodule ActiveStorage.Blob do
     #  name: [ "ActiveStorage-#{id}-", blob.filename.extension_with_delimiter ], tmpdir: tmpdir, &block
   end
 
-  def extract_content_type(_io) do
+  def extract_content_type(blob, io) do
+    case ExImageInfo.info(io) do
+      nil ->
+        MIME.from_path(blob.changes.filename)
+
+      {mime, _w, _h, _} ->
+        mime
+    end
+
     # Marcel::MimeType.for io, name: filename.to_s, declared_type: content_type
   end
 

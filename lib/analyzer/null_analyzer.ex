@@ -1,4 +1,6 @@
 defmodule ActiveStorage.Analyzer.NullAnalyzer do
+  use ActiveStorage.Analyzer
+
   def accept?(_blob) do
     true
   end
@@ -7,7 +9,7 @@ defmodule ActiveStorage.Analyzer.NullAnalyzer do
     false
   end
 
-  def metadata do
+  def metadata(blob) do
     %{}
   end
 end

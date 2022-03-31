@@ -10,11 +10,22 @@
 # This analyzer relies on the third-party {MiniMagick}[https://github.com/minimagick/minimagick] gem. MiniMagick requires
 # the {ImageMagick}[http://www.imagemagick.org] system library.
 defmodule ActiveStorage.Analyzer.ImageAnalyzer do
+  use ActiveStorage.Analyzer
+
   def accept?(blob) do
-    blob.image?
+    blob |> ActiveStorage.Blob.image?()
   end
 
-  def metadata(_blob) do
+  def metadata(blob) do
+    file = download_blob_to_tempfile(blob)
+    image = read_image(file)
+
+    if rotated_image?(file) do
+      %{"width" => image.height, "height" => image.width}
+    else
+      %{"width" => image.width, "height" => image.height}
+    end
+
     # read_image do |image|
     #   if rotated_image?(image)
     #     { width: image.height, height: image.width }
@@ -24,7 +35,19 @@ defmodule ActiveStorage.Analyzer.ImageAnalyzer do
     # end
   end
 
-  def read_image(_blob) do
+  def read_image(file) do
+    try do
+      image = Mogrify.open(file) |> Mogrify.verbose()
+      image
+    catch
+      x ->
+        "Got #{x}"
+        ## {error.message}"
+        IO.puts("Skipping image analysis due to an ImageMagick error: ")
+
+        %{}
+    end
+
     #  download_blob_to_tempfile do |file|
     #    require "mini_magick"
     #    image = MiniMagick::Image.new(file.path)
@@ -44,7 +67,8 @@ defmodule ActiveStorage.Analyzer.ImageAnalyzer do
     #  {}
   end
 
-  def rotated_image?(image) do
-    ["RightTop", "LeftBottom"] |> Enum.member?(image["%[orientation]"])
+  def rotated_image?(file) do
+    orientation = Mogrify.identify(file, "'%[orientation]'")
+    ["RightTop", "LeftBottom"] |> Enum.member?(orientation)
   end
 end

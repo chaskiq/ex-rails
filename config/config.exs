@@ -70,7 +70,7 @@ config :mogrify,
 config :mogrify,
   identify_command: [
     path: "magick",
-    args: ["identify"]
+    args: ["identify", "-verbose"]
   ]
 
 # It is also possible to import configuration files, relative to this

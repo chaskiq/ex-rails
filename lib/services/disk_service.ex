@@ -3,7 +3,7 @@ defmodule ActiveStorage.Service.DiskService do
 
   def new(%{root: root, public: public}, options \\ []) do
     defaults = []
-    options = Keyword.merge(defaults, options)
+    _options = Keyword.merge(defaults, options)
     %__MODULE__{root: root, public: public}
     # @service = service
   end

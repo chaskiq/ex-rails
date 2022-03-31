@@ -314,7 +314,11 @@ defmodule ActiveStorage do
     ]
 
   def analyzers,
-    do: [ActiveStorage.Analyzer.ImageAnalyzer, ActiveStorage.Analyzer.VideoAnalyzer]
+    do: [
+      ActiveStorage.Analyzer.ImageAnalyzer,
+      ActiveStorage.Analyzer.VideoAnalyzer,
+      ActiveStorage.Analyzer.AudioAnalyzer
+    ]
 
   def paths,
     do: [
