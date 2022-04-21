@@ -68,7 +68,7 @@ defmodule ActiveStorage.Analyzer.ImageAnalyzer do
   end
 
   def rotated_image?(file) do
-    orientation = Mogrify.identify(file, "'%[orientation]'")
+    orientation = Mogrify.identify(file, format: "'%[orientation]'")
     ["RightTop", "LeftBottom"] |> Enum.member?(orientation)
   end
 end
