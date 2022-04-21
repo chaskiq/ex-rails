@@ -1,4 +1,4 @@
-defmodule Mix.Tasks.ExActiveStorage.Install do
+defmodule Mix.Tasks.ActiveStorage.Install do
   @shortdoc "generates active storage migration file for the database"
 
   use Mix.Task
