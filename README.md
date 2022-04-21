@@ -14,12 +14,23 @@ def deps do
   ]
 end
 ```
+### Install your dependencies:
+
+mix deps.get
+
+### Generate the migrations:
+
+mix active_storage.install
+
+### Run the migrations:
+
+mix ecto.migrate
 
 Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
 and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
 be found at [https://hexdocs.pm/active_storage](https://hexdocs.pm/active_storage).
 
-## configuration:
+## Configuration:
 
 ### config:
 
