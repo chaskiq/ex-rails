@@ -16,7 +16,7 @@ defmodule Mix.Tasks.ActiveStorage.Install do
         add :key, :string, null: false
         add :filename, :string, null: false
         add :content_type, :string
-        add :metadata, :map
+        add :metadata, :string
         add :service_name, :string, null: false
         add :byte_size, :integer, null: false
         add :checksum, :string
