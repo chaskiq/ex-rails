@@ -5,7 +5,6 @@ defmodule ActiveStorage.Service.Configurator do
 
   def new(configurations) do
     %__MODULE__{configurations: configurations}
-    # @service = service
   end
 
   def build(service_name, configurations) do
@@ -21,9 +20,8 @@ defmodule ActiveStorage.Service.Configurator do
 
       _ ->
         config = service_configs |> Keyword.get(service_key)
-        service_name = config |> Map.get(:service)
+        service_name = config |> Keyword.get(:service)
         r = resolve(service_name)
-
         r.build(
           %{
             configurator: configurator,

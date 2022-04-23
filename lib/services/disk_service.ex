@@ -1,14 +1,16 @@
 defmodule ActiveStorage.Service.DiskService do
   defstruct [:root, :public, :name]
 
-  def new(%{root: root, public: public}, options \\ []) do
-    defaults = []
-    _options = Keyword.merge(defaults, options)
-    %__MODULE__{root: root, public: public}
+  def new( options \\ []) do
+    defaults = [root: nil, public: false]
+    options = Keyword.merge(defaults, options)
+    map_options = Enum.into(options, %{})
+    %__MODULE__{} |> Map.merge(map_options)
     # @service = service
   end
 
   defdelegate open(service, key, options), to: ActiveStorage.Service
+  # defdelegate url(key, options), to: ActiveStorage.Service
 
   # Configure an Active Storage service by name from a set of configurations,
   # typically loaded from a YAML file. The Active Storage engine uses this
@@ -27,7 +29,8 @@ defmodule ActiveStorage.Service.DiskService do
   # See MirrorService for an example.
   # :nodoc:
   def build(%{configurator: _c, name: n, service: _s}, config) do
-    new(%{root: config.root, public: true}) |> Map.put(:name, n)
+    root = config |> Keyword.get(:root)
+    new([root: root, public: false, name: n])
     # new(service_config)
     # .tap do |service_instance|
     #  service_instance.name = name
@@ -153,11 +156,11 @@ defmodule ActiveStorage.Service.DiskService do
   def path_for(service, key) do
     # File.join root, folder_for(key), key
     # |> Path.join(key)
-    Path.join(service.root, folder_for(key))
+    Path.join(service.root, folder_for(key) ) |> Path.join(key)
   end
 
   def folder_for(key) do
-    key
+    [String.slice(key, 0, 1), String.slice(key, 2, 3) ] |> Enum.join("/")
     # [ key[0..1], key[2..3] ].join("/")
   end
 
@@ -180,38 +183,64 @@ defmodule ActiveStorage.Service.DiskService do
     # end
   end
 
-  @impl ActiveStorage.Service
+  # Returns the URL for the file at the +key+. This returns a permanent URL for public files, and returns a
+  # short-lived URL for private files. For private files you can provide the +disposition+ (+:inline+ or +:attachment+),
+  # +filename+, and +content_type+ that you wish the file to be served with on request. Additionally, you can also provide
+  # the amount of seconds the URL will be valid for, specified in +expires_in+.
+  def url(service, key, options \\ []) do
 
-  def private_url(_service, blob, opts \\ []) do
-    defaults = [expires_in: nil, filename: blob.filename, content_type: nil, disposition: nil]
-    options = Keyword.merge(defaults, opts)
+    #instrument :url, key: key do |payload|
+    #  generated_url =
+        if ActiveStorage.Service.public?(service) do
+          public_url(service, key, options)
+        else
+          private_url(service, key, options)
+        end
 
-    generate_url(blob.key,
-      expires_in: options[:expires_in],
-      filename: options[:filename],
-      content_type: options[:content_type],
-      disposition: options[:disposition]
-    )
+    #  payload[:url] = generated_url
+
+    #  generated_url(key)
+    #end
   end
 
   @impl ActiveStorage.Service
 
-  def public_url(service, blob, options \\ []) do
+  def private_url(_service, key, opts \\ []) do
+    defaults = [expires_in: nil, filename: nil, content_type: nil, disposition: nil]
+    options = Keyword.merge(defaults, opts)
+
+    case generate_url(key,
+      expires_in: options[:expires_in],
+      filename: options[:filename],
+      content_type: options[:content_type],
+      disposition: options[:disposition]
+    ) do
+      {:ok, url} -> url
+      _ -> nil
+    end
+  end
+
+  @impl ActiveStorage.Service
+
+  def public_url(service, key, options \\ []) do
     defaults = [
       expires_in: nil,
-      filename: blob.filename,
+      filename: options.filename,
       content_type: nil,
       disposition: "attachment"
     ]
 
     options = Keyword.merge(defaults, options)
 
-    generate_url(blob.key,
+    case generate_url(key,
       expires_in: options[:expires_in],
       filename: options[:filename],
       content_type: options[:content_type],
       disposition: options[:disposition]
-    )
+    ) do
+      {:ok, url} -> url
+      _ -> nil
+    end
   end
 
   def generate_url(key, options \\ []) do
@@ -238,8 +267,8 @@ defmodule ActiveStorage.Service.DiskService do
 
     content_disposition =
       ActiveStorage.Service.content_disposition_with(
-        disposition: options[:disposition],
-        filename: options[:filename]
+        disposition: options |> Keyword.get(:disposition),
+        filename: options |> Keyword.get(:filename) |> ActiveStorage.Filename.to_s
       )
 
     verified_key_with_expiration =
@@ -247,8 +276,8 @@ defmodule ActiveStorage.Service.DiskService do
         Jason.encode!(%{
           key: key,
           disposition: content_disposition,
-          content_type: options[:content_type],
-          service_name: options[:name]
+          content_type: options |> Keyword.get(:content_type),
+          service_name: options |> Keyword.get(:name)
         })
         # ,
         # expires_in: options[:expires_in],
@@ -260,7 +289,9 @@ defmodule ActiveStorage.Service.DiskService do
     # end
 
     # url_helpers.rails_disk_service_url(verified_key_with_expiration, filename: filename, **url_options)
-    u = "/active_storage/disk/#{verified_key_with_expiration}/#{options[:filename]}"
+    f = options |> Keyword.get(:filename) |> ActiveStorage.Filename.to_s
+    u = "/active_storage/disk/#{verified_key_with_expiration}/#{f}"
+
     {:ok, u}
   end
 end

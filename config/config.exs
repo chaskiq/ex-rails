@@ -23,7 +23,7 @@ use Mix.Config
 
 # Use rails credentials:edit to set the AWS secrets (as aws:access_key_id|secret_access_key)
 config :active_storage, :services,
-  amazon: %{
+  amazon: [
     service: "S3",
     bucket: "active-storage-test",
     access_key_id: "root",
@@ -32,8 +32,8 @@ config :active_storage, :services,
     host: "localhost",
     port: 9000,
     force_path_style: true
-  },
-  minio: %{
+  ],
+  minio: [
     service: "S3",
     bucket: "active-storage-test",
     access_key_id: "root",
@@ -42,12 +42,12 @@ config :active_storage, :services,
     host: "localhost",
     port: 9000,
     force_path_style: true
-  },
-  local: %{service: "Disk", root: Path.join(File.cwd!(), "tmp/storage")},
-  test: %{
+  ],
+  local: [ service: "Disk", root: Path.join(File.cwd!(), "tmp/storage")],
+  test: [
     service: "Disk",
     root: "tmp/storage"
-  }
+  ]
 
 # Configure mogrify command:
 

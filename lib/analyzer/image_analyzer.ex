@@ -18,6 +18,7 @@ defmodule ActiveStorage.Analyzer.ImageAnalyzer do
 
   def metadata(blob) do
     file = download_blob_to_tempfile(blob)
+
     image = read_image(file)
 
     if rotated_image?(file) do
@@ -38,6 +39,7 @@ defmodule ActiveStorage.Analyzer.ImageAnalyzer do
   def read_image(file) do
     try do
       image = Mogrify.open(file) |> Mogrify.verbose()
+      IO.inspect(image)
       image
     catch
       x ->
@@ -68,7 +70,7 @@ defmodule ActiveStorage.Analyzer.ImageAnalyzer do
   end
 
   def rotated_image?(file) do
-    orientation = Mogrify.identify(file, "'%[orientation]'")
+    orientation = Mogrify.identify(file, format: "'%[orientation]'")
     ["RightTop", "LeftBottom"] |> Enum.member?(orientation)
   end
 end

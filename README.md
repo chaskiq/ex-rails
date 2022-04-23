@@ -14,12 +14,23 @@ def deps do
   ]
 end
 ```
+### Install your dependencies:
+
+mix deps.get
+
+### Generate the migrations:
+
+mix active_storage.install
+
+### Run the migrations:
+
+mix ecto.migrate
 
 Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
 and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
 be found at [https://hexdocs.pm/active_storage](https://hexdocs.pm/active_storage).
 
-## configuration:
+## Configuration:
 
 ### config:
 
@@ -30,18 +41,18 @@ config :active_storage, repo: MyApp.Repo
 
 config :my_app, :sources, %{
   service: "amazon",
-  amazon: %{
+  amazon: [
     service: :s3,
     # Warning: Environment variables set at compile time unless in runtime.exs
     region: System.get_env("AWS_S3_REGION"),
     access_key_id: System.get_env("AWS_ACCESS_KEY_ID"),
     secret_access_key: System.get_env("AWS_SECRET_ACCESS_KEY")
-  },
-  local: %{service: "Disk", root: "storage"},
-  test: %{
+  ],
+  local: [service: "Disk", root: "storage"],
+  test: [
     service: "Disk",
     root: "tmp/storage"
-  }
+  ]
 }
 ```
 
