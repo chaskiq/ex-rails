@@ -61,7 +61,10 @@ defmodule ActiveStorageTestHelpers do
 
     options = Keyword.merge(default, options)
 
-    {:ok, file} = File.read("./test/files/#{options[:filename]}")
+    file = case File.read("./test/files/#{options[:filename]}") do
+      {:ok, file} -> file
+      _ -> nil
+    end
     # filename = "dog.jpg"
     # {mime, _w, _h, _kind} = ExImageInfo.info(file)
 
@@ -132,9 +135,6 @@ defmodule ActiveStorageTestHelpers do
         record: options[:record]
       )
 
-    require IEx
-    IEx.pry()
-
     # create_blob_before_direct_upload(filename: filename, byte_size: byte_size, checksum: checksum, content_type: content_type, record: record).tap do |blob|
     #  service = ActiveStorage::Blob.service.try(:primary) || ActiveStorage::Blob.service
     #  service.upload(blob.key, file.open)
@@ -150,6 +150,13 @@ defmodule ActiveStorageTestHelpers do
   def read_image(blob_or_variant) do
     srv = blob_or_variant |> ActiveStorage.Blob.service()
     Mogrify.open(srv.__struct__.path_for(srv, blob_or_variant.key)) |> Mogrify.verbose()
+  end
+
+  def image_format(blob_or_variant = %ActiveStorage.Variant{}) do
+    srv = blob_or_variant.blob |> ActiveStorage.Blob.service()
+    key = ActiveStorage.Variant.key(blob_or_variant)
+    p = srv.__struct__.path_for(srv, key)
+    Mogrify.identify(p, format: "'%[m]'")
   end
 
   def read_image(blob_or_variant) do

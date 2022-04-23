@@ -1,6 +1,48 @@
 defmodule ActiveStorage.Service.S3Service do
   @behaviour ActiveStorage.Service
 
+  defstruct [
+    :public,
+    :name,
+    :client,
+    :bucket,
+    :multipart_upload_threshold,
+    :upload_options
+  ]
+
+  def new(%{client: cli, public: public, bucket: bucket}) do
+    %__MODULE__{client: cli, public: public, bucket: bucket}
+    # @service = service
+  end
+
+  # def new(%{bucket: bucket, upload: upload, public: public}, options \\ []) do
+  def new(options \\ []) do
+
+    defaults = [ public: false ]
+
+    options = Keyword.merge(defaults, options)
+
+    s3_options = map_options = Enum.into(options, %{})
+    client = ExAws.Config.new(:s3, s3_options)
+
+    bucket = options |> Keyword.get(:bucket)
+    public = options |> Keyword.get(:public)
+
+    # @client = Aws::S3::Resource.new(**options)
+    # @bucket = @client.bucket(bucket)
+
+    # @multipart_upload_threshold = upload.delete(:multipart_threshold) || 100.megabytes
+    # @public = public
+
+    # @upload_options = upload
+    # @upload_options[:acl] = "public-read" if public?
+    %__MODULE__{
+      client: client,
+      bucket: bucket,
+      public: public
+    }
+  end
+
   @impl ActiveStorage.Service
   def delete(config, blob) do
     bucket = config.bucket
@@ -63,14 +105,14 @@ defmodule ActiveStorage.Service.S3Service do
   # https://www.poeticoding.com/aws-s3-in-elixir-with-exaws/
 
   # def upload(key, io, %{checksum: nil, filename: nil, content_type: nil, disposition: nil}) do
-  def upload(service, blob, io) do
+  def upload(service, key, io) do
     # stream(io)
     # amazon = Application.fetch_env!(:active_storage, :storage) |> Keyword.get(:amazon)
     # bucket = amazon.bucket
     operation =
       ExAws.S3.put_object(
         service.bucket,
-        blob.key,
+        key,
         io
       )
 
@@ -144,50 +186,15 @@ defmodule ActiveStorage.Service.S3Service do
     ExAws.S3.get_object(bucket, key) |> ExAws.request(service.client)
   end
 
-  defstruct [
-    :public,
-    :name,
-    :client,
-    :bucket,
-    :multipart_upload_threshold,
-    :upload_options
-  ]
-
-  def new(%{client: cli, public: public, bucket: bucket}) do
-    %__MODULE__{client: cli, public: public, bucket: bucket}
-    # @service = service
-  end
-
-  # def new(%{bucket: bucket, upload: upload, public: public}, options \\ []) do
-  def new(%{bucket: bucket, public: public}, options \\ []) do
-    # ExAws.Config.new(:s3, config)
-    client = ExAws.Config.new(:s3, options) |> Map.put(:bucket, bucket)
-
-    # @client = Aws::S3::Resource.new(**options)
-    # @bucket = @client.bucket(bucket)
-
-    # @multipart_upload_threshold = upload.delete(:multipart_threshold) || 100.megabytes
-    # @public = public
-
-    # @upload_options = upload
-    # @upload_options[:acl] = "public-read" if public?
-    %__MODULE__{
-      client: client,
-      bucket: bucket,
-      public: public
-    }
-  end
-
   def build(%{configurator: _c, name: n, service: _s}, config) do
     new(
-      %{
-        bucket: config.bucket,
+      config ++ [
+        bucket: config |> Keyword.get(:bucket),
         # upload: {},
-        public: config |> Map.get(:public)
-      },
-      config
+        public: config |> Keyword.get(:public),
+        name: n
+      ]
     )
-    |> Map.put(:name, n)
   end
 end
 

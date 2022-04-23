@@ -64,7 +64,7 @@ defmodule ActiveStorage.Variation do
   end
 
   def default_to(struct, defaults) do
-    new(struct.transformations |> Map.merge(defaults))
+    new(defaults |> Map.merge(struct.transformations))
     # self.class.new transformations.reverse_merge(defaults)
   end
 
@@ -87,7 +87,19 @@ defmodule ActiveStorage.Variation do
     # end
   end
 
-  def format do
+  def format(variation) do
+    # TODO: validate extension
+    extension = case variation.transformations |> Map.fetch(:format) do
+      {:ok, format} -> format
+      _ -> "png"
+    end
+
+    if  MIME.has_type?(extension) do
+      extension
+    else
+      raise ArgumentError
+    end
+
     # transformations.fetch(:format, :png).tap do |format|
     #  if MiniMime.lookup_by_extension(format.to_s).nil?
     #    raise ArgumentError, "Invalid variant format (#{format.inspect})"
@@ -95,7 +107,8 @@ defmodule ActiveStorage.Variation do
     # end
   end
 
-  def content_type do
+  def content_type(variation) do
+    MIME.type( format(variation) )
     # MiniMime.lookup_by_extension(format.to_s).content_type
   end
 
@@ -105,7 +118,8 @@ defmodule ActiveStorage.Variation do
     # self.class.encode(transformations)
   end
 
-  def digest do
+  def digest(variation) do
+    require IEx; IEx.pry
     # Digest::SHA1.base64digest Marshal.dump(transformations)
   end
 

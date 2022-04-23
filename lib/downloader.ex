@@ -16,6 +16,7 @@ defmodule ActiveStorage.Downloader do
     service = downloader.service
 
     open_tempfile(options[:name], fn file ->
+
       {:ok, file_contents} = download(service, key, file)
 
       # a = IO.read(file, :line)
@@ -77,7 +78,9 @@ defmodule ActiveStorage.Downloader do
   end
 
   defp open_tempfile(tmp_file, block) do
-    case Temp.path(%{prefix: tmp_file}) do
+    [prefix, suffix] = tmp_file
+
+    case Temp.path(%{prefix: prefix, suffix: suffix }) do
       {:ok, tmp_path} ->
         block.(tmp_path)
 

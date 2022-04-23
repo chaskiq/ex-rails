@@ -80,10 +80,12 @@ defmodule ActiveStorage.Variant do
 
   # Returns a combination key of the blob and the variation that together identifies a specific variant.
   def key(variant) do
-    key = variant.blob.id
+    key = variant.blob.key
     variation_key = ActiveStorage.Variation.key(variant.variation)
-    hash = :crypto.hash(:sha256, variation_key) |> Base.encode16()
-    "variants/#{key}/#{hash}/#{variant.blob.filename}"
+    hash = :crypto.hash(:sha256, variation_key) |> Base.encode16 |> String.downcase
+
+    #"variants/#{key}/#{hash}/#{variant.blob.filename}"
+    "variants/#{key}/#{hash}"
   end
 
   # Returns the URL of the blob variant on the service. See {ActiveStorage::Blob#url} for details.
@@ -93,13 +95,20 @@ defmodule ActiveStorage.Variant do
   # for its redirection.
   # %{expires_in: ActiveStorage.service_urls_expire_in(), disposition: :inline}
   def url(variant, options \\ []) do
-    defaults = [expires_in: 3600, disposition: :inline]
+    defaults = [expires_in: 3600, disposition: :inline, filename: filename(variant), content_type: content_type(variant.variation)]
     options = Keyword.merge(defaults, options)
 
-    variant.blob |> ActiveStorage.url(options)
+    key = key(variant)
+    service = __MODULE__.service(variant.blob)
+    srv = service.__struct__.url(service, key, options)
+
+    # variant.blob |> ActiveStorage.url(options)
 
     # service.url key, expires_in: expires_in, disposition: disposition, filename: filename, content_type: content_type
   end
+
+  defdelegate service(blob), to: ActiveStorage.Blob, as: :service
+
 
   # alias_method :service_url, :url
   # deprecate service_url: :url
@@ -113,9 +122,14 @@ defmodule ActiveStorage.Variant do
   end
 
   def filename(variant) do
-    variant.blob
+    base_name = ActiveStorage.Blob.filename(variant.blob) |> ActiveStorage.Filename.base()
+    variation_format = format(variant.variation) |> String.downcase
+    ActiveStorage.Filename.new "#{base_name}.#{variation_format}"
     # ActiveStorage::Filename.new "#{blob.filename.base}.#{variation.format.downcase}"
   end
+
+  defdelegate content_type(variation), to: ActiveStorage.Variation, as: :content_type
+  defdelegate format(variation), to: ActiveStorage.Variation, as: :format
 
   # alias_method :content_type_for_serving, :content_type
 
@@ -139,7 +153,6 @@ defmodule ActiveStorage.Variant do
     |> ActiveStorage.Blob.open(
       block: fn input ->
         key = key(variant)
-
         variant.variation
         |> ActiveStorage.Variation.transform(input, fn output ->
           srv = ActiveStorage.Blob.service(variant.blob)

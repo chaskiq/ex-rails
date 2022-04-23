@@ -354,7 +354,6 @@ defmodule ActiveStorage.Blob do
     #  while chunk = io.read(5.megabytes)
     #    checksum << chunk
     #  end
-
     #  io.rewind
     # end.base64digest
   end
@@ -362,9 +361,9 @@ defmodule ActiveStorage.Blob do
   # Returns an ActiveStorage::Filename instance of the filename that can be
   # queried for basename, extension, and a sanitized version of the filename
   # that's safe to use in URLs.
-  # def filename
-  #  ActiveStorage::Filename.new(self[:filename])
-  # end
+  def filename(blob) do
+    ActiveStorage.Filename.new(blob.filename)
+  end
 
   # Downloads the blob to a tempfile on disk. Yields the tempfile.
   #
@@ -385,7 +384,9 @@ defmodule ActiveStorage.Blob do
     options = Keyword.merge(defaults, options)
 
     ext = MIME.extensions(MIME.from_path(blob.filename)) |> hd
+
     name = ["ActiveStorage-#{blob.id}-", ".#{ext}"]
+
     service = service(blob)
 
     service.__struct__.open(service, blob.key,

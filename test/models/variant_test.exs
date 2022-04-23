@@ -255,9 +255,10 @@ defmodule VariantTest do
 
     url = variant |> ActiveStorage.Variant.url()
 
-    image = ActiveStorageTestHelpers.read_image(variant)
+    image_format = ActiveStorageTestHelpers.image_format(variant)
+
     assert String.match?(url, ~r/racecar\.png/)
-    assert image.format == "png"
+    assert image_format == "PNG"
     # blob = create_file_blob(filename: "racecar.jpg")
     # variant = blob.variant(format: :png).processed
     # assert_equal "racecar.png", variant.filename.to_s
@@ -296,10 +297,8 @@ defmodule VariantTest do
 
     a = 0..10_000 |> Enum.map(fn _x -> "a" end) |> Enum.join("")
     variant = ActiveStorage.Blob.Representable.variant(blob, %{format: "png", font: a})
-    ActiveStorage.Variant.processed(variant)
-
+    # ActiveStorage.Variant.processed(variant)
     url = variant |> ActiveStorage.Variant.url()
-
     assert url |> String.length() < 785
 
     # process_variants_with :mini_magick do

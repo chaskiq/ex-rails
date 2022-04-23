@@ -44,6 +44,10 @@ defmodule ActiveStorage.Service do
     # end
   end
 
+  def url(key, opts) when is_binary(key) do
+    require IEx; IEx.pry
+  end
+
   defdelegate service_url(blob), to: __MODULE__, as: :url
 
   # def service_url(blob) do
@@ -176,8 +180,8 @@ defmodule ActiveStorage.Service do
   #  {}
   # end
 
-  def public?(_blob) do
-    # @public
+  def public?(service) do
+    service.public
   end
 
   # defp private_url(key, expires_in:, filename:, disposition:, content_type:, **) do

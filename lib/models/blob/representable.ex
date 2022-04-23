@@ -33,7 +33,6 @@ defmodule ActiveStorage.Blob.Representable do
         ActiveStorage.Variation.wrap(transformations)
         |> ActiveStorage.Variation.default_to(default_variant_transformations(blob))
       )
-
       # variant_class().new(self, ActiveStorage.Variation.wrap(transformations).default_to(default_variant_transformations))
     else
       raise ActiveStorage.InvariableError
@@ -93,8 +92,8 @@ defmodule ActiveStorage.Blob.Representable do
   end
 
   # Returns true if the blob is variable or previewable.
-  def representable? do
-    # variable? || previewable?
+  def representable?(blob) do
+    variable?(blob) || previewable?(blob)
   end
 
   defp default_variant_transformations(blob) do

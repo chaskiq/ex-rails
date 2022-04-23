@@ -29,6 +29,7 @@ defmodule ActiveStorage.Transformers.ImageProcessingTransformer do
   def process(transformer, file, %{format: format}, block \\ nil) do
     # image = open(file) |> resize("100x100") |> save
 
+
     case open(file)
          |> format(format)
          |> operations(transformer.transformations)
