@@ -157,7 +157,6 @@ defmodule VariantTest do
   end
 
   @tag skip: "this test is incomplete"
-
   test "resized variation of ICO blob" do
     blob =
       ActiveStorageTestHelpers.create_file_blob(
@@ -200,7 +199,6 @@ defmodule VariantTest do
   end
 
   @tag skip: "this test is incomplete"
-
   test "resized variation of BMP blob" do
     blob =
       ActiveStorageTestHelpers.create_file_blob(
@@ -355,7 +353,6 @@ defmodule VariantTest do
   end
 
   @tag skip: "this test is incomplete"
-
   test "doesn't crash content_type not recognized by mini_mime" do
     _blob = ActiveStorageTestHelpers.create_file_blob(filename: "racecar.jpg")
 
