@@ -52,7 +52,7 @@ defmodule ActiveStorage.Previewer do
   def draw(preview, argv \\ [], block) do
     open_tempfile(preview, fn fd, file_path ->
       capture(preview, argv, to: fd)
-      block.(file_path)
+      block.(file_path, fd)
     end)
 
     # open_tempfile do |file|
@@ -68,7 +68,7 @@ defmodule ActiveStorage.Previewer do
     {:ok, fd, file_path} = Temp.open("ActiveStorage-")
     # {:ok, tempfile} = Temp.path(%{prefix: "ActiveStorage-"})
     # tempfile = Tempfile.open("ActiveStorage-", tmpdir)
-    IO.puts(file_path)
+    # IO.puts(file_path)
     # IO.write fd, "some content"
     try do
       block.(fd, file_path)
@@ -89,7 +89,7 @@ defmodule ActiveStorage.Previewer do
 
   def capture(preview, argv, to: to) do
     [bin | cmd] = argv
-    path = System.find_executable(bin)
+    # path = System.find_executable(bin)
     # port = Port.open({:spawn_executable, path}, [:binary, args: cmd])
 
     case System.cmd(bin, cmd) do
@@ -97,8 +97,7 @@ defmodule ActiveStorage.Previewer do
         IO.binwrite(to, out)
 
       {err, status} ->
-        require IEx
-        IEx.pry()
+        # TODO: get the error and print it in the Exception message
         raise ActiveStorage.PreviewError, message: "Failed (status ): err"
     end
 

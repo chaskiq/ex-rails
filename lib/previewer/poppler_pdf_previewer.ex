@@ -29,9 +29,27 @@ defmodule ActiveStorage.Previewer.PopplerPDFPreviewer do
     # @pdftoppm_exists = system(pdftoppm_path, "-v", out: File::NULL, err: File::NULL)
   end
 
-  def preview(preview, options \\ []) do
-    options[:block].("122222222")
-    ActiveStorage.Previewer.download_blob_to_tempfile(preview.blob)
+  def preview(previewer, options \\ [], block \\ nil) do
+    input = ActiveStorage.Previewer.download_blob_to_tempfile(previewer.blob)
+
+    draw_first_page_from(previewer, input, fn path, fd ->
+      filename =
+        (previewer.blob |> ActiveStorage.Blob.filename() |> ActiveStorage.Filename.base()) <>
+          ".png"
+
+      content_type = "image/png"
+
+      output = [io: path, filename: filename, content_type: content_type] ++ options
+
+      if(block) do
+        block.(output)
+      else
+        output
+      end
+
+      # yield the output
+    end)
+
     # download_blob_to_tempfile do |input|
     #  draw_first_page_from input do |output|
     #    yield io: output, filename: "#{blob.filename.base}.png", content_type: "image/png", **options
@@ -39,7 +57,25 @@ defmodule ActiveStorage.Previewer.PopplerPDFPreviewer do
     # end
   end
 
-  def draw_first_page_from(_file, _block) do
+  def draw_first_page_from(previewer, file, block \\ nil) do
+    args = [
+      pdftoppm_path(),
+      "-singlefile",
+      "-cropbox",
+      "-r",
+      "72",
+      "-png",
+      file
+    ]
+
+    ActiveStorage.Previewer.draw(
+      previewer,
+      args,
+      fn path, fd ->
+        block.(path, fd)
+      end
+    )
+
     # use 72 dpi to match thumbnail dimensions of the PDF
     # draw self.class.pdftoppm_path, "-singlefile", "-cropbox", "-r", "72", "-png", file.path, &block
   end

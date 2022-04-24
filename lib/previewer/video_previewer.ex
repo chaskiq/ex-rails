@@ -28,12 +28,24 @@ defmodule ActiveStorage.Previewer.VideoPreviewer do
     ActiveStorage.paths()[:ffmpeg] || "ffmpeg"
   end
 
-  def preview(previewer, options \\ []) do
+  def preview(previewer, options \\ [], block \\ nil) do
     input = ActiveStorage.Previewer.download_blob_to_tempfile(previewer.blob)
 
-    draw_relevant_frame_from(previewer, input, fn output ->
-      require IEx
-      IEx.pry()
+    draw_relevant_frame_from(previewer, input, fn path, fd ->
+      filename =
+        (previewer.blob |> ActiveStorage.Blob.filename() |> ActiveStorage.Filename.base()) <>
+          ".jpg"
+
+      content_type = "image/jpeg"
+
+      output = [io: path, filename: filename, content_type: content_type] ++ options
+
+      if(block) do
+        block.(output)
+      else
+        output
+      end
+
       # yield the output
     end)
 
@@ -57,8 +69,8 @@ defmodule ActiveStorage.Previewer.VideoPreviewer do
     ActiveStorage.Previewer.draw(
       previewer,
       args,
-      fn f ->
-        block.(f)
+      fn path, fd ->
+        block.(path, fd)
       end
     )
 
