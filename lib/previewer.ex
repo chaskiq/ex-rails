@@ -49,7 +49,12 @@ defmodule ActiveStorage.Previewer do
   #
   # The output tempfile is opened in the directory returned by #tmpdir.
   # :doc:
-  defp draw(_argv) do
+  def draw(preview, argv \\ [], block) do
+    open_tempfile(preview, fn fd, file_path ->
+      capture(preview, argv, to: fd)
+      block.(file_path)
+    end)
+
     # open_tempfile do |file|
     #  instrument :preview, key: blob.key do
     #    capture(*argv, to: file)
@@ -59,8 +64,17 @@ defmodule ActiveStorage.Previewer do
     # end
   end
 
-  defp open_tempfile do
+  def open_tempfile(_previewer, block) do
+    {:ok, fd, file_path} = Temp.open("ActiveStorage-")
+    # {:ok, tempfile} = Temp.path(%{prefix: "ActiveStorage-"})
     # tempfile = Tempfile.open("ActiveStorage-", tmpdir)
+    IO.puts(file_path)
+    # IO.write fd, "some content"
+    try do
+      block.(fd, file_path)
+    after
+      File.close(fd)
+    end
 
     # begin
     #  yield tempfile
@@ -73,18 +87,29 @@ defmodule ActiveStorage.Previewer do
     # ActiveSupport::Notifications.instrument "#{operation}.active_storage", payload, &block
   end
 
-  def capture(_argv, _to) do
-    # to.binmode
+  def capture(preview, argv, to: to) do
+    [bin | cmd] = argv
+    path = System.find_executable(bin)
+    # port = Port.open({:spawn_executable, path}, [:binary, args: cmd])
 
+    case System.cmd(bin, cmd) do
+      {out, 0} ->
+        IO.binwrite(to, out)
+
+      {err, status} ->
+        require IEx
+        IEx.pry()
+        raise ActiveStorage.PreviewError, message: "Failed (status ): err"
+    end
+
+    # to.binmode
     # open_tempfile do |err|
     #  IO.popen(argv, err: err) { |out| IO.copy_stream(out, to) }
     #  err.rewind
-
     #  unless $?.success?
     #    raise PreviewError, "#{argv.first} failed (status #{$?.exitstatus}): #{err.read.to_s.chomp}"
     #  end
     # end
-
     # to.rewind
   end
 

@@ -1,9 +1,19 @@
 defmodule ActiveStorage.Previewer.MuPDFPreviewerTest do
   use ExUnit.Case, async: false
 
-  @tag skip: "this test is incomplete"
   test "previewing a PDF document" do
-    # blob = create_file_blob(filename: "report.pdf", content_type: "application/pdf")
+    blob =
+      ActiveStorageTestHelpers.create_file_blob(
+        filename: "report.pdf",
+        content_type: "application/pdf"
+      )
+
+    attachable =
+      ActiveStorage.Previewer.MuPDFPreviewer.new(blob)
+      |> ActiveStorage.Previewer.MuPDFPreviewer.preview()
+
+    require IEx
+    IEx.pry()
     #
     # ActiveStorage::Previewer::MuPDFPreviewer.new(blob).preview do |attachable|
     #  assert_equal "image/png", attachable[:content_type]

@@ -1,8 +1,20 @@
 defmodule ActiveStorage.Previewer.VideoPreviewerTest do
   use ExUnit.Case, async: false
 
-  @tag skip: "this test is incomplete"
   test "previewing an MP4 video" do
+    blob =
+      ActiveStorageTestHelpers.create_file_blob(
+        filename: "video.mp4",
+        content_type: "video/mp4"
+      )
+
+    attachable =
+      ActiveStorage.Previewer.VideoPreviewer.new(blob)
+      |> ActiveStorage.Previewer.VideoPreviewer.preview()
+
+    require IEx
+    IEx.pry()
+
     # blob = create_file_blob(filename: "video.mp4", content_type: "video/mp4")
 
     # ActiveStorage::Previewer::VideoPreviewer.new(blob).preview do |attachable|

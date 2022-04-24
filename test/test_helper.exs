@@ -86,7 +86,8 @@ defmodule ActiveStorageTestHelpers do
 
   def create_blob_before_direct_upload(options \\ []) do
     default = [key: nil, filename: "hello.txt", content_type: "text/plain", record: nil]
-    _options = Keyword.merge(default, options)
+    options = Keyword.merge(default, options)
+    ActiveStorage.Blob.create_before_direct_upload!(options)
 
     # ActiveStorage::Blob.create_before_direct_upload! key: key, filename: filename, byte_size: byte_size, checksum: checksum, content_type: content_type, record: record
   end
@@ -119,17 +120,16 @@ defmodule ActiveStorageTestHelpers do
     default = [filename: "racecar.jpg", content_type: "image/jpeg", record: nil]
     options = Keyword.merge(default, options)
 
-    {:ok, file} = File.read("./test/files/#{options[:filename]}")
-    io = File.read!(file)
+    {:ok, io} = File.read("./test/files/#{options[:filename]}")
 
     # file = file_fixture(filename)
     # byte_size = file.size
     # checksum = OpenSSL::Digest::MD5.file(file).base64digest
-    byte_size = 1234
-    checksum = :crypto.hash(:md5, io) |> Base.encode64()
+    byte_size = ActiveStorage.Blob.get_byte_size(io)
+    checksum = ActiveStorage.Blob.compute_checksum_in_chunks(io)
 
     blob =
-      ActiveStorage.Blob.create_blob_before_direct_upload(
+      create_blob_before_direct_upload(
         filename: options[:filename],
         byte_size: byte_size,
         checksum: checksum,

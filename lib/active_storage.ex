@@ -255,6 +255,13 @@ defmodule ActiveStorage do
   #  ActiveStorage::MirrorJob.perform_later(key, checksum: checksum) if service.respond_to?(:mirror)
   # end
 
+  # ActiveStorage.video_preview_arguments = app.config.active_storage.video_preview_arguments || "-y -vframes 1 -f image2"
+
+  def video_preview_arguments() do
+    # "-y -vframes 1 -f image2"
+    "-vf 'select=eq(n\\,0)+eq(key\\,1)+gt(scene\\,0.015),loop=loop=-1:size=2,trim=start_frame=1' -frames:v 1 -f image2"
+  end
+
   def variable_content_types,
     do: [
       "image/png",
@@ -322,6 +329,7 @@ defmodule ActiveStorage do
 
   def paths,
     do: [
+      ffmpeg: "/usr/local/bin/ffmpeg",
       ffprobe: "/usr/local/bin/ffprobe",
       pdftoppm: "/usr/local/Cellar/poppler/21.12.0/bin/pdftoppm"
     ]

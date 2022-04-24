@@ -58,8 +58,15 @@ defmodule ActiveStorage.Blob.Analyzable do
 
       # Returns true if the blob has been analyzed.
       def analyzed?(blob) do
-        metadata = blob.metadata |> Jason.decode!()
+        metadata = metadata(blob)
         metadata |> Map.get("analyzed")
+      end
+
+      def metadata(blob) do
+        case blob.metadata do
+          nil -> %{}
+          _ -> blob.metadata |> Jason.decode!()
+        end
       end
 
       def extract_metadata_via_analyzer(blob) do
