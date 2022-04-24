@@ -45,7 +45,8 @@ defmodule ActiveStorage.Service do
   end
 
   def url(key, opts) when is_binary(key) do
-    require IEx; IEx.pry
+    require IEx
+    IEx.pry()
   end
 
   defdelegate service_url(blob), to: __MODULE__, as: :url

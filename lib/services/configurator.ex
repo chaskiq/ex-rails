@@ -22,6 +22,7 @@ defmodule ActiveStorage.Service.Configurator do
         config = service_configs |> Keyword.get(service_key)
         service_name = config |> Keyword.get(:service)
         r = resolve(service_name)
+
         r.build(
           %{
             configurator: configurator,

@@ -43,11 +43,15 @@ config :active_storage, :services,
     port: 9000,
     force_path_style: true
   ],
-  local: [ service: "Disk", root: Path.join(File.cwd!(), "tmp/storage")],
+  local: [service: "Disk", root: Path.join(File.cwd!(), "tmp/storage")],
   test: [
     service: "Disk",
     root: "tmp/storage"
   ]
+
+config :mime, :types, %{
+  "image/vnd.adobe.photoshop" => ["psd"]
+}
 
 # Configure mogrify command:
 

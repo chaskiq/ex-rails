@@ -29,11 +29,14 @@ defmodule ActiveStorage.Transformers.ImageProcessingTransformer do
   def process(transformer, file, %{format: format}, block \\ nil) do
     # image = open(file) |> resize("100x100") |> save
 
+    res =
+      open(file)
+      |> format(format)
+      |> operations(transformer.transformations)
+      |> custom("-flatten")
+      |> save()
 
-    case open(file)
-         |> format(format)
-         |> operations(transformer.transformations)
-         |> save()
+    case res
          |> verbose do
       nil ->
         nil

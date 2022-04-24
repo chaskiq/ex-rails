@@ -61,10 +61,12 @@ defmodule ActiveStorageTestHelpers do
 
     options = Keyword.merge(default, options)
 
-    file = case File.read("./test/files/#{options[:filename]}") do
-      {:ok, file} -> file
-      _ -> nil
-    end
+    file =
+      case File.read("./test/files/#{options[:filename]}") do
+        {:ok, file} -> file
+        _ -> nil
+      end
+
     # filename = "dog.jpg"
     # {mime, _w, _h, _kind} = ExImageInfo.info(file)
 
@@ -152,11 +154,11 @@ defmodule ActiveStorageTestHelpers do
     Mogrify.open(srv.__struct__.path_for(srv, blob_or_variant.key)) |> Mogrify.verbose()
   end
 
-  def image_format(blob_or_variant = %ActiveStorage.Variant{}) do
+  def image_format(blob_or_variant = %ActiveStorage.Variant{}, format \\ "'%[m]'") do
     srv = blob_or_variant.blob |> ActiveStorage.Blob.service()
     key = ActiveStorage.Variant.key(blob_or_variant)
     p = srv.__struct__.path_for(srv, key)
-    Mogrify.identify(p, format: "'%[m]'")
+    Mogrify.identify(p, format: format)
   end
 
   def read_image(blob_or_variant) do

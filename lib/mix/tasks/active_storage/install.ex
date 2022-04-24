@@ -57,7 +57,6 @@ defmodule Mix.Tasks.ActiveStorage.Install do
       # with: [group_id: :group_id])
       # add :blob_id, references("active_storage_blobs")
     """)
-
   end
 
   defp timestamp do

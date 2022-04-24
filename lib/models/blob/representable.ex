@@ -33,6 +33,7 @@ defmodule ActiveStorage.Blob.Representable do
         ActiveStorage.Variation.wrap(transformations)
         |> ActiveStorage.Variation.default_to(default_variant_transformations(blob))
       )
+
       # variant_class().new(self, ActiveStorage.Variation.wrap(transformations).default_to(default_variant_transformations))
     else
       raise ActiveStorage.InvariableError

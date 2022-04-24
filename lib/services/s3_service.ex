@@ -17,8 +17,7 @@ defmodule ActiveStorage.Service.S3Service do
 
   # def new(%{bucket: bucket, upload: upload, public: public}, options \\ []) do
   def new(options \\ []) do
-
-    defaults = [ public: false ]
+    defaults = [public: false]
 
     options = Keyword.merge(defaults, options)
 
@@ -188,12 +187,13 @@ defmodule ActiveStorage.Service.S3Service do
 
   def build(%{configurator: _c, name: n, service: _s}, config) do
     new(
-      config ++ [
-        bucket: config |> Keyword.get(:bucket),
-        # upload: {},
-        public: config |> Keyword.get(:public),
-        name: n
-      ]
+      config ++
+        [
+          bucket: config |> Keyword.get(:bucket),
+          # upload: {},
+          public: config |> Keyword.get(:public),
+          name: n
+        ]
     )
   end
 end

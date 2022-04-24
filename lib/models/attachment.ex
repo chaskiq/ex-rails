@@ -5,11 +5,11 @@ defmodule ActiveStorage.Attachment do
   alias ActiveStorage.Blob
 
   schema "active_storage_attachments" do
-    field :name, :string, null: false
-    field :record_type, :string, null: false
-    field :record_id, :integer, null: false
+    field(:name, :string, null: false)
+    field(:record_type, :string, null: false)
+    field(:record_id, :integer, null: false)
 
-    belongs_to :blob, Blob
+    belongs_to(:blob, Blob)
 
     timestamps(inserted_at: :created_at, updated_at: false)
   end
@@ -33,4 +33,3 @@ defmodule ActiveStorage.Attachment do
     |> assoc_constraint(:blob)
   end
 end
-

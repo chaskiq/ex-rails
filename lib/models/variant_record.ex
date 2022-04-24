@@ -4,7 +4,7 @@ defmodule ActiveStorage.VariantRecord do
 
   # @foreign_key_type :binary_id
   schema "active_storage_variant_records" do
-    belongs_to :blob, ActiveStorage.Blob
+    belongs_to(:blob, ActiveStorage.Blob)
     # has_one_attached :image
     # has_one :article_settings, ActiveStorage.Blob
   end

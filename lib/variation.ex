@@ -89,12 +89,13 @@ defmodule ActiveStorage.Variation do
 
   def format(variation) do
     # TODO: validate extension
-    extension = case variation.transformations |> Map.fetch(:format) do
-      {:ok, format} -> format
-      _ -> "png"
-    end
+    extension =
+      case variation.transformations |> Map.fetch(:format) do
+        {:ok, format} -> format
+        _ -> "png"
+      end
 
-    if  MIME.has_type?(extension) do
+    if MIME.has_type?(extension) do
       extension
     else
       raise ArgumentError
@@ -108,7 +109,7 @@ defmodule ActiveStorage.Variation do
   end
 
   def content_type(variation) do
-    MIME.type( format(variation) )
+    MIME.type(format(variation))
     # MiniMime.lookup_by_extension(format.to_s).content_type
   end
 
@@ -119,7 +120,8 @@ defmodule ActiveStorage.Variation do
   end
 
   def digest(variation) do
-    require IEx; IEx.pry
+    require IEx
+    IEx.pry()
     # Digest::SHA1.base64digest Marshal.dump(transformations)
   end
 

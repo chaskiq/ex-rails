@@ -1,7 +1,7 @@
 defmodule ActiveStorage.Service.DiskService do
   defstruct [:root, :public, :name]
 
-  def new( options \\ []) do
+  def new(options \\ []) do
     defaults = [root: nil, public: false]
     options = Keyword.merge(defaults, options)
     map_options = Enum.into(options, %{})
@@ -30,7 +30,7 @@ defmodule ActiveStorage.Service.DiskService do
   # :nodoc:
   def build(%{configurator: _c, name: n, service: _s}, config) do
     root = config |> Keyword.get(:root)
-    new([root: root, public: false, name: n])
+    new(root: root, public: false, name: n)
     # new(service_config)
     # .tap do |service_instance|
     #  service_instance.name = name
@@ -156,11 +156,11 @@ defmodule ActiveStorage.Service.DiskService do
   def path_for(service, key) do
     # File.join root, folder_for(key), key
     # |> Path.join(key)
-    Path.join(service.root, folder_for(key) ) |> Path.join(key)
+    Path.join(service.root, folder_for(key)) |> Path.join(key)
   end
 
   def folder_for(key) do
-    [String.slice(key, 0, 1), String.slice(key, 2, 3) ] |> Enum.join("/")
+    [String.slice(key, 0, 1), String.slice(key, 2, 3)] |> Enum.join("/")
     # [ key[0..1], key[2..3] ].join("/")
   end
 
@@ -188,19 +188,18 @@ defmodule ActiveStorage.Service.DiskService do
   # +filename+, and +content_type+ that you wish the file to be served with on request. Additionally, you can also provide
   # the amount of seconds the URL will be valid for, specified in +expires_in+.
   def url(service, key, options \\ []) do
-
-    #instrument :url, key: key do |payload|
+    # instrument :url, key: key do |payload|
     #  generated_url =
-        if ActiveStorage.Service.public?(service) do
-          public_url(service, key, options)
-        else
-          private_url(service, key, options)
-        end
+    if ActiveStorage.Service.public?(service) do
+      public_url(service, key, options)
+    else
+      private_url(service, key, options)
+    end
 
     #  payload[:url] = generated_url
 
     #  generated_url(key)
-    #end
+    # end
   end
 
   @impl ActiveStorage.Service
@@ -210,11 +209,11 @@ defmodule ActiveStorage.Service.DiskService do
     options = Keyword.merge(defaults, opts)
 
     case generate_url(key,
-      expires_in: options[:expires_in],
-      filename: options[:filename],
-      content_type: options[:content_type],
-      disposition: options[:disposition]
-    ) do
+           expires_in: options[:expires_in],
+           filename: options[:filename],
+           content_type: options[:content_type],
+           disposition: options[:disposition]
+         ) do
       {:ok, url} -> url
       _ -> nil
     end
@@ -233,11 +232,11 @@ defmodule ActiveStorage.Service.DiskService do
     options = Keyword.merge(defaults, options)
 
     case generate_url(key,
-      expires_in: options[:expires_in],
-      filename: options[:filename],
-      content_type: options[:content_type],
-      disposition: options[:disposition]
-    ) do
+           expires_in: options[:expires_in],
+           filename: options[:filename],
+           content_type: options[:content_type],
+           disposition: options[:disposition]
+         ) do
       {:ok, url} -> url
       _ -> nil
     end
@@ -268,7 +267,7 @@ defmodule ActiveStorage.Service.DiskService do
     content_disposition =
       ActiveStorage.Service.content_disposition_with(
         disposition: options |> Keyword.get(:disposition),
-        filename: options |> Keyword.get(:filename) |> ActiveStorage.Filename.to_s
+        filename: options |> Keyword.get(:filename) |> ActiveStorage.Filename.to_s()
       )
 
     verified_key_with_expiration =
@@ -289,7 +288,7 @@ defmodule ActiveStorage.Service.DiskService do
     # end
 
     # url_helpers.rails_disk_service_url(verified_key_with_expiration, filename: filename, **url_options)
-    f = options |> Keyword.get(:filename) |> ActiveStorage.Filename.to_s
+    f = options |> Keyword.get(:filename) |> ActiveStorage.Filename.to_s()
     u = "/active_storage/disk/#{verified_key_with_expiration}/#{f}"
 
     {:ok, u}

@@ -50,14 +50,13 @@ defmodule VariantTest do
     # assert_equal 67, image.height
   end
 
-  @tag skip: "this test is incomplete"
   test "resized and monochrome variation of JPEG blob" do
     blob = ActiveStorageTestHelpers.create_file_blob(filename: "racecar.jpg")
 
     variant =
       ActiveStorage.Blob.Representable.variant(blob, %{
         resize_to_limit: "100x100",
-        colourspace: "b-w"
+        colorspace: "Gray"
       })
 
     ActiveStorage.Variant.processed(variant)
@@ -68,6 +67,9 @@ defmodule VariantTest do
     assert 100 == image.width
     assert 67 == image.height
     assert String.match?(url, ~r/racecar\.jpg/)
+
+    image_format = ActiveStorageTestHelpers.image_format(variant, "'%[colorspace]'")
+    assert String.match?(image_format, ~r/Gray/)
     # assert_match(/Gray/, image.colorspace)
 
     # blob = create_file_blob(filename: "racecar.jpg")
@@ -80,30 +82,38 @@ defmodule VariantTest do
     # assert_match(/Gray/, image.colorspace)
   end
 
-  @tag skip: "this test is incomplete"
   test "monochrome with default variant_processor" do
     blob = ActiveStorageTestHelpers.create_file_blob(filename: "racecar.jpg")
-    variant = ActiveStorage.Blob.Representable.variant(blob, %{colourspace: "b-w"})
+    variant = ActiveStorage.Blob.Representable.variant(blob, %{colorspace: "Gray"})
     ActiveStorage.Variant.processed(variant)
 
-    _image = ActiveStorageTestHelpers.read_image(variant)
+    image_format = ActiveStorageTestHelpers.image_format(variant, "'%[colorspace]'")
+    assert String.match?(image_format, ~r/Gray/)
+
     # blob = create_file_blob(filename: "racecar.jpg")
     # variant = blob.variant(colourspace: "b-w").processed
     # image = read_image(variant)
     # assert_match(/Gray/, image.colorspace)
   end
 
-  @tag skip: "this test is incomplete"
   test "disabled variation of JPEG blob" do
     blob = ActiveStorageTestHelpers.create_file_blob(filename: "racecar.jpg")
 
     variant =
       ActiveStorage.Blob.Representable.variant(blob, %{
-        resize_to_limit: [100, 100],
-        colourspace: "srgb"
+        resize_to_limit: "100x100",
+        colorspace: "sRGB"
       })
 
     ActiveStorage.Variant.processed(variant)
+
+    image = ActiveStorageTestHelpers.read_image(variant)
+    assert 100 == image.width
+    assert 67 == image.height
+
+    image_format = ActiveStorageTestHelpers.image_format(variant, "'%[colorspace]'")
+    assert String.match?(image_format, ~r/RGB/)
+
     # blob = create_file_blob(filename: "racecar.jpg")
     # variant = blob.variant(resize_to_limit: [100, 100], colourspace: "srgb").processed
     # assert_match(/racecar\.jpg/, variant.url)
@@ -114,11 +124,17 @@ defmodule VariantTest do
     # assert_match(/RGB/, image.colorspace)
   end
 
-  @tag skip: "this test is incomplete"
   test "center-weighted crop of JPEG blob using :resize_to_fill" do
     blob = ActiveStorageTestHelpers.create_file_blob(filename: "racecar.jpg")
-    variant = ActiveStorage.Blob.Representable.variant(blob, %{resize_to_fill: [100, 100]})
+    variant = ActiveStorage.Blob.Representable.variant(blob, %{resize_to_fill: "100x100"})
     ActiveStorage.Variant.processed(variant)
+
+    url = variant |> ActiveStorage.Variant.url()
+    image = ActiveStorageTestHelpers.read_image(variant)
+    assert 100 == image.width
+    assert 100 == image.height
+    assert String.match?(url, ~r/racecar\.jpg/)
+
     # blob = create_file_blob(filename: "racecar.jpg")
     # variant = blob.variant(resize_to_fill: [100, 100]).processed
     # assert_match(/racecar\.jpg/, variant.url)
@@ -128,7 +144,6 @@ defmodule VariantTest do
     # assert_equal 100, image.height
   end
 
-  @tag skip: "this test is incomplete"
   test "resized variation of PSD blob" do
     blob =
       ActiveStorageTestHelpers.create_file_blob(
@@ -136,7 +151,7 @@ defmodule VariantTest do
         content_type: "image/vnd.adobe.photoshop"
       )
 
-    variant = ActiveStorage.Blob.Representable.variant(blob, %{resize_to_limit: [20, 20]})
+    variant = ActiveStorage.Blob.Representable.variant(blob, %{resize_to_limit: "20x20"})
     ActiveStorage.Variant.processed(variant)
 
     image = ActiveStorageTestHelpers.read_image(variant)
@@ -156,7 +171,6 @@ defmodule VariantTest do
     # assert_equal 20, image.height
   end
 
-  @tag skip: "this test is incomplete"
   test "resized variation of ICO blob" do
     blob =
       ActiveStorageTestHelpers.create_file_blob(
@@ -164,7 +178,7 @@ defmodule VariantTest do
         content_type: "image/vnd.microsoft.icon"
       )
 
-    variant = ActiveStorage.Blob.Representable.variant(blob, %{resize_to_limit: [20, 20]})
+    variant = ActiveStorage.Blob.Representable.variant(blob, %{resize_to_limit: "20x20"})
     ActiveStorage.Variant.processed(variant)
 
     image = ActiveStorageTestHelpers.read_image(variant)
@@ -198,7 +212,6 @@ defmodule VariantTest do
     # assert_equal 33, image.height
   end
 
-  @tag skip: "this test is incomplete"
   test "resized variation of BMP blob" do
     blob =
       ActiveStorageTestHelpers.create_file_blob(
@@ -206,7 +219,7 @@ defmodule VariantTest do
         content_type: "image/x-bmp"
       )
 
-    variant = ActiveStorage.Blob.Representable.variant(blob, %{resize_to_limit: [15, 15]})
+    variant = ActiveStorage.Blob.Representable.variant(blob, %{resize_to_limit: "15x15"})
     ActiveStorage.Variant.processed(variant)
 
     url = variant |> ActiveStorage.Variant.url()
@@ -306,7 +319,7 @@ defmodule VariantTest do
     # end
   end
 
-  @tag skip: "this test is incomplete"
+  @tag skip: "VIPS: this test is incomplete"
   test "thumbnail variation of JPEG blob processed with VIPS" do
     # process_variants_with :vips do
     #   blob = create_file_blob(filename: "racecar.jpg")
@@ -318,7 +331,7 @@ defmodule VariantTest do
     # end
   end
 
-  @tag skip: "this test is incomplete"
+  @tag skip: "VIPS: this test is incomplete"
   test "thumbnail variation of extensionless GIF blob processed with VIPS" do
     # process_variants_with :vips do
     #   blob = ActiveStorage::Blob.create_and_upload!(io: file_fixture("image.gif").open, filename: "image", content_type: "image/gif")

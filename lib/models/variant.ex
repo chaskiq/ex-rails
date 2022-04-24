@@ -82,9 +82,9 @@ defmodule ActiveStorage.Variant do
   def key(variant) do
     key = variant.blob.key
     variation_key = ActiveStorage.Variation.key(variant.variation)
-    hash = :crypto.hash(:sha256, variation_key) |> Base.encode16 |> String.downcase
+    hash = :crypto.hash(:sha256, variation_key) |> Base.encode16() |> String.downcase()
 
-    #"variants/#{key}/#{hash}/#{variant.blob.filename}"
+    # "variants/#{key}/#{hash}/#{variant.blob.filename}"
     "variants/#{key}/#{hash}"
   end
 
@@ -95,7 +95,13 @@ defmodule ActiveStorage.Variant do
   # for its redirection.
   # %{expires_in: ActiveStorage.service_urls_expire_in(), disposition: :inline}
   def url(variant, options \\ []) do
-    defaults = [expires_in: 3600, disposition: :inline, filename: filename(variant), content_type: content_type(variant.variation)]
+    defaults = [
+      expires_in: 3600,
+      disposition: :inline,
+      filename: filename(variant),
+      content_type: content_type(variant.variation)
+    ]
+
     options = Keyword.merge(defaults, options)
 
     key = key(variant)
@@ -108,7 +114,6 @@ defmodule ActiveStorage.Variant do
   end
 
   defdelegate service(blob), to: ActiveStorage.Blob, as: :service
-
 
   # alias_method :service_url, :url
   # deprecate service_url: :url
@@ -123,8 +128,8 @@ defmodule ActiveStorage.Variant do
 
   def filename(variant) do
     base_name = ActiveStorage.Blob.filename(variant.blob) |> ActiveStorage.Filename.base()
-    variation_format = format(variant.variation) |> String.downcase
-    ActiveStorage.Filename.new "#{base_name}.#{variation_format}"
+    variation_format = format(variant.variation) |> String.downcase()
+    ActiveStorage.Filename.new("#{base_name}.#{variation_format}")
     # ActiveStorage::Filename.new "#{blob.filename.base}.#{variation.format.downcase}"
   end
 
@@ -153,6 +158,7 @@ defmodule ActiveStorage.Variant do
     |> ActiveStorage.Blob.open(
       block: fn input ->
         key = key(variant)
+
         variant.variation
         |> ActiveStorage.Variation.transform(input, fn output ->
           srv = ActiveStorage.Blob.service(variant.blob)
