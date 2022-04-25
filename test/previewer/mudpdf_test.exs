@@ -40,7 +40,7 @@ defmodule ActiveStorage.Previewer.MuPDFPreviewerTest do
       ActiveStorage.Previewer.MuPDFPreviewer.new(blob)
       |> ActiveStorage.Previewer.MuPDFPreviewer.preview([], fn attachable ->
         assert "image/png" == attachable[:content_type]
-        assert "report.png" == attachable[:filename]
+        assert "cropped.png" == attachable[:filename]
         image = Mogrify.open(attachable[:io]) |> Mogrify.verbose()
         assert 430 == image.width
         assert 145 == image.height

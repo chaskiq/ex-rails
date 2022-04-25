@@ -66,7 +66,7 @@ defmodule ActiveStorage.Previewer.MuPDFPreviewer do
       "draw",
       "-F",
       "png",
-      "-0",
+      "-o",
       "-",
       file,
       "1"
