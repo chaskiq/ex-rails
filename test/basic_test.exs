@@ -202,7 +202,7 @@ defmodule StartingTest do
     end
 
     test "user test" do
-      User.insert(%User{}, %{a: 1})
+      user = User.avatar(%User{})
     end
   end
 end

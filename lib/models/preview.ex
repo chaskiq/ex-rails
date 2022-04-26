@@ -64,6 +64,9 @@ defmodule ActiveStorage.Preview do
 
   # Returns the blob's attached preview image.
   def image(preview) do
+    require IEx
+    IEx.pry()
+
     ActiveStorage.attachment_query(preview.blob, "image")
     |> RepoClient.repo().one()
 
@@ -101,6 +104,7 @@ defmodule ActiveStorage.Preview do
   # if the preview has not been processed yet.
   def download(preview, _block) do
     if processed?(preview) do
+      ActiveStorage.Variant.download(preview)
       # variant.download(block)
     else
       raise ActiveStorage.UnprocessedError
@@ -113,14 +117,18 @@ defmodule ActiveStorage.Preview do
   end
 
   def process(preview) do
-    %mod{} = previewer(preview)
+    mod = previewer(preview)
+    require IEx
+    IEx.pry()
 
-    mod.preview(
+    mod.__struct__.preview(
       preview,
-      service_name: preview.blob.service_name,
-      block: fn attachable ->
+      [service_name: preview.blob.service_name],
+      fn attachable ->
         IO.puts("HERE WE SHOWLD RECEIVE ATTACHMENT")
         IO.inspect(attachable)
+        require IEx
+        IEx.pry()
         # ActiveStorage.attach(preview.blob, attachable)
       end
     )

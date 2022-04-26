@@ -32,4 +32,13 @@ defmodule ActiveStorage.Attachment do
     ])
     |> assoc_constraint(:blob)
   end
+
+  def new(record: record, name: name, blob: blob) do
+    %__MODULE__{
+      record_id: record.id,
+      record_type: record.__struct__ |> to_string,
+      blob_id: blob.id,
+      name: name
+    }
+  end
 end

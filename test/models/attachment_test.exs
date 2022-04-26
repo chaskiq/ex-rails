@@ -8,15 +8,16 @@ defmodule AttachmentTest do
   # include ActiveJob::TestHelper
   use ExUnit.Case, async: false
 
-  # setup do
-  #  @user = User.create!(name: "Josh")
-  # end
+  setup do
+    user = User.create!(%{name: "Josh"})
+    {:ok, user: user}
+  end
 
   # teardown { ActiveStorage::Blob.all.each(&:delete) }
 
-  test "analyzing a directly-uploaded blob after attaching it" do
+  @tag skip: "this test is incomplete"
+  test "analyzing a directly-uploaded blob after attaching it", %{user: user} do
     blob = ActiveStorageTestHelpers.directly_upload_file_blob(filename: "racecar.jpg")
-
     assert ActiveStorage.Blob.analyzed?(blob) != true
     # assert_not blob.analyzed?
     #
@@ -92,8 +93,15 @@ defmodule AttachmentTest do
     # end
   end
 
-  @tag skip: "this test is incomplete"
-  test "getting a signed blob ID from an attachment" do
+  test "getting a signed blob ID from an attachment", %{user: user} do
+    blob = ActiveStorageTestHelpers.create_blob()
+    avatar = user.__struct__.avatar(user)
+    user = avatar.__struct__.attach(avatar, blob)
+    signed_id = User.avatar(user).__struct__.signed_id(User.avatar(user))
+
+    assert blob == ActiveStorage.Blob.find_signed!(signed_id)
+    assert blob == ActiveStorage.Blob.find_signed(signed_id)
+
     # blob = create_blob
     # @user.avatar.attach(blob)
     #
@@ -102,8 +110,17 @@ defmodule AttachmentTest do
     # assert_equal blob, ActiveStorage::Blob.find_signed(signed_id)
   end
 
-  @tag skip: "this test is incomplete"
-  test "getting a signed blob ID from an attachment with a custom purpose" do
+  test "getting a signed blob ID from an attachment with a custom purpose", %{user: user} do
+    blob = ActiveStorageTestHelpers.create_blob()
+
+    avatar = user.__struct__.avatar(user)
+    user = avatar.__struct__.attach(avatar, blob)
+
+    signed_id =
+      User.avatar(user).__struct__.signed_id(User.avatar(user), purpose: "custom_purpose")
+
+    assert blob == ActiveStorage.Blob.find_signed!(signed_id, "custom_purpose")
+
     # blob = create_blob
     # @user.avatar.attach(blob)
     #
@@ -111,8 +128,16 @@ defmodule AttachmentTest do
     # assert_equal blob, ActiveStorage::Blob.find_signed!(signed_id, purpose: :custom_purpose)
   end
 
-  @tag skip: "this test is incomplete"
-  test "getting a signed blob ID from an attachment with a expires_in" do
+  test "getting a signed blob ID from an attachment with a expires_in", %{user: user} do
+    blob = ActiveStorageTestHelpers.create_blob()
+
+    avatar = user.__struct__.avatar(user)
+    user = avatar.__struct__.attach(avatar, blob)
+
+    t = NaiveDateTime.add(NaiveDateTime.local_now(), 60, :second)
+    signed_id = User.avatar(user).__struct__.signed_id(User.avatar(user), expires_in: t)
+    assert blob == ActiveStorage.Blob.find_signed!(signed_id)
+
     # blob = create_blob
     # @user.avatar.attach(blob)
     #
@@ -120,8 +145,16 @@ defmodule AttachmentTest do
     # assert_equal blob, ActiveStorage::Blob.find_signed!(signed_id)
   end
 
-  @tag skip: "this test is incomplete"
-  test "fail to find blob within expiration date" do
+  test "fail to find blob within expiration date", %{user: user} do
+    blob = ActiveStorageTestHelpers.create_blob()
+
+    avatar = user.__struct__.avatar(user)
+    user = avatar.__struct__.attach(avatar, blob)
+
+    t = NaiveDateTime.add(NaiveDateTime.local_now(), -120, :second)
+    signed_id = User.avatar(user).__struct__.signed_id(User.avatar(user), expires_in: t)
+    assert nil == ActiveStorage.Blob.find_signed(signed_id)
+
     # blob = create_blob
     # @user.avatar.attach(blob)
     #
@@ -130,17 +163,32 @@ defmodule AttachmentTest do
     # assert_nil ActiveStorage::Blob.find_signed(signed_id)
   end
 
-  @tag skip: "this test is incomplete"
-  test "signed blob ID backwards compatibility" do
+  test "signed blob ID backwards compatibility", %{user: user} do
+    blob = ActiveStorageTestHelpers.create_blob()
+
+    avatar = user.__struct__.avatar(user)
+    user = avatar.__struct__.attach(avatar, blob)
+
+    signed_id_generated_old_way = ActiveStorage.Verifier.sign(user.avatar_attachment.blob_id)
+    assert blob == ActiveStorage.Blob.find_signed!(signed_id_generated_old_way)
+
     # blob = create_blob
     # @user.avatar.attach(blob)
-    #
     # signed_id_generated_old_way = ActiveStorage.verifier.generate(@user.avatar.blob.id, purpose: :blob_id)
     # assert_equal blob, ActiveStorage::Blob.find_signed!(signed_id_generated_old_way)
   end
 
-  @tag skip: "this test is incomplete"
-  test "attaching with strict_loading and getting a signed blob ID from an attachment" do
+  test "attaching with strict_loading and getting a signed blob ID from an attachment", %{
+    user: user
+  } do
+    blob = ActiveStorageTestHelpers.create_blob()
+    avatar = user.__struct__.avatar(user)
+    user = avatar.__struct__.attach(avatar, blob)
+
+    signed_id = User.avatar(user).__struct__.signed_id(User.avatar(user))
+    assert blob == ActiveStorage.Blob.find_signed!(signed_id)
+
+    ###########
     # blob = create_blob
     # @user.strict_loading!(true)
     # @user.avatar.attach(blob)

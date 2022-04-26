@@ -13,11 +13,13 @@ defmodule PreviewTest do
         content_type: "application/pdf"
       )
 
-    preview = ActiveStorage.Blob.Representable.preview(blob, resize_to_limit: [640, 280])
+    preview = ActiveStorage.Blob.Representable.preview(blob, resize_to_limit: "640x280")
 
     processed = ActiveStorage.Preview.processed(preview)
 
-    IO.inspect("FIND THIS TEST!!!!!!!! in preview tests")
+    assert "report.png", preview.image.filename.to_s
+    assert "image/png", preview.image.content_type
+
     # blob = create_file_blob(filename: "report.pdf", content_type: "application/pdf")
     # preview = blob.preview(resize_to_limit: [640, 280]).processed
     #

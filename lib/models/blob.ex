@@ -455,4 +455,31 @@ defmodule ActiveStorage.Blob do
   def record_type() do
     "blob"
   end
+
+  def signed_id(blob, opts \\ []) do
+    defaults = [expires_in: nil]
+    options = Keyword.merge(defaults, opts)
+    ActiveStorage.Verifier.sign(blob.id, options)
+  end
+
+  def find_signed(signed_id, purpose \\ nil) do
+    case ActiveStorage.Verifier.verify(signed_id, purpose) do
+      {:ok, id} ->
+        ActiveStorage.get_storage_blob!(id)
+
+      {:error, message} ->
+        IO.puts("ERROR: #{message}")
+        nil
+    end
+  end
+
+  def find_signed!(signed_id, purpose \\ nil) do
+    case find_signed(signed_id, purpose) do
+      nil ->
+        raise "Error find signed record"
+
+      id ->
+        id
+    end
+  end
 end

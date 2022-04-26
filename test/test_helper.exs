@@ -175,11 +175,26 @@ defmodule User do
   use Ecto.Schema
   import Ecto.Changeset
 
+  use ActiveStorage.Attached.Model
+  use ActiveStorage.Attached.HasOne, name: :avatar, model: "User"
+
   schema "users" do
     field(:name, :string)
+
+    has_one(:avatar_attachment, ActiveStorage.Attachment,
+      where: [record_type: "User"],
+      foreign_key: :record_id
+    )
+
+    has_one(:avatar_blob, through: [:avatar_attachment, :blob])
   end
 
-  use ActiveStorage.Attached.Model
+  def create!(attrs \\ %{}) do
+    %User{}
+    |> User.changeset(attrs)
+    |> unique_constraint(:name)
+    |> Repo.insert!()
+  end
 
   def changeset(record, attrs) do
     record

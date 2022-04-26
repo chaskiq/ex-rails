@@ -331,7 +331,7 @@ defmodule ActiveStorage do
     do: [
       ffmpeg: "/usr/local/bin/ffmpeg",
       ffprobe: "/usr/local/bin/ffprobe",
-      pdftoppm: "/usr/local/Cellar/poppler/21.12.0/bin/pdftoppm"
+      pdftoppm: "/usr/local/bin/pdftoppm"
     ]
 
   # def paths, do: ActiveSupport :: OrderedOptions.new()

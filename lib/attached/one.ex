@@ -1,9 +1,32 @@
 # frozen_string_literal: true
 
-defmodule ActiveStorage.Attached.OneRails do
+defmodule ActiveStorage.Attached.One do
+  defstruct [:name, :record]
+
+  # ATTACHABLE
+  def new(name, record) do
+    %__MODULE__{name: name, record: record}
+  end
+
+  def change(instance) do
+    # record.attachment_changes[name]
+  end
+
+  def signed_id(instance, opts \\ []) do
+    defaults = [expires_in: nil]
+    options = Keyword.merge(defaults, opts)
+    # a = attachment(instance)
+    # instance.record.avatar_attachment
+
+    loaded_record =
+      instance.record.avatar_attachment |> ActiveStorage.RepoClient.repo().preload(:blob)
+
+    blob = loaded_record.blob
+    blob.__struct__.signed_id(blob, options)
+  end
+
   # Representation of a single attachment to a model.
-  # class Attached::One < Attached
-  ##
+
   # :method: purge
   #
   # Directly purges the attachment (i.e. destroys the blob and
@@ -11,14 +34,12 @@ defmodule ActiveStorage.Attached.OneRails do
 
   # delegate :purge, to: :purge_one
 
-  ##
   # :method: purge_later
   #
   # Purges the attachment through the queuing system.
 
   # delegate :purge_later, to: :purge_one
 
-  ##
   # :method: detach
   #
   # Deletes the attachment without purging it, leaving its blob in place.
@@ -31,7 +52,7 @@ defmodule ActiveStorage.Attached.OneRails do
   #
   # You don't have to call this method to access the attachment's methods as
   # they are all available at the model level.
-  def attachment do
+  def attachment(instance) do
     # change.present? ? change.attachment : record.public_send("#{name}_attachment")
   end
 
@@ -56,7 +77,20 @@ defmodule ActiveStorage.Attached.OneRails do
   #   person.avatar.attach(params[:signed_blob_id]) # Signed reference to blob from direct upload
   #   person.avatar.attach(io: File.open("/path/to/face.jpg"), filename: "face.jpg", content_type: "image/jpeg")
   #   person.avatar.attach(avatar_blob) # ActiveStorage::Blob object
-  def attach(_instance, _attachable) do
+  def attach(instance, attachable) do
+    aname = String.to_atom("assign_#{instance.name}")
+
+    case Ecto.get_meta(instance.record, :state) do
+      :loaded ->
+        IO.inspect("TODO: save here a loaded state")
+
+        apply(instance.record.__struct__, aname, [instance.record, attachable])
+        |> instance.record.__struct__.save_with_attachment(instance.name)
+
+      :built ->
+        apply(instance.record.__struct__, aname, [instance.record, attachable])
+    end
+
     # if record.persisted? && !record.changed?
     #   record.public_send("#{name}=", attachable)
     #   record.save
@@ -76,50 +110,11 @@ defmodule ActiveStorage.Attached.OneRails do
     # attachment.present?
   end
 
-  def purge_one(_instance) do
-    # Attached::Changes::PurgeOne.new(name, record, attachment)
+  def purge_one(instance) do
+    # Attached.Changes.PurgeOne.new(instance.name, instance.record, attachment)
   end
 
-  def detach_one(_instance) do
-    # Attached::Changes::DetachOne.new(name, record, attachment)
-  end
-end
-
-defmodule ActiveStorage.Attached.One do
-  @moduledoc """
-  The multies module
-  """
-  defmacro __using__(opts) do
-    quote bind_quoted: [opts: opts] do
-      import ActiveStorage.Attached.One
-      import Ecto.Query, warn: false
-      import Ecto.Changeset
-      alias Ecto.Multi
-
-      def insert(%__MODULE__{} = resource, attrs) do
-        IO.puts("FIND ME IN ActiveStorage.Attached.One")
-        IO.inspect(attrs)
-        # new_changeset(resource, attrs)
-      end
-
-      # def delete(%__MODULE__{position: position} = resource) do
-      #   opts = unquote(opts)
-      #   scope = Keyword.get(opts, :scope)
-
-      #   update_position_query =
-      #     if scope do
-      #       from(i in __MODULE__,
-      #         where: i.position > ^position and field(i, ^scope) == ^Map.get(resource, scope),
-      #         update: [inc: [position: -1]]
-      #       )
-      #     else
-      #       from(i in __MODULE__, where: i.position > ^position, update: [inc: [position: -1]])
-      #     end
-
-      #   Multi.new()
-      #   |> Multi.delete(:delete_resource, resource)
-      #   |> Multi.update_all(:update_position, update_position_query, [])
-      # end
-    end
+  def detach_one(instance) do
+    # Attached.Changes.DetachOne.new(instance.name, instance.record, attachment)
   end
 end
