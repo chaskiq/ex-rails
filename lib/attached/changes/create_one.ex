@@ -6,9 +6,15 @@ defmodule ActiveStorage.Attached.Changes.CreateOne do
   #  attr_reader :name, :record, :attachable
 
   def new(name, record, attachable) do
-    %__MODULE__{name: name, record: record, attachable: attachable}
+    struct = %__MODULE__{name: name, record: record, attachable: attachable}
     # @name, @record, @attachable = name, record, attachable
-    # blob.identify_without_saving
+    blob = blob(struct)
+
+    # IO.inspect(blob.__struct__)
+    blob = blob.__struct__.identify_without_saving(blob)
+
+    struct = struct |> Map.put(:blob, blob)
+    struct
   end
 
   def attachment(instance) do
@@ -21,6 +27,8 @@ defmodule ActiveStorage.Attached.Changes.CreateOne do
   end
 
   def upload do
+    require IEx
+    IEx.pry()
     # case attachable
     # when ActionDispatch::Http::UploadedFile, Rack::Test::UploadedFile
     #  blob.upload_without_unfurling(attachable.open)
@@ -30,17 +38,20 @@ defmodule ActiveStorage.Attached.Changes.CreateOne do
   end
 
   def save(instance) do
+    name = String.to_atom("#{instance.name}_attachment")
+    blob_name = String.to_atom("#{instance.name}_blob")
+
     rec =
       instance.record
-      |> ActiveStorage.RepoClient.repo().preload([:avatar_attachment, :avatar_blob])
+      |> ActiveStorage.RepoClient.repo().preload([name, blob_name])
 
-    # instance.record |> Ecto.assoc(:avatar_attachment) |> ActiveStorage.RepoClient.repo().one
+    # instance.record |> Ecto.assoc(name) |> ActiveStorage.RepoClient.repo().one
 
     record_changeset = Ecto.Changeset.change(rec)
 
     attachment = attachment(instance)
 
-    Ecto.Changeset.put_assoc(record_changeset, :avatar_attachment, attachment)
+    Ecto.Changeset.put_assoc(record_changeset, name, attachment)
     |> ActiveStorage.RepoClient.repo().update!
 
     # Ecto.Changeset.put_assoc(record_changeset, :avatar_blob, instance.attachable)
@@ -79,9 +90,6 @@ defmodule ActiveStorage.Attached.Changes.CreateOne do
   end
 
   def find_or_build_blob(instance) do
-    require IEx
-    IEx.pry()
-
     case instance.attachable do
       %ActiveStorage.Blob{} -> instance.attachable
       _ -> nil

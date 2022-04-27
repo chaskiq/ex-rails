@@ -5,13 +5,7 @@ defmodule ActiveStorage.Attached.Model do
   #
   defmacro __using__(_opts) do
     quote do
-      #    @behaviour ActiveStorage.Attached.Model
-      #
-      #    # use ActiveStorage.Attached.One
-      #    # use ActsAs.NestedSet.Queries
-      #    # use ActsAs.NestedSet.Multies
-      #
-      #
+      # @behaviour ActiveStorage.Attached.Model
 
       def attachment_changes(struct) do
         changes =
@@ -29,11 +23,32 @@ defmodule ActiveStorage.Attached.Model do
       end
 
       def save_with_attachment(struct, name) do
+        # IO.inspect("EOEOEOE")
+        # IO.inspect(name)
         # IO.inspect(struct.attachment_changes[name])
 
         case struct.attachment_changes[name] do
-          nil -> nil
-          m -> m.__struct__.save(m)
+          nil ->
+            nil
+
+          m ->
+            m.__struct__.save(m)
+        end
+
+        # after_save { attachment_changes[name.to_s]&.save }
+      end
+
+      def save_with_attachments(struct, name) do
+        # IO.inspect(struct.attachment_changes[name])
+
+        case struct.attachment_changes[name] do
+          nil ->
+            nil
+
+          m ->
+            # IO.inspect("MAMAMAMAMAMA")
+            # IO.inspect(m)
+            m.__struct__.save(m)
         end
 
         # after_save { attachment_changes[name.to_s]&.save }
@@ -60,27 +75,9 @@ defmodule ActiveStorage.Attached.HasOne do
     name = opts |> Keyword.get(:name)
     _model = opts |> Keyword.get(:model)
     _context = Atom.to_string(name)
-    # singularized_context = Inflex.singularize(context)
 
     quote do
-      # @before_compile unquote(__MODULE__)
-      # import ActiveStorage.Attached.One
       import Ecto.Query, warn: false
-      # import Ecto.Changeset
-      # alias Ecto.Multi
-      # Module.register_attribute __MODULE__, :contexts, accumulate: true
-      # @contexts unquote(context)
-
-      # has_one(:avatar, ActiveStorage.Attachment,
-      #  where: [record_type: "User"],
-      #  foreign_key: :record_id
-      # )
-
-      # has_many :documents, ActiveStorage.Attachment, where: [record_type: "Person"], foreign_key: :record_id
-
-      # def unquote(:"add_#{singularized_context}")(struct, tag) when is_binary(tag) do
-      #  # Taglet.add(struct, tag, unquote(context), [])
-      # end
 
       def unquote(:"#{name}")(struct) do
         active_storage_attached =
@@ -120,9 +117,62 @@ defmodule ActiveStorage.Attached.HasOne do
         struct |> Map.put(:attachment_changes, new_attachment_changes)
       end
 
-      # scope :"with_attached_#{name}", -> { includes("#{name}_attachment": :blob) }
       def unquote(:"with_attached_#{name}")(query) do
         from(c in query, preload: [^:"#{unquote(name)}_attachment", :blob])
+      end
+    end
+  end
+end
+
+defmodule ActiveStorage.Attached.HasMany do
+  @moduledoc """
+  The HasMany module
+  """
+  defmacro __using__(opts) do
+    name = opts |> Keyword.get(:name)
+
+    quote do
+      import Ecto.Query, warn: false
+
+      def unquote(:"#{name}")(struct) do
+        active_storage_attached =
+          case struct |> Map.get(:active_storage_attached) do
+            %{} = map -> map
+            _ -> %{}
+          end
+
+        struct = struct |> Map.put(:active_storage_attached, active_storage_attached)
+
+        attached = ActiveStorage.Attached.Many.new(unquote(name), struct)
+      end
+
+      def unquote(:"assign_#{name}")(struct, attachable \\ nil) do
+        struct = attachment_changes(struct)
+
+        new_attachment_changes =
+          struct.attachment_changes
+          |> Map.put(
+            String.to_atom("#{unquote(name)}"),
+            if attachable |> is_nil do
+              ActiveStorage.Attached.Changes.DeleteMany.new("#{unquote(name)}", struct)
+            else
+              ActiveStorage.Attached.Changes.CreateMany.new(
+                "#{unquote(name)}",
+                struct,
+                attachable
+              )
+            end
+          )
+
+        struct |> Map.put(:attachment_changes, new_attachment_changes)
+      end
+
+      def unquote(:"with_attached_#{name}")(query) do
+        if ActiveStorage.track_variants() do
+          from(c in query, preload: [^:"#{unquote(name)}_attachments", blob: :variant_records])
+        else
+          from(c in query, preload: [^:"#{unquote(name)}_attachments", :blob])
+        end
       end
     end
   end

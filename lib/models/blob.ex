@@ -482,4 +482,20 @@ defmodule ActiveStorage.Blob do
         id
     end
   end
+
+  def reload!(%{id: id}) do
+    ActiveStorage.get_storage_blob!(id)
+  end
+
+  # ActiveStorage.Blob.Identifiable
+
+  defdelegate identify(blob), to: ActiveStorage.Blob.Identifiable
+
+  defdelegate identify_without_saving(blob), to: ActiveStorage.Blob.Identifiable
+
+  defdelegate identified?(blob), to: ActiveStorage.Blob.Identifiable
+
+  defdelegate identify_content_type(_blob), to: ActiveStorage.Blob.Identifiable
+
+  defdelegate download_identifiable_chunk(_blob), to: ActiveStorage.Blob.Identifiable
 end

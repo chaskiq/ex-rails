@@ -30,8 +30,19 @@ defmodule AttachmentTest do
     # assert_equal 2736, blob.metadata[:height]
   end
 
-  @tag skip: "this test is incomplete"
-  test "attaching a un-analyzable blob" do
+  test "attaching a un-analyzable blob", %{user: user} do
+    blob = ActiveStorageTestHelpers.create_blob()
+
+    assert blob |> ActiveStorage.Blob.analyzed?() != true
+
+    attachments = User.highlights(user)
+
+    attached_record = attachments.__struct__.attach(attachments, blob)
+
+    blob = blob |> blob.__struct__.reload!
+
+    assert blob |> ActiveStorage.Blob.analyzed?() == true
+
     # blob = create_blob(filename: "blank.txt")
     #
     # assert_not_predicate blob, :analyzed?
@@ -206,29 +217,31 @@ defmodule AttachmentTest do
     # assert_nothing_raised { attachment.destroy }
   end
 
-  # defp assert_blob_identified_before_owner_validated(owner, blob, content_type)
-  #  validated_content_type = nil
+  defp assert_blob_identified_before_owner_validated(owner, blob, content_type, block \\ nil) do
+    # validated_content_type = nil
+
+    # owner.class.validate do
+    #  validated_content_type ||= blob.content_type
+    # end
+
+    # block.()
+    ## yield
+
+    # assert content_type == validated_content_type
+    # assert content_type == blob.reload.content_type
+  end
+
   #
-  #  owner.class.validate do
-  #    validated_content_type ||= blob.content_type
-  #  end
-  #
-  #  yield
-  #
-  #  assert_equal content_type, validated_content_type
-  #  assert_equal content_type, blob.reload.content_type
-  # end
-  #
-  # defp assert_blob_identified_outside_transaction(blob, &block)
-  #  baseline_transaction_depth = ActiveRecord::Base.connection.open_transactions
-  #  max_transaction_depth = -1
-  #
-  #  track_transaction_depth = ->(*) do
-  #    max_transaction_depth = [ActiveRecord::Base.connection.open_transactions, max_transaction_depth].max
-  #  end
-  #
-  #  blob.stub(:identify_without_saving, track_transaction_depth, &block)
-  #
-  #  assert_equal 0, (max_transaction_depth - baseline_transaction_depth)
-  # end
+  defp assert_blob_identified_outside_transaction(blob, block \\ nil) do
+    #  baseline_transaction_depth = ActiveRecord::Base.connection.open_transactions
+    #  max_transaction_depth = -1
+    #
+    #  track_transaction_depth = ->(*) do
+    #    max_transaction_depth = [ActiveRecord::Base.connection.open_transactions, max_transaction_depth].max
+    #  end
+    #
+    #  blob.stub(:identify_without_saving, track_transaction_depth, &block)
+    #
+    #  assert_equal 0, (max_transaction_depth - baseline_transaction_depth)
+  end
 end

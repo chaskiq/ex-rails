@@ -63,7 +63,8 @@ defmodule ActiveStorage.Attached.One do
   #   end
   #
   #   User.new.avatar.blank? # => true
-  def blank? do
+  def blank?(instance) do
+    attached?(instance) != true
     # !attached?
   end
 
@@ -106,15 +107,16 @@ defmodule ActiveStorage.Attached.One do
   #   end
   #
   #   User.new.avatar.attached? # => false
-  def attached?(_instance) do
+  def attached?(instance) do
+    attachment(instance) |> is_nil() != true
     # attachment.present?
   end
 
   def purge_one(instance) do
-    # Attached.Changes.PurgeOne.new(instance.name, instance.record, attachment)
+    Attached.Changes.PurgeOne.new(instance.name, instance.record, attachment(instance))
   end
 
   def detach_one(instance) do
-    # Attached.Changes.DetachOne.new(instance.name, instance.record, attachment)
+    Attached.Changes.DetachOne.new(instance.name, instance.record, attachment(instance))
   end
 end

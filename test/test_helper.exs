@@ -177,6 +177,7 @@ defmodule User do
 
   use ActiveStorage.Attached.Model
   use ActiveStorage.Attached.HasOne, name: :avatar, model: "User"
+  use ActiveStorage.Attached.HasMany, name: :highlights, model: "User"
 
   schema "users" do
     field(:name, :string)
@@ -187,6 +188,13 @@ defmodule User do
     )
 
     has_one(:avatar_blob, through: [:avatar_attachment, :blob])
+
+    has_many(:highlights_attachments, ActiveStorage.Attachment,
+      where: [record_type: "User"],
+      foreign_key: :record_id
+    )
+
+    has_many(:highlights_blobs, through: [:highlights_attachments, :blob])
   end
 
   def create!(attrs \\ %{}) do

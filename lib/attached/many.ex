@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 defmodule ActiveStorage.Attached.Many do
   defstruct [:name, :record]
 
@@ -8,7 +6,9 @@ defmodule ActiveStorage.Attached.Many do
     %__MODULE__{name: name, record: record}
   end
 
-  def change do
+  def change(instance) do
+    require IEx
+    IEx.pry()
     # record.attachment_changes[name]
   end
 
@@ -40,13 +40,24 @@ defmodule ActiveStorage.Attached.Many do
   # Returns all the associated attachment records.
   #
   # All methods called on this proxy object that aren't listed here will automatically be delegated to +attachments+.
-  def attachments do
+  def attachments(instance) do
+    require IEx
+    IEx.pry()
+    record_function(instance, "#{instance.name}_attachments")
     # change.present? ? change.attachments : record.public_send("#{name}_attachments")
   end
 
   # Returns all attached blobs.
-  def blobs do
+  def blobs(instance) do
+    require IEx
+    IEx.pry()
+    record_function(instance, "#{instance.name}_blobs")
     # change.present? ? change.blobs : record.public_send("#{name}_blobs")
+  end
+
+  def record_function(instance, name, arg \\ []) do
+    name = String.to_atom(name)
+    apply(instance.record.__struct__, name, arg)
   end
 
   # Attaches one or more +attachables+ to the record.
@@ -59,7 +70,18 @@ defmodule ActiveStorage.Attached.Many do
   #   document.images.attach(params[:signed_blob_id]) # Signed reference to blob from direct upload
   #   document.images.attach(io: File.open("/path/to/racecar.jpg"), filename: "racecar.jpg", content_type: "image/jpeg")
   #   document.images.attach([ first_blob, second_blob ])
-  def attach(attachables) do
+  def attach(instance, attachables) do
+    aname = String.to_atom("assign_#{instance.name}")
+
+    case Ecto.get_meta(instance.record, :state) do
+      :loaded ->
+        apply(instance.record.__struct__, aname, [instance.record, attachables])
+        |> instance.record.__struct__.save_with_attachments(instance.name)
+
+      :built ->
+        apply(instance.record.__struct__, aname, [instance.record, attachables])
+    end
+
     # if record.persisted? && !record.changed?
     #   record.public_send("#{name}=", blobs + attachables.flatten)
     #   if record.save
@@ -79,15 +101,16 @@ defmodule ActiveStorage.Attached.Many do
   #   end
   #
   #   Gallery.new.photos.attached? # => false
-  def attached? do
+  def attached?(instance) do
+    attachments(instance) |> Enum.any?()
     # attachments.any?
   end
 
-  defp purge_many do
-    # Attached::Changes::PurgeMany.new(name, record, attachments)
+  defp purge_many(instance) do
+    Attached.Changes.PurgeMany.new(instance.name, instance.record, attachments(instance))
   end
 
-  defp detach_many do
-    # Attached::Changes::DetachMany.new(name, record, attachments)
+  defp detach_many(instance) do
+    Attached.Changes.DetachMany.new(instance.name, instance.record, attachments(instance))
   end
 end

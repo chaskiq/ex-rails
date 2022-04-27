@@ -177,7 +177,6 @@ defmodule BlobTest do
     # assert_not_predicate blob, :audio?
   end
 
-  @tag skip: "Not completed"
   test "video?" do
     blob =
       ActiveStorageTestHelpers.create_file_blob(filename: "video.mp4", content_type: "video/mp4")
