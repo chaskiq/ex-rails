@@ -14,7 +14,10 @@ defmodule ActiveStorage.Attached.Changes.CreateMany do
       blobs(p)
       |> Enum.map(fn x ->
         # IO.inspect(x.__struct__)
-        x.__struct__.identify_without_saving(x)
+        case x do
+          %Ecto.Changeset{} -> x
+          _ -> x.__struct__.identify_without_saving(x)
+        end
       end)
 
     p |> Map.put(:blobs, blobs)
@@ -83,6 +86,22 @@ defmodule ActiveStorage.Attached.Changes.CreateMany do
 
     # TODO: this is a little bit ugly
     attachments = persisted_or_new_attachments(instance)
+
+    # consoder a multi
+    # update changeset blobs
+    instance.blobs
+    |> Enum.each(fn blob ->
+      case blob do
+        %Ecto.Changeset{valid?: true, data: _} ->
+          blob |> ActiveStorage.RepoClient.repo().update!
+
+        %ActiveStorage.Blob{} ->
+          blob
+
+        _ ->
+          nil
+      end
+    end)
 
     record_changeset =
       instance.record

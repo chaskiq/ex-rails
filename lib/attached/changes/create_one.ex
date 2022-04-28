@@ -45,7 +45,16 @@ defmodule ActiveStorage.Attached.Changes.CreateOne do
       instance.record
       |> ActiveStorage.RepoClient.repo().preload([name, blob_name])
 
-    # instance.record |> Ecto.assoc(name) |> ActiveStorage.RepoClient.repo().one
+    # consider a Ecto MULTI transaction
+
+    case instance.blob do
+      %Ecto.Changeset{valid?: true, data: _} ->
+        # UPDATE CHANGESET
+        instance.blob |> ActiveStorage.RepoClient.repo().update!
+
+      _ ->
+        nil
+    end
 
     record_changeset = Ecto.Changeset.change(rec)
 
@@ -53,9 +62,6 @@ defmodule ActiveStorage.Attached.Changes.CreateOne do
 
     Ecto.Changeset.put_assoc(record_changeset, name, attachment)
     |> ActiveStorage.RepoClient.repo().update!
-
-    # Ecto.Changeset.put_assoc(record_changeset, :avatar_blob, instance.attachable)
-    # |> ActiveStorage.RepoClient.repo().update!
 
     # record.public_send("#{name}_attachment=", attachment)
     # record.public_send("#{name}_blob=", blob)

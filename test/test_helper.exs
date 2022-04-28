@@ -85,8 +85,16 @@ defmodule ActiveStorageTestHelpers do
   end
 
   def create_blob_before_direct_upload(options \\ []) do
-    default = [key: nil, filename: "hello.txt", content_type: "text/plain", record: nil]
+    default = [
+      key: nil,
+      filename: "hello.txt",
+      content_type: "text/plain",
+      record: nil,
+      block: nil
+    ]
+
     options = Keyword.merge(default, options)
+
     ActiveStorage.Blob.create_before_direct_upload!(options)
 
     # ActiveStorage::Blob.create_before_direct_upload! key: key, filename: filename, byte_size: byte_size, checksum: checksum, content_type: content_type, record: record
@@ -136,6 +144,11 @@ defmodule ActiveStorageTestHelpers do
         content_type: options[:content_type],
         record: options[:record]
       )
+
+    service = ActiveStorage.Blob.service(blob)
+    service.__struct__.upload(service, blob.key, io)
+
+    blob
 
     # create_blob_before_direct_upload(filename: filename, byte_size: byte_size, checksum: checksum, content_type: content_type, record: record).tap do |blob|
     #  service = ActiveStorage::Blob.service.try(:primary) || ActiveStorage::Blob.service

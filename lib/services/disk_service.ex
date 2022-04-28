@@ -2,7 +2,7 @@ defmodule ActiveStorage.Service.DiskService do
   defstruct [:root, :public, :name]
 
   def new(options \\ []) do
-    defaults = [root: nil, public: false]
+    defaults = [root: Temp.path!(), public: false]
     options = Keyword.merge(defaults, options)
     map_options = Enum.into(options, %{})
     %__MODULE__{} |> Map.merge(map_options)
@@ -43,7 +43,6 @@ defmodule ActiveStorage.Service.DiskService do
     # instrument :upload, key: key, checksum: checksum do
     # IO.copy_stream(io, make_path_for(key))
     p = make_path_for(service, key)
-
     # IO.inspect(p)
     case File.write(p, io) do
       :ok ->
@@ -67,7 +66,14 @@ defmodule ActiveStorage.Service.DiskService do
     # ensure_integrity_of(key, checksum) if checksum
   end
 
-  def download(service, key, _block \\ nil) do
+  def download(service, key, block \\ nil) do
+    # TODO, implement streaming here, not ram wise
+    if block do
+      stream(service, key)
+    else
+      File.read(path_for(service, key))
+    end
+
     # if block_given?
     #   instrument :streaming_download, key: key do
     #     stream key, &block
@@ -79,13 +85,13 @@ defmodule ActiveStorage.Service.DiskService do
     #     raise ActiveStorage::FileNotFoundError
     #   end
     # end
-
-    # TODO, implement streaming here, not ram wise
-    File.read(path_for(service, key))
   end
 
-  def download_chunk(_key, _range) do
+  def download_chunk(service, key, range) do
     # instrument :download_chunk, key: key, range: range do
+
+    File.stream!(__MODULE__.path_for(service, key), [], 30096) |> Enum.take(1) |> hd
+
     #   File.open(path_for(key), "rb") do |file|
     #     file.seek range.begin
     #     file.read range.size
@@ -151,6 +157,20 @@ defmodule ActiveStorage.Service.DiskService do
     default = [content_type: nil]
     options = Keyword.merge(default, options)
     %{"Content-Type" => options[:content_type]}
+  end
+
+  def stream(service, key, block \\ nil) do
+    a = File.stream!(path_for(service, key), [], 5_242_880)
+
+    require IEx
+    IEx.pry()
+    #   File.open(path_for(key), "rb") do |file|
+    #     while data = file.read(5.megabytes)
+    #       yield data
+    #     end
+    #   end
+    # rescue Errno::ENOENT
+    #   raise ActiveStorage::FileNotFoundError
   end
 
   def path_for(service, key) do

@@ -1,14 +1,3 @@
-# frozen_string_literal: true
-
-# begin
-#   require "image_processing"
-# rescue LoadError
-#   raise LoadError, <<~ERROR.squish
-#     Generating image variants require the image_processing gem.
-#     Please add `gem 'image_processing', '~> 1.2'` to your Gemfile.
-#   ERROR
-# end
-
 defmodule ActiveStorage.Transformers.ImageProcessingTransformer do
   import Mogrify
   # alias __MODULE__

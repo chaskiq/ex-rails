@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 defmodule ActiveStorage.VariantWithRecord do
   # attr_reader :blob, :variation
 

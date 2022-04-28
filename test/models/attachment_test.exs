@@ -68,8 +68,20 @@ defmodule AttachmentTest do
     # end
   end
 
-  @tag skip: "this test is incomplete"
-  test "directly-uploaded blob identification for one attached occurs before validation" do
+  test "directly-uploaded blob identification for one attached occurs before validation", %{
+    user: user
+  } do
+    blob =
+      ActiveStorageTestHelpers.directly_upload_file_blob(
+        filename: "racecar.jpg",
+        content_type: "application/octet-stream"
+      )
+
+    assert_blob_identified_before_owner_validated(user, blob, "image/jpeg", fn ->
+      avatar = user.__struct__.avatar(user)
+      user = avatar.__struct__.attach(avatar, blob)
+    end)
+
     # blob = directly_upload_file_blob(filename: "racecar.jpg", content_type: "application/octet-stream")
     #
     # assert_blob_identified_before_owner_validated(@user, blob, "image/jpeg") do
@@ -77,8 +89,20 @@ defmodule AttachmentTest do
     # end
   end
 
-  @tag skip: "this test is incomplete"
-  test "directly-uploaded blob identification for many attached occurs before validation" do
+  test "directly-uploaded blob identification for many attached occurs before validation", %{
+    user: user
+  } do
+    blob =
+      ActiveStorageTestHelpers.directly_upload_file_blob(
+        filename: "racecar.jpg",
+        content_type: "application/octet-stream"
+      )
+
+    assert_blob_identified_before_owner_validated(user, blob, "image/jpeg", fn ->
+      highligths = user.__struct__.highlights(user)
+      user = highligths.__struct__.attach(highligths, blob)
+    end)
+
     # blob = directly_upload_file_blob(filename: "racecar.jpg", content_type: "application/octet-stream")
     #
     # assert_blob_identified_before_owner_validated(@user, blob, "image/jpeg") do
@@ -128,7 +152,10 @@ defmodule AttachmentTest do
     user = avatar.__struct__.attach(avatar, blob)
 
     signed_id =
-      User.avatar(user).__struct__.signed_id(User.avatar(user), purpose: "custom_purpose")
+      User.avatar(user).__struct__.signed_id(
+        User.avatar(user),
+        purpose: "custom_purpose"
+      )
 
     assert blob == ActiveStorage.Blob.find_signed!(signed_id, "custom_purpose")
 
@@ -217,18 +244,20 @@ defmodule AttachmentTest do
     # assert_nothing_raised { attachment.destroy }
   end
 
-  defp assert_blob_identified_before_owner_validated(owner, blob, content_type, block \\ nil) do
-    # validated_content_type = nil
+  defp assert_blob_identified_before_owner_validated(owner, blob, content_type, block) do
+    validated_content_type = nil
 
     # owner.class.validate do
     #  validated_content_type ||= blob.content_type
     # end
 
-    # block.()
-    ## yield
+    validated_content_type = blob.content_type
+
+    b = block.()
 
     # assert content_type == validated_content_type
-    # assert content_type == blob.reload.content_type
+    # blob.reload.content_type
+    assert content_type == blob.__struct__.reload!(blob).content_type
   end
 
   #

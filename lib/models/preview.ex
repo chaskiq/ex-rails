@@ -118,8 +118,6 @@ defmodule ActiveStorage.Preview do
 
   def process(preview) do
     mod = previewer(preview)
-    require IEx
-    IEx.pry()
 
     mod.__struct__.preview(
       preview,
@@ -127,8 +125,6 @@ defmodule ActiveStorage.Preview do
       fn attachable ->
         IO.puts("HERE WE SHOWLD RECEIVE ATTACHMENT")
         IO.inspect(attachable)
-        require IEx
-        IEx.pry()
         # ActiveStorage.attach(preview.blob, attachable)
       end
     )

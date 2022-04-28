@@ -197,18 +197,3 @@ defmodule ActiveStorage.Service.S3Service do
     )
   end
 end
-
-# #<ActiveStorage::Service::S3Service:0x00007fb8c88a6078
-# @bucket=
-#   #<Aws::S3::Bucket:0x00007fb8c888ee50
-#    @arn=nil,
-#    @client=#<Aws::S3::Client>,
-#    @data=nil,
-#    @name="hermessapp",
-#    @resolved_region="us-east-1",
-#    @waiter_block_warned=false>,
-#  @client=#<Aws::S3::Resource:0x00007fb8c88a5fd8 @client=#<Aws::S3::Client>>,
-#  @multipart_upload_threshold=104857600,
-#  @name=:amazon,
-#  @public=false,
-#  @upload_options={}>

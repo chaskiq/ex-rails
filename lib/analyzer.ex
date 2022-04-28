@@ -28,9 +28,9 @@ defmodule ActiveStorage.Analyzer do
       end
 
       # Override this method in a concrete subclass. Have it return a Hash of metadata.
-      def metadata do
-        # raise NotImplementedError
-      end
+      # def metadata do
+      #  # raise NotImplementedError
+      # end
 
       # Downloads the blob to a tempfile on disk. Yields the tempfile.
       # defp download_blob_to_tempfile(&block) #:doc:

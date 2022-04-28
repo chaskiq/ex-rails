@@ -23,15 +23,12 @@ defmodule ActiveStorage.Attached.Model do
       end
 
       def save_with_attachment(struct, name) do
-        # IO.inspect("EOEOEOE")
-        # IO.inspect(name)
-        # IO.inspect(struct.attachment_changes[name])
-
         case struct.attachment_changes[name] do
           nil ->
             nil
 
           m ->
+            IO.inspect("SAVE to #{m.__struct__}")
             m.__struct__.save(m)
         end
 
@@ -73,8 +70,6 @@ defmodule ActiveStorage.Attached.HasOne do
   """
   defmacro __using__(opts) do
     name = opts |> Keyword.get(:name)
-    _model = opts |> Keyword.get(:model)
-    _context = Atom.to_string(name)
 
     quote do
       import Ecto.Query, warn: false
