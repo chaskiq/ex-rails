@@ -7,6 +7,9 @@ defmodule ActiveStorage.Blob do
   # import ActiveStorage.Blob.Analyzable
   use ActiveStorage.Blob.Analyzable
 
+  use ActiveStorage.Attached.Model
+  use ActiveStorage.Attached.HasOne, name: :preview_image, model: "Blob"
+
   # @foreign_key_type :binary_id
   schema "active_storage_blobs" do
     field(:byte_size, :integer)
@@ -25,7 +28,18 @@ defmodule ActiveStorage.Blob do
     # before_destroy { variant_records.destroy_all if ActiveStorage.track_variants }
     # has_one_attached :preview_image
 
+    has_one(:preview_image_attachment, ActiveStorage.Attachment,
+      where: [record_type: "Blob"],
+      foreign_key: :record_id
+    )
+
+    has_one(:preview_image_blob, through: [:preview_image_attachment, :blob])
+
     timestamps(inserted_at: :created_at, updated_at: false)
+  end
+
+  def record_type do
+    "Blob"
   end
 
   @doc false
@@ -490,12 +504,21 @@ defmodule ActiveStorage.Blob do
   # ActiveStorage.Blob.Identifiable
 
   defdelegate identify(blob), to: ActiveStorage.Blob.Identifiable
-
   defdelegate identify_without_saving(blob), to: ActiveStorage.Blob.Identifiable
-
   defdelegate identified?(blob), to: ActiveStorage.Blob.Identifiable
-
   defdelegate identify_content_type(_blob), to: ActiveStorage.Blob.Identifiable
-
   defdelegate download_identifiable_chunk(_blob), to: ActiveStorage.Blob.Identifiable
+
+  # ActiveStorage.Blob.Representable
+
+  defdelegate variant(blob, transformations), to: ActiveStorage.Blob.Representable
+  defdelegate variable?(blob), to: ActiveStorage.Blob.Representable
+  defdelegate preview(blob, transformations), to: ActiveStorage.Blob.Representable
+  defdelegate previewable?(blob), to: ActiveStorage.Blob.Representable
+  defdelegate representation(blob, transformations), to: ActiveStorage.Blob.Representable
+  defdelegate representable?(blob), to: ActiveStorage.Blob.Representable
+  defdelegate default_variant_transformations(blob), to: ActiveStorage.Blob.Representable
+  defdelegate default_variant_format(blob), to: ActiveStorage.Blob.Representable
+  defdelegate format(blob), to: ActiveStorage.Blob.Representable
+  defdelegate variant_class(), to: ActiveStorage.Blob.Representable
 end

@@ -12,6 +12,7 @@ defmodule BlobTest do
   alias ActiveStorage.Test.Repo
 
   alias ActiveStorageTestHelpers
+  require Size
 
   setup do
     # Explicitly get a connection before each test
@@ -23,6 +24,7 @@ defmodule BlobTest do
     _second = ActiveStorageTestHelpers.create_blob(filename: "town.jpg")
 
     {:ok, _user} = User.changeset(%User{}, %{name: "Jason"}) |> Repo.insert()
+
     # [ create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg") ].tap do |blobs|
     #  User.create! name: "DHH", avatar: blobs.first
     #  assert_includes ActiveStorage::Blob.unattached, blobs.second
@@ -105,27 +107,32 @@ defmodule BlobTest do
   end
 
   test "create_and_upload generates a 28-character base36 key" do
-    _blob = ActiveStorageTestHelpers.create_blob()
+    blob = ActiveStorageTestHelpers.create_blob()
+
+    assert String.match?(blob.key, ~r/^[a-z0-9]{27,28}$/)
     # assert_match(/^[a-z0-9]{28}$/, create_blob.key)
   end
 
   test "create_and_upload accepts a custom key" do
-    # SecureRandom.base36(28)
     key = "123456"
     data = "Hello world!"
     blob = ActiveStorageTestHelpers.create_blob(key: key, data: data)
     assert key == blob.key
+    assert {:ok, data} == ActiveStorage.Blob.download(blob)
+
     #
     # assert_equal key, blob.key
     # assert_equal data, blob.download
   end
 
-  @tag skip: "this test is incomplete"
-
   test "create_and_upload accepts a record for overrides" do
     # assert_nothing_raised do
     #  create_blob(record: User.new)
     # end
+
+    # this assumes that a raise will raise in the test run itself,
+    # I don't know how to do an assert_nothing_raised
+    ActiveStorageTestHelpers.create_blob(record: %User{})
   end
 
   test "build_after_unfurling generates a 28-character base36 key" do
@@ -159,8 +166,18 @@ defmodule BlobTest do
   end
 
   @tag skip: "this test is incomplete"
-
   test "compose with unpersisted blobs" do
+    blobs =
+      0..2
+      |> Enum.map(fn x ->
+        ActiveStorageTestHelpers.create_blob(
+          data: "123",
+          filename: "numbers.txt",
+          content_type: "text/plain",
+          identify: false
+        )
+      end)
+
     # blobs = 3.times.map { create_blob(data: "123", filename: "numbers.txt", content_type: "text/plain", identify: false).dup }
     #
     # error = assert_raises(ActiveRecord::RecordNotSaved) do
@@ -197,11 +214,32 @@ defmodule BlobTest do
     # assert_not_predicate blob, :audio?
   end
 
-  @tag skip: "this test is incomplete"
-
   test "download yields chunks" do
-    # blob   = create_blob data: "a" * 5.0625.megabytes
-    # chunks = []
+    table = :ets.new(:chunks, [])
+
+    blob =
+      ActiveStorageTestHelpers.create_blob(data: String.duplicate("a", Size.megabytes(5.0625)))
+
+    # temporary chunks state
+    :ets.insert(table, {:chunks, []})
+
+    chunks =
+      blob
+      |> ActiveStorage.Blob.download(fn data ->
+        # assign chunks
+        [chunks: chunks] = :ets.lookup(table, :chunks)
+        :ets.insert(table, {:chunks, chunks ++ [data]})
+      end)
+
+    # assign chunk to a function
+    [chunks: chunks] = :ets.lookup(table, :chunks)
+
+    :ets.delete(table)
+
+    assert 2 == chunks |> length()
+    assert Size.megabytes(5) == chunks |> List.first() |> String.length()
+    assert Size.kilobytes(64) == chunks |> List.last() |> String.length()
+
     #
     # blob.download do |chunk|
     #   chunks << chunk
@@ -212,12 +250,19 @@ defmodule BlobTest do
     # assert_equal "a" * 64.kilobytes, chunks.second
   end
 
-  @tag skip: "this test is incomplete"
   test "open with integrity" do
     blob = ActiveStorageTestHelpers.create_file_blob(filename: "racecar.jpg")
 
-    _open_blob = ActiveStorage.Blob.open(blob)
+    open_blob =
+      ActiveStorage.Blob.open(blob,
+        block: fn file ->
+          require IEx
+          IEx.pry()
+        end
+      )
 
+    require IEx
+    IEx.pry()
     # create_file_blob(filename: "racecar.jpg").tap do |blob|
     #   blob.open do |file|
     #     assert file.binmode?
@@ -330,8 +375,10 @@ defmodule BlobTest do
     # end
   end
 
-  @tag skip: "this test is incomplete"
   test "purge deletes file from external service" do
+    blob = ActiveStorageTestHelpers.create_blob()
+    require IEx
+    IEx.pry()
     # blob = create_blob
     #
     # blob.purge
@@ -381,9 +428,14 @@ defmodule BlobTest do
     # end
   end
 
-  @tag skip: "this test is incomplete"
   test "invalidates record when provided service_name is invalid" do
-    # blob = create_blob(filename: "funky.jpg")
+    blob = ActiveStorageTestHelpers.create_blob(filename: "funky.jpg")
+
+    case ActiveStorage.update_storage_blob(blob, %{service_name: :unknown}) do
+      {:error, %{errors: [service_name: err]}} -> assert true
+      _ -> assert false
+    end
+
     # blob.update(service_name: :unknown)
 
     # assert_not blob.valid?

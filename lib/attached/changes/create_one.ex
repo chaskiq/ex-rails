@@ -72,7 +72,10 @@ defmodule ActiveStorage.Attached.Changes.CreateOne do
   end
 
   def find_attachment(instance) do
-    blob = instance.record |> Ecto.assoc(:avatar_blob) |> ActiveStorage.RepoClient.repo().one
+    blob =
+      instance.record
+      |> Ecto.assoc(:"#{instance.name}_blob")
+      |> ActiveStorage.RepoClient.repo().one
 
     case blob do
       nil ->

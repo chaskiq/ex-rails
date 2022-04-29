@@ -64,11 +64,10 @@ defmodule ActiveStorage.Preview do
 
   # Returns the blob's attached preview image.
   def image(preview) do
-    require IEx
-    IEx.pry()
-
-    ActiveStorage.attachment_query(preview.blob, "image")
-    |> RepoClient.repo().one()
+    case preview.blob.__struct__.preview_image(preview.blob) do
+      %ActiveStorage.Attached.One{record: record} -> record
+      _ -> nil
+    end
 
     # blob.preview_image
   end
@@ -125,7 +124,8 @@ defmodule ActiveStorage.Preview do
       fn attachable ->
         IO.puts("HERE WE SHOWLD RECEIVE ATTACHMENT")
         IO.inspect(attachable)
-        # ActiveStorage.attach(preview.blob, attachable)
+        image = preview.blob.__struct__.preview_image(preview.blob)
+        image.__struct__.attach(image, preview.blob)
       end
     )
 

@@ -69,7 +69,7 @@ defmodule ActiveStorage.Service.DiskService do
   def download(service, key, block \\ nil) do
     # TODO, implement streaming here, not ram wise
     if block do
-      stream(service, key)
+      stream(service, key, block)
     else
       File.read(path_for(service, key))
     end
@@ -159,11 +159,12 @@ defmodule ActiveStorage.Service.DiskService do
     %{"Content-Type" => options[:content_type]}
   end
 
-  def stream(service, key, block \\ nil) do
-    a = File.stream!(path_for(service, key), [], 5_242_880)
+  def stream(service, key, block) do
+    File.stream!(path_for(service, key), [], 5_242_880)
+    |> Enum.each(fn data ->
+      block.(data)
+    end)
 
-    require IEx
-    IEx.pry()
     #   File.open(path_for(key), "rb") do |file|
     #     while data = file.read(5.megabytes)
     #       yield data

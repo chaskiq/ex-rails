@@ -184,6 +184,27 @@ defmodule ActiveStorageTestHelpers do
   end
 end
 
+defmodule Size do
+  # taken from: https://github.com/jfcalvo/size/blob/master/lib/size.ex
+  @spec megabytes(number) :: integer
+  defmacro megabytes(megabytes) when is_float(megabytes) do
+    round(Float.ceil(megabytes * 1024 * 1024))
+  end
+
+  defmacro megabytes(megabytes) when is_integer(megabytes) do
+    megabytes * 1024 * 1024
+  end
+
+  @spec kilobytes(number) :: integer
+  defmacro kilobytes(kilobytes) when is_float(kilobytes) do
+    round(Float.ceil(kilobytes * 1024))
+  end
+
+  defmacro kilobytes(kilobytes) when is_integer(kilobytes) do
+    kilobytes * 1024
+  end
+end
+
 defmodule User do
   use Ecto.Schema
   import Ecto.Changeset

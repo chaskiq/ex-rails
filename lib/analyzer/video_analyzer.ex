@@ -213,8 +213,6 @@ defmodule ActiveStorage.Analyzer.VideoAnalyzer do
 
   def container(probe) do
     #  probe["format"] || {}
-    # require IEx
-    # IEx.pry()
     probe |> Map.get("format") || %{}
   end
 
