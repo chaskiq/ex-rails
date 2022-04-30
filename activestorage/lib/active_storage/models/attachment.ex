@@ -6,8 +6,8 @@ defmodule ActiveStorage.Attachment do
 
   schema "active_storage_attachments" do
     field(:name, :string, null: false)
-    field(:record_type, :string, null: false)
     field(:record_id, :integer, null: false)
+    field(:record_type, :string, null: false)
 
     belongs_to(:blob, Blob)
 
