@@ -225,18 +225,20 @@ defmodule ActiveStorage.Analyzer.VideoAnalyzer do
 
   def probe_from(file) do
     try do
-      {output, _status} =
-        System.cmd(ffprobe_path(), [
-          "-print_format",
-          "json",
-          "-show_streams",
-          "-show_format",
-          "-v",
-          "error",
-          file
-        ])
+      instrument(Path.basename(ffprobe_path), fn ->
+        {output, _status} =
+          System.cmd(ffprobe_path(), [
+            "-print_format",
+            "json",
+            "-show_streams",
+            "-show_format",
+            "-v",
+            "error",
+            file
+          ])
 
-      Jason.decode!(output)
+        Jason.decode!(output)
+      end)
     rescue
       RuntimeError ->
         IO.puts("Skipping video analysis because FFmpeg isn't installed")

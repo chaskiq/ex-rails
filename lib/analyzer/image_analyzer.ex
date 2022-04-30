@@ -38,7 +38,11 @@ defmodule ActiveStorage.Analyzer.ImageAnalyzer do
 
   def read_image(file) do
     try do
-      image = Mogrify.open(file) |> Mogrify.verbose()
+      image =
+        instrument("mogrify", fn ->
+          Mogrify.open(file) |> Mogrify.verbose()
+        end)
+
       IO.inspect(image)
       image
     catch

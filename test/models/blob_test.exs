@@ -377,8 +377,11 @@ defmodule BlobTest do
 
   test "purge deletes file from external service" do
     blob = ActiveStorageTestHelpers.create_blob()
+    service = ActiveStorage.Blob.service(blob)
+    ActiveStorage.Blob.purge(blob)
     require IEx
     IEx.pry()
+    assert service.__struct__.exist?(service, blob.key) != true
     # blob = create_blob
     #
     # blob.purge

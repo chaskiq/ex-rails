@@ -231,6 +231,10 @@ defmodule User do
     has_many(:highlights_blobs, through: [:highlights_attachments, :blob])
   end
 
+  def record_type() do
+    "User"
+  end
+
   def create!(attrs \\ %{}) do
     %User{}
     |> User.changeset(attrs)

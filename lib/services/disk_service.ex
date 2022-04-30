@@ -40,28 +40,31 @@ defmodule ActiveStorage.Service.DiskService do
   def upload(service, key, io, options \\ []) do
     default = [checksum: nil]
     options = Keyword.merge(default, options)
-    # instrument :upload, key: key, checksum: checksum do
-    # IO.copy_stream(io, make_path_for(key))
-    p = make_path_for(service, key)
-    # IO.inspect(p)
-    case File.write(p, io) do
-      :ok ->
-        path = __MODULE__.path_for(service, key)
 
-        case options[:checksum] do
-          nil ->
-            {:ok, p}
+    ActiveStorage.Service.instrument(:upload, %{key: key}, fn ->
+      # instrument :upload, key: key, checksum: checksum do
+      # IO.copy_stream(io, make_path_for(key))
+      p = make_path_for(service, key)
+      # IO.inspect(p)
+      case File.write(p, io) do
+        :ok ->
+          path = __MODULE__.path_for(service, key)
 
-          checksum ->
-            cond do
-              ensure_integrity_of(path, checksum) -> {:ok, p}
-              true -> nil
-            end
-        end
+          case options[:checksum] do
+            nil ->
+              {:ok, p}
 
-      _ ->
-        {:error, "could not upload file from disk service"}
-    end
+            checksum ->
+              cond do
+                ensure_integrity_of(path, checksum) -> {:ok, p}
+                true -> nil
+              end
+          end
+
+        _ ->
+          {:error, "could not upload file from disk service"}
+      end
+    end)
 
     # ensure_integrity_of(key, checksum) if checksum
   end
@@ -69,9 +72,13 @@ defmodule ActiveStorage.Service.DiskService do
   def download(service, key, block \\ nil) do
     # TODO, implement streaming here, not ram wise
     if block do
-      stream(service, key, block)
+      ActiveStorage.Service.instrument(:streaming_download, %{key: key}, fn ->
+        stream(service, key, block)
+      end)
     else
-      File.read(path_for(service, key))
+      ActiveStorage.Service.instrument(:download, %{key: key}, fn ->
+        File.read(path_for(service, key))
+      end)
     end
 
     # if block_given?
@@ -90,7 +97,9 @@ defmodule ActiveStorage.Service.DiskService do
   def download_chunk(service, key, range) do
     # instrument :download_chunk, key: key, range: range do
 
-    File.stream!(__MODULE__.path_for(service, key), [], 30096) |> Enum.take(1) |> hd
+    ActiveStorage.Service.instrument(:download_chunk, %{key: key}, fn ->
+      File.stream!(__MODULE__.path_for(service, key), [], 30096) |> Enum.take(1) |> hd
+    end)
 
     #   File.open(path_for(key), "rb") do |file|
     #     file.seek range.begin
@@ -102,9 +111,12 @@ defmodule ActiveStorage.Service.DiskService do
   end
 
   def delete(service, key) do
+    ActiveStorage.Service.instrument(:delete, %{key: key}, fn ->
+      File.rm(path_for(service, key))
+    end)
+
     # instrument :delete, key: key do
     #   File.delete path_for(key)
-    File.rm(path_for(service, key))
     # rescue Errno::ENOENT
     #   # Ignore files already deleted
     # end
@@ -112,7 +124,11 @@ defmodule ActiveStorage.Service.DiskService do
 
   def delete_prefixed(service, prefix) do
     # instrument :delete_prefixed, prefix: prefix do
-    File.rm_rf(path_for(service, "#{prefix}*"))
+
+    ActiveStorage.Service.instrument(:delete_prefixed, %{prefix: prefix}, fn ->
+      File.rm_rf(path_for(service, "#{prefix}*"))
+    end)
+
     #   Dir.glob(path_for("#{prefix}*")).each do |path|
     #     FileUtils.rm_rf(path)
     #   end
@@ -125,12 +141,17 @@ defmodule ActiveStorage.Service.DiskService do
     #   payload[:exist] = answer
     #   answer
     # end
-    File.exists?(path_for(service, key))
+
+    ActiveStorage.Service.instrument(:exists, %{key: key}, fn ->
+      File.exists?(path_for(service, key))
+    end)
   end
 
   def url_for_direct_upload(key, options \\ []) do
-    default = [expires_in: nil, content_type: nil, content_length: nil, checksum: nil]
-    _options = Keyword.merge(default, options)
+    ActiveStorage.Service.instrument(:url, %{key: key}, fn ->
+      default = [expires_in: nil, content_type: nil, content_length: nil, checksum: nil]
+      _options = Keyword.merge(default, options)
+    end)
 
     # instrument :url, key: key do |payload|
     #  verified_token_with_expiration = ActiveStorage.verifier.generate(

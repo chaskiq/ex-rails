@@ -108,17 +108,33 @@ defmodule ActiveStorage.Service.S3Service do
     # stream(io)
     # amazon = Application.fetch_env!(:active_storage, :storage) |> Keyword.get(:amazon)
     # bucket = amazon.bucket
-    operation =
-      ExAws.S3.put_object(
-        service.bucket,
-        key,
-        io
-      )
+    ActiveStorage.Service.instrument(:upload, %{key: key}, fn ->
+      operation =
+        ExAws.S3.put_object(
+          service.bucket,
+          key,
+          io
+        )
 
-    ExAws.request(operation, service.client)
+      ExAws.request(operation, service.client)
+    end)
   end
 
   def download(service, key) do
+    # ActiveStorage.Service.instrument(:delete_prefixed, %{prefix: prefix}, fn ->
+
+    # if block_given?
+    #  instrument :streaming_download, key: key do
+    #    stream(key, &block)
+    #  end
+    # else
+    #  instrument :download, key: key do
+    #    object_for(key).get.body.string.force_encoding(Encoding::BINARY)
+    #  rescue Aws::S3::Errors::NoSuchKey
+    #    raise ActiveStorage::FileNotFoundError
+    #  end
+    # end
+
     case object_for(service, key) do
       {:ok, %{body: body}} -> {:ok, body}
       _ -> nil

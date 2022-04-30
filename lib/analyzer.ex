@@ -47,6 +47,14 @@ defmodule ActiveStorage.Analyzer do
       def tmpdir do
         # Dir.tmpdir()
       end
+
+      def instrument(analyzer, block) do
+        ActiveStorage.Metrics.instrument(
+          [:analyze, :active_storage],
+          %{analyzer: analyzer},
+          block
+        )
+      end
     end
   end
 end

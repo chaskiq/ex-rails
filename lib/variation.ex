@@ -71,15 +71,21 @@ defmodule ActiveStorage.Variation do
   # Accepts a File object, performs the +transformations+ against it, and
   # saves the transformed image into a temporary file.
   def transform(variation, file, block) do
-    t = transformer(variation)
+    ActiveStorage.Metrics.instrument(
+      [:transform, :active_storage],
+      %{},
+      fn ->
+        t = transformer(variation)
 
-    t.__struct__.process(
-      t,
-      file,
-      %{
-        format: variation.transformations.format
-      },
-      block
+        t.__struct__.process(
+          t,
+          file,
+          %{
+            format: variation.transformations.format
+          },
+          block
+        )
+      end
     )
 
     # ActiveSupport::Notifications.instrument("transform.active_storage") do

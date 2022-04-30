@@ -26,19 +26,22 @@ defmodule ActiveStorage.Service do
   end
 
   def url(blob = %ActiveStorage.Blob{}, opts) do
-    #  instrument :url, key: key do |payload|
-    is_public = false
-    service = ActiveStorage.Blob.service(blob)
+    ActiveStorage.Service.instrument(:url, %{key: blob.key}, fn ->
+      is_public = false
+      service = ActiveStorage.Blob.service(blob)
 
-    if is_public do
-      service.__struct__.public_url(service, blob, opts)
-    else
-      service.__struct__.private_url(service, blob, opts)
-    end
-    |> case do
-      {:ok, value} -> value
-      {:error, _} -> nil
-    end
+      if is_public do
+        service.__struct__.public_url(service, blob, opts)
+      else
+        service.__struct__.private_url(service, blob, opts)
+      end
+      |> case do
+        {:ok, value} -> value
+        {:error, _} -> nil
+      end
+    end)
+
+    #  instrument :url, key: key do |payload|
 
     # payload[:url] = generated_url
     # end
@@ -197,7 +200,13 @@ defmodule ActiveStorage.Service do
   # raise NotImplementedError
   # end
 
-  def instrument(_operation, _payload \\ %{}, _block) do
+  def instrument(operation, payload \\ %{}, block) do
+    ActiveStorage.Metrics.instrument(
+      [:service, :"#{operation}", :active_storage],
+      payload,
+      block
+    )
+
     # ActiveSupport::Notifications.instrument(
     #  "service_#{operation}.active_storage",
     #  payload.merge(service: service_name), &block)

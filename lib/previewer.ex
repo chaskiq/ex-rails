@@ -51,7 +51,10 @@ defmodule ActiveStorage.Previewer do
   # :doc:
   def draw(preview, argv \\ [], block) do
     open_tempfile(preview, fn fd, file_path ->
-      capture(preview, argv, to: fd)
+      instrument(:preview, %{key: preview.blob.key}, fn ->
+        capture(preview, argv, to: fd)
+      end)
+
       block.(file_path, fd)
     end)
 
@@ -83,7 +86,13 @@ defmodule ActiveStorage.Previewer do
     # end
   end
 
-  def instrument(_operation, _payload = %{}, _block) do
+  def instrument(operation, payload \\ %{}, block) do
+    ActiveStorage.Metrics.instrument(
+      [:"#{operation}", :active_storage],
+      payload,
+      block
+    )
+
     # ActiveSupport::Notifications.instrument "#{operation}.active_storage", payload, &block
   end
 

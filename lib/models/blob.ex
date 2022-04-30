@@ -284,7 +284,34 @@ defmodule ActiveStorage.Blob do
   # Destroys the blob record and then deletes the file on the service. This is the recommended way to dispose of unwanted
   # blobs. Note, though, that deleting the file off the service will initiate an HTTP connection to the service, which may
   # be slow or prevented, so you should not use this method inside a transaction or in callbacks. Use #purge_later instead.
-  def purge(_blob) do
+  def purge(blob) do
+    Ecto.Multi.new()
+    |> Ecto.Multi.run(:blob, fn repo, _changes ->
+      case ActiveStorage.RepoClient.repo().get(__MODULE__, blob.id) do
+        nil -> {:error, :not_found}
+        blob -> {:ok, blob}
+      end
+    end)
+    |> Ecto.Multi.delete(:delete, fn %{blob: blob} ->
+      # Others validations
+      blob
+    end)
+    # |> Multi.insert(:log, Log.password_reset_changeset(account, params))
+    # |> Multi.delete_all(:sessions, assoc(account, :sessions))
+    |> ActiveStorage.RepoClient.repo().transaction()
+
+    # case ActiveStorage.RepoClient.repo().delete(blob) do
+    #  # Deleted with success
+    #  {:ok, struct} ->
+    #    service = service(struct)
+    #    delete(service, blob)
+    #    struct
+
+    #  # Something went wrong
+    #  {:error, changeset} ->
+    #    changeset
+    # end
+
     # destroy
     # delete if previously_persisted?
     # rescue ActiveRecord::InvalidForeignKey
@@ -292,8 +319,8 @@ defmodule ActiveStorage.Blob do
 
   # Enqueues an ActiveStorage::PurgeJob to call #purge. This is the recommended way to purge blobs from a transaction,
   # an Active Record callback, or in any other real-time scenario.
-  def purge_later do
-    # ActiveStorage::PurgeJob.perform_later(self)
+  def purge_later(blob) do
+    ActiveStorage.PurgeJob.perform_later(blob)
   end
 
   def service(blob) do

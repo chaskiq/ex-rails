@@ -67,18 +67,21 @@ defmodule ActiveStorage.Analyzer.AudioAnalyzer do
   end
 
   defp probe_from(file) do
-    {output, _status} =
-      System.cmd(ffprobe_path(), [
-        "-print_format",
-        "json",
-        "-show_streams",
-        "-show_format",
-        "-v",
-        "error",
-        file
-      ])
+    instrument(Path.basename(ffprobe_path), fn ->
+      {output, _status} =
+        System.cmd(ffprobe_path(), [
+          "-print_format",
+          "json",
+          "-show_streams",
+          "-show_format",
+          "-v",
+          "error",
+          file
+        ])
 
-    Jason.decode!(output)
+      Jason.decode!(output)
+    end)
+
     # instrument(File.basename(ffprobe_path)) do
     #   IO.popen([ ffprobe_path,
     #     "-print_format", "json",
