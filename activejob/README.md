@@ -36,6 +36,13 @@ defmodule ActiveJob.ObanJob do
 end
 ```
 
+### Execute Job async
+
+    ObanJob.perform_later(%{a: "David", b: 2})
+### Execute inline
+
+    ObanJob.perform_now(%{a: "David", b: 2})
+
 ### With inline, for testing:
 
 ```elixir
@@ -48,6 +55,10 @@ defmodule ActiveJob.HelloJob do
   end
 end
 ```
+
+### executing:
+
+    ObanJob.perform_later(%{a: "David", b: 2})
 
 ### Other options for enqueueing
 
