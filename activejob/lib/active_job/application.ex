@@ -8,6 +8,8 @@ defmodule ActiveJob.Application do
   @impl true
   def start(_type, _args) do
     children = [
+      ActiveJob.Test.Repo,
+      {Oban, oban_config()}
       # Starts a worker by calling: ActiveJob.Worker.start_link(arg)
       # {ActiveJob.Worker, arg}
     ]
@@ -16,5 +18,9 @@ defmodule ActiveJob.Application do
     # for other strategies and supported options
     opts = [strategy: :one_for_one, name: ActiveJob.Supervisor]
     Supervisor.start_link(children, opts)
+  end
+
+  defp oban_config do
+    Application.fetch_env!(:active_job, Oban)
   end
 end
