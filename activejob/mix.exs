@@ -9,11 +9,24 @@ defmodule ActiveJob.MixProject do
       start_permanent: Mix.env() == :prod,
       elixirc_paths: elixirc_paths(Mix.env()),
       deps: deps(),
-      license: "MIT",
       summary: "Job framework with pluggable queues.",
-      description: "Declare job workers that can be run by a variety of queuing backends.
-      This plugin is a port of the Rails ActiveJob gem",
-      homepage: "https://github.com/chaskiq/ex-rails/active_job"
+      description: description(),
+      package: package()
+    ]
+  end
+
+  defp description() do
+    "Declare job workers that can be run by a variety of queuing backends. This plugin is a port of the Rails ActiveJob gem"
+  end
+
+  defp package() do
+    [
+      # This option is only needed when you don't want to use the OTP application name
+      name: "active_job",
+      # These are the default files included in the package
+      files: ~w(lib .formatter.exs mix.exs README* LICENSE* CHANGELOG*),
+      licenses: ["MIT"],
+      links: %{"GitHub" => "https://github.com/chaskiq/ex-rails/active_job"}
     ]
   end
 
