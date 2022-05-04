@@ -8,7 +8,12 @@ defmodule ActiveJob.MixProject do
       elixir: "~> 1.12",
       start_permanent: Mix.env() == :prod,
       elixirc_paths: elixirc_paths(Mix.env()),
-      deps: deps()
+      deps: deps(),
+      license: "MIT",
+      summary: "Job framework with pluggable queues.",
+      description: "Declare job workers that can be run by a variety of queuing backends.
+      This plugin is a port of the Rails ActiveJob gem",
+      homepage: "https://github.com/chaskiq/ex-rails/active_job"
     ]
   end
 
