@@ -45,21 +45,6 @@ defmodule ActiveJob.Base do
   # * DeserializationError - Error class for deserialization errors.
   # * SerializationError - Error class for serialization errors.
 
-  # include Core
-  # include QueueAdapter
-  # include QueueName
-  # include QueuePriority
-  # include Enqueuing
-  # include Execution
-  # include Callbacks
-  # include Exceptions
-  # include Instrumentation
-  # include Logging
-  # include Timezones
-  # include Translation
-
-  # ActiveSupport.run_load_hooks(:active_job, self)
-
   defmacro __using__(opts) do
     IO.inspect("job opts:")
     IO.inspect(opts)
@@ -70,41 +55,23 @@ defmodule ActiveJob.Base do
     quote do
       # Core functions
       use ActiveJob.Core, callbacks: unquote(callbacks)
-      # defdelegate new(arguments), to: ActiveJob.Core
-      # defdelegate successfully_enqueued?(struct), to: ActiveJob.Core
-      # defdelegate deserialize(struct, job_data), to: ActiveJob.Core
-      # defdelegate set(struct, options), to: ActiveJob.Core
-      # defdelegate serialize_arguments_if_needed(struct, arguments), to: ActiveJob.Core
-      # defdelegate deserialize_arguments_if_needed(struct), to: ActiveJob.Core
-      # defdelegate serialize_arguments(arguments), to: ActiveJob.Core
-      # defdelegate deserialize_arguments(serialized_args), to: ActiveJob.Core
-      # defdelegate arguments_serialized?(struct), to: ActiveJob.Core
-
       # Queue Adapter
       use ActiveJob.QueueAdapter, queue_adapter: unquote(queue_adapter)
-      # defdelegate queue_adapter(), to: ActiveJob.QueueAdapter
-      # defdelegate queue_adapter_name(), to: ActiveJob.QueueAdapter
-      # defdelegate set_queue_adapter(name_or_adapter), to: ActiveJob.QueueAdapter
-      # defdelegate assign_adapter(queue_adapter), to: ActiveJob.QueueAdapter
-      # defdelegate queue_adapter?(object), to: ActiveJob.QueueAdapter
-
-      # QueueName
+      # Enqueuing
       use ActiveJob.Enqueuing
-      # defdelegate perform_later(args, block \\ nil), to: ActiveJob.Enqueuing
-      # defdelegate job_or_instantiate(args), to: ActiveJob.Enqueuing
-      # defdelegate enqueue(struct, options \\ %{}), to: ActiveJob.Enqueuing
-
       # Execution
       use ActiveJob.Execution
-      # defdelegate perform_now(args), to: ActiveJob.Execution
-      # defdelegate execute(job_data), to: ActiveJob.Execution
-      # defdelegate perform_now(struct), to: ActiveJob.Execution
-      # defdelegate perform(struct, any), to: ActiveJob.Execution
-      # defdelegate _perform_job(struct), to: ActiveJob.Execution
-
       # Callbacks
-
       # Priority
+      # QueueAdapter
+      # QueueName
+      # QueuePriority
+      # Callbacks
+      # Exceptions
+      # Instrumentation
+      # Logging
+      # Timezones
+      # Translation
     end
   end
 end
