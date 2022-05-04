@@ -17,6 +17,7 @@ defmodule ActiveJob.QueueAdapters.InlineAdapter do
 
   def enqueue_at(job, options) do
     IO.puts("AO CARALIO")
+
     raise "Not implemented: Use a queueing backend to enqueue jobs in the future. Read more at https://guides.rubyonrails.org/active_job_basics.html"
   end
 end

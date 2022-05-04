@@ -10,10 +10,12 @@ defmodule ActiveJob.HelloJob do
     }
 
   def perform(greeter) do
-    greeter = case greeter do
-      nil -> "David"
-      _ -> greeter
-    end
+    greeter =
+      case greeter do
+        nil -> "David"
+        _ -> greeter
+      end
+
     IO.inspect("GREAT THE JOB HAS PERFORMED!")
     JobBuffer.push(:job_buffer, "#{greeter} says hello")
   end

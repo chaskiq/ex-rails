@@ -3,6 +3,7 @@ defmodule ActiveJob.Core do
     callbacks = Keyword.get(opts, :callbacks)
 
     quote do
+      @derive Jason.Encoder
       defstruct [
         :arguments,
         :serialized_arguments,
@@ -113,6 +114,7 @@ defmodule ActiveJob.Core do
           queue_name: job_data["queue_name"],
           priority: job_data["priority"],
           serialized_arguments: job_data["arguments"],
+          arguments: job_data["arguments"],
           executions: job_data["executions"],
           exception_executions: job_data["exception_executions"],
           # || I18n.locale.to_s,
@@ -123,10 +125,27 @@ defmodule ActiveJob.Core do
         })
       end
 
+      def serialize(job) do
+        %{
+          "job_class" => job.__struct__,
+          "job_id" => job.job_id,
+          "provider_job_id" => job.provider_job_id,
+          "queue_name" => job.queue_name,
+          "priority" => job.priority,
+          "arguments" => job.arguments,
+          "executions" => job.executions,
+          "exception_executions" => job.exception_executions,
+          # "locale"     => I18n.locale.to_s,
+          "timezone" => job.timezone,
+          "enqueued_at" => DateTime.utc_now()
+        }
+      end
+
       # Configures the job with the given options.
       def set(struct, options \\ %{}) do
         IO.inspect("OPTIOTIOIT")
         IO.inspect(options)
+
         struct
         |> Map.merge(%{
           scheduled_at: if(options[:wait], do: options[:wait].seconds.from_now.to_f, else: nil),
@@ -149,7 +168,8 @@ defmodule ActiveJob.Core do
           arguments_serialized?(struct) ->
             struct
             |> Map.merge(%{
-              arguments: struct.arguments, #deserialize_arguments(struct.serialized_arguments),
+              # deserialize_arguments(struct.serialized_arguments),
+              arguments: struct.arguments,
               serialized_arguments: nil
             })
 

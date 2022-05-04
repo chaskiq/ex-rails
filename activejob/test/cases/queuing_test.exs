@@ -23,7 +23,7 @@ defmodule QueuingTest do
   end
 
   test "run queued job with arguments" do
-    ActiveJob.HelloJob.perform_later "Jamie"
+    ActiveJob.HelloJob.perform_later("Jamie")
     assert "Jamie says hello" == JobBuffer.last_value(:job_buffer)
   end
 
@@ -35,17 +35,18 @@ defmodule QueuingTest do
   end
 
   test "job returned by enqueue has the arguments available" do
-    job = ActiveJob.HelloJob.perform_later "Jamie"
+    job = ActiveJob.HelloJob.perform_later("Jamie")
     assert "Jamie" == job.arguments
     # assert_equal [ "Jamie" ], job.arguments
   end
 
   test "job returned by perform_at has the timestamp available" do
-    job = ActiveJob.HelloJob.set(%{wait_until: Date.new!(2014, 1, 1) })
+    job = ActiveJob.HelloJob.set(%{wait_until: Date.new!(2014, 1, 1)})
     # assert job.scheduled_at == Date.new!(2014, 1, 1)
     assert_raise RuntimeError, fn ->
       job.__struct__.perform_later(job)
     end
+
     # job = HelloJob.set(wait_until: Time.utc(2014, 1, 1)).perform_later
     # assert_equal Time.utc(2014, 1, 1).to_f, job.scheduled_at
     # rescue NotImplementedError
@@ -59,6 +60,7 @@ defmodule QueuingTest do
       assert true == job.__struct__.successfully_enqueued?(job)
       assert nil == job.enqueue_error
     end)
+
     # HelloJob.perform_later "John" do |job|
     #   assert_equal "John says hello", JobBuffer.last_value
     #   assert_equal [ "John" ], job.arguments
@@ -73,6 +75,7 @@ defmodule QueuingTest do
       assert nil != job.enqueue_error
       assert job.enqueue_error.__struct__ == ActiveJob.EnqueueError
     end)
+
     # EnqueueErrorJob.perform_later do |job|
     #  assert_equal false, job.successfully_enqueued?
     #  assert_equal ActiveJob::EnqueueError, job.enqueue_error.class

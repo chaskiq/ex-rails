@@ -58,7 +58,7 @@ defmodule ActiveJob.Arguments do
   # WITH_INDIFFERENT_ACCESS_KEY = "_aj_hash_with_indifferent_access"
   # # :nodoc:
   # OBJECT_SERIALIZER_KEY = "_aj_serialized"
-#
+  #
   # # :nodoc:
   # RESERVED_KEYS = [
   #   GLOBALID_KEY,
@@ -72,7 +72,7 @@ defmodule ActiveJob.Arguments do
   #   WITH_INDIFFERENT_ACCESS_KEY,
   #   WITH_INDIFFERENT_ACCESS_KEY.to_sym()
   # ]
-#
+  #
   # private_constant(
   #   :PERMITTED_TYPES,
   #   :RESERVED_KEYS,

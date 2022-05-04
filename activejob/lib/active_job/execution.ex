@@ -22,8 +22,8 @@ defmodule ActiveJob.Execution do
 
       def execute(struct, job_data) do
         IO.inspect("EXECUTE HERE!")
-        #IO.inspect(struct)
-        #IO.inspect(job_data)
+        # IO.inspect(struct)
+        # IO.inspect(job_data)
 
         struct.__struct__.perform_now(struct)
         # ActiveJob.Callbacks.run_callbacks(:execute) do

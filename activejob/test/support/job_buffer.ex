@@ -22,8 +22,8 @@ defmodule JobBuffer do
   use GenServer
 
   def init(args) do
-    #IO.inspect("inicio")
-    #IO.inspect(args)
+    # IO.inspect("inicio")
+    # IO.inspect(args)
     {:ok, []}
   end
 

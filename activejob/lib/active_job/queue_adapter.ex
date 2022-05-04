@@ -20,12 +20,12 @@ defmodule ActiveJob.QueueAdapter do
       # Returns the backend queue provider. The default queue adapter
       # is the +:async+ queue. See QueueAdapters for more information.
       def queue_adapter() do
-        #IO.inspect("QUEUE ADAPTER HERE")
-        #IO.inspect(__MODULE__)
+        # IO.inspect("QUEUE ADAPTER HERE")
+        # IO.inspect(__MODULE__)
         IO.inspect(unquote(queue_adapter))
 
         case unquote(queue_adapter) do
-          "inline" -> ActiveJob.QueueAdapters.InlineAdapter
+          :inline -> ActiveJob.QueueAdapters.InlineAdapter
           other -> other
         end
 

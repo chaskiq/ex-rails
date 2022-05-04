@@ -77,7 +77,7 @@ defmodule ActiveJob.Enqueuing do
             if struct.scheduled_at do
               IO.puts("SCHEDULE FROM QUEUE ADAPTER (scheduled_at)")
               IO.inspect(module.queue_adapter)
-              module.queue_adapter.enqueue_at(struct,  struct.scheduled_at)
+              module.queue_adapter.enqueue_at(struct, struct.scheduled_at)
               # queue_adapter.enqueue_at self, scheduled_at
             else
               IO.puts("SCHEDULE FROM QUEUE ADAPTER")
@@ -87,15 +87,18 @@ defmodule ActiveJob.Enqueuing do
             end
 
             struct |> Map.merge(%{successfully_enqueued: true})
-          rescue e  ->
-            struct |> Map.merge(%{enqueue_error: e})
+          rescue
+            e ->
+              IO.inspect(e)
+              IO.inspect(inspect(__STACKTRACE__))
+              struct |> Map.merge(%{enqueue_error: e})
           end
 
-        #if module.successfully_enqueued?(struct) do
+        # if module.successfully_enqueued?(struct) do
         #  struct
-        #else
+        # else
         #  false
-        #end
+        # end
         struct
       end
     end
