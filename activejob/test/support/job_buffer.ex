@@ -1,23 +1,3 @@
-# frozen_string_literal: true
-
-defmodule JobBuffer2 do
-  def clear do
-    # values.clear
-  end
-
-  def add(value) do
-    # values << value
-  end
-
-  def values do
-    # @values ||= []
-  end
-
-  def last_value do
-    # values.last
-  end
-end
-
 defmodule JobBuffer do
   use GenServer
 
