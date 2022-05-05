@@ -98,11 +98,6 @@ defmodule ActiveJob.QueueAdapters do
   # support retries.
   #
 
-  # autoload :AsyncAdapter
-  # autoload :InlineAdapter
-  # autoload :ObanAdapter
-  # autoload :TestAdapter
-
   # ADAPTER = "Adapter"
   # private_constant :ADAPTER
 
@@ -110,7 +105,12 @@ defmodule ActiveJob.QueueAdapters do
   #
   #   ActiveJob::QueueAdapters.lookup(:sidekiq)
   #   # => ActiveJob::QueueAdapters::SidekiqAdapter
-  def lookup(name) do
+  def lookup(name) when name |> is_binary do
+    Module.concat(["ActiveJob.QueueAdapters", "#{Macro.camelize(name)}Adapter"])
     # const_get(name.to_s.camelize << ADAPTER)
+  end
+
+  def lookup(name) when name |> is_atom do
+    name |> to_string |> lookup
   end
 end

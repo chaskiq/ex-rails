@@ -77,12 +77,12 @@ defmodule ActiveJob.Enqueuing do
             if struct.scheduled_at do
               IO.puts("SCHEDULE FROM QUEUE ADAPTER (scheduled_at)")
               IO.inspect(module.queue_adapter)
-              module.queue_adapter.enqueue_at(struct, struct.scheduled_at)
+              module.queue_adapter.mod.enqueue_at(struct, struct.scheduled_at)
               # queue_adapter.enqueue_at self, scheduled_at
             else
               IO.puts("SCHEDULE FROM QUEUE ADAPTER")
               IO.inspect(module.queue_adapter)
-              module.queue_adapter.enqueue(struct, options)
+              module.queue_adapter.mod.enqueue(struct, options)
               # queue_adapter.enqueue self
             end
 

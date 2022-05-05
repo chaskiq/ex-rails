@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 defmodule ActiveJob.QueueAdapters.TestAdapter do
   # == Test adapter for Active Job
   #
@@ -13,6 +11,24 @@ defmodule ActiveJob.QueueAdapters.TestAdapter do
   # class TestAdapter
   #  attr_accessor(:perform_enqueued_jobs, :perform_enqueued_at_jobs, :filter, :reject, :queue, :at)
   #  attr_writer(:enqueued_jobs, :performed_jobs)
+
+  defstruct [
+    :perform_enqueued_jobs,
+    :perform_enqueued_at_jobs,
+    :filter,
+    :reject,
+    :queue,
+    :at,
+    :enqueued_jobs,
+    :performed_jobs,
+    :mod
+  ]
+
+  def new do
+    %__MODULE__{
+      mod: __MODULE__
+    }
+  end
 
   #  # Provides a store of all the enqueued jobs with the TestAdapter so you can check them.
   def enqueued_jobs do

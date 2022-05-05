@@ -7,17 +7,23 @@ defmodule ActiveJob.QueueAdapters.InlineAdapter do
   # To use the Inline set the queue_adapter config to +:inline+.
   #
   #   Rails.application.config.active_job.queue_adapter = :inline
+  defstruct [:mod]
+
+  def new do
+    %__MODULE__{
+      mod: __MODULE__
+    }
+  end
+
   def enqueue(job, options) do
     IO.inspect("ENQUEUE FROM INLINE ADAPTER!")
-    IO.inspect(job)
-    IO.inspect(options)
     job.__struct__.execute(job, options)
     # Base.execute(job.serialize)
   end
 
   def enqueue_at(job, options) do
-    IO.puts("AO CARALIO")
-
-    raise "Not implemented: Use a queueing backend to enqueue jobs in the future. Read more at https://guides.rubyonrails.org/active_job_basics.html"
+    raise ActiveJob.NotImplementedError,
+      message:
+        "Not implemented: Use a queueing backend to enqueue jobs in the future. Read more at https://guides.rubyonrails.org/active_job_basics.html"
   end
 end

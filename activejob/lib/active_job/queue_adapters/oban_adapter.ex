@@ -2,6 +2,15 @@ defmodule ActiveJob.QueueAdapters.ObanAdapter do
   # == Active Job Oban adapter
   #
   #
+
+  defstruct [:mod]
+
+  def new do
+    %__MODULE__{
+      mod: __MODULE__
+    }
+  end
+
   def enqueue(job, options) do
     queue_name = job.queue_name || :default
 
@@ -16,8 +25,6 @@ defmodule ActiveJob.QueueAdapters.ObanAdapter do
   end
 
   def enqueue_at(job, options) do
-    IO.puts("AO CARALIO")
-
     raise "Not implemented: Use a queueing backend to enqueue jobs in the future. Read more at https://guides.rubyonrails.org/active_job_basics.html"
   end
 end
@@ -29,7 +36,6 @@ defmodule ActiveJob.QueueAdapters.ObanAdapter.JobWrapper do
   @impl Oban.Worker
   def perform(%Oban.Job{args: args} = oban_job) do
     IO.inspect("OBAN WRAPPER HERE!")
-    # IO.inspect(args)
     mod = Module.concat([args["job_class"]])
     job = mod.deserialize(struct(mod), args)
     mod.execute(job, job)

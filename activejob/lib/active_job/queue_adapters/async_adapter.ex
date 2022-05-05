@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 defmodule ActiveJob.QueueAdapters.AsyncAdapter do
   # == Active Job Async adapter
   #
@@ -26,7 +24,7 @@ defmodule ActiveJob.QueueAdapters.AsyncAdapter do
   # short-lived jobs. Fine for dev/test; bad for production.
 
   # See {Concurrent::ThreadPoolExecutor}[https://ruby-concurrency.github.io/concurrent-ruby/master/Concurrent/ThreadPoolExecutor.html] for executor options.
-  def initialize(executor_options) do
+  def new(executor_options) do
     # @scheduler = Scheduler.new(**executor_options)
   end
 
@@ -41,7 +39,8 @@ defmodule ActiveJob.QueueAdapters.AsyncAdapter do
   # Gracefully stop processing jobs. Finishes in-progress work and handles
   # any new jobs following the executor's fallback policy (`caller_runs`).
   # Waits for termination by default. Pass `wait: false` to continue.
-  def shutdown(wait: true) do
+  def shutdown(opts \\ []) do
+    opts = Keyword.merge([wait: true], opts)
     #  @scheduler.shutdown wait: wait
   end
 
@@ -56,7 +55,7 @@ end
 # adapters and deployment environments. Otherwise, serialization bugs
 # may creep in undetected.
 defmodule ActiveJob.QueueAdapters.AsyncAdapter.JobWrapper do
-  def initialize(job) do
+  def new(job) do
     # job.provider_job_id = SecureRandom.uuid
     # @job_data = job.serialize
   end
@@ -78,31 +77,56 @@ defmodule ActiveJob.QueueAdapters.AsyncAdapter.Scheduler do
 
   # attr_accessor :immediate
 
-  # def initialize(options) do
-  # self.immediate = false
-  # @immediate_executor = Concurrent::ImmediateExecutor.new
-  # @async_executor = Concurrent::ThreadPoolExecutor.new(DEFAULT_EXECUTOR_OPTIONS.merge(options))
-  # end
+  use GenServer
 
-  # def enqueue(job, queue_name:) do
-  # executor.post(job, &:perform)
-  # end
+  def new() do
+    __MODULE__.start_link([])
+  end
 
-  # def enqueue_at(job, timestamp, queue_name:) do
-  # delay = timestamp - Time.current.to_f
-  # if delay > 0
-  #  Concurrent::ScheduledTask.execute(delay, args: [job], executor: executor, &:perform)
-  # else
-  #  enqueue(job, queue_name: queue_name)
-  # end
-  # end
+  def start_link(_arg) do
+    GenServer.start_link(__MODULE__, [])
+  end
 
-  # def shutdown(wait: true) do
-  # @async_executor.shutdown
-  # @async_executor.wait_for_termination if wait
-  # end
+  def init(args) do
+    {:ok, []}
+    # self.immediate = false
+    # @immediate_executor = Concurrent::ImmediateExecutor.new
+    # @async_executor = Concurrent::ThreadPoolExecutor.new(DEFAULT_EXECUTOR_OPTIONS.merge(options))
+  end
 
-  # def executor do
-  # immediate ? @immediate_executor : @async_executor
-  # end
+  def enqueue(job, opts \\ []) do
+    # GenServer.cast(pid, {:push, item})
+    # executor.post(job, &:perform)
+  end
+
+  def handle_cast({:push, item}, stack) do
+    {:noreply, [item | stack]}
+  end
+
+  def enqueue_at(job, timestamp, opts \\ []) do
+    defaults =
+
+    if timestamp > 0 do
+      Process.send_after(self(),:enqueue ,1*60*1000)
+    else
+      enqueue(job, queue_name: "foo")
+    end
+
+    # delay = timestamp - Time.current.to_f
+    # if delay > 0
+    #  Concurrent::ScheduledTask.execute(delay, args: [job], executor: executor, &:perform)
+    # else
+    #  enqueue(job, queue_name: queue_name)
+    # end
+  end
+
+  def shutdown(opts \\ []) do
+    opts = Keyword.merge([wait: true], opts)
+    # @async_executor.shutdown
+    # @async_executor.wait_for_termination if wait
+  end
+
+  def executor do
+    # immediate ? @immediate_executor : @async_executor
+  end
 end

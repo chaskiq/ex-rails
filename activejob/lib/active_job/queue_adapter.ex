@@ -21,14 +21,11 @@ defmodule ActiveJob.QueueAdapter do
       # is the +:async+ queue. See QueueAdapters for more information.
       def queue_adapter() do
         # IO.inspect("QUEUE ADAPTER HERE")
-        # IO.inspect(__MODULE__)
-        IO.inspect(unquote(queue_adapter))
-
-        case unquote(queue_adapter) do
-          :inline -> ActiveJob.QueueAdapters.InlineAdapter
-          other -> other
-        end
-
+        # IO.inspect("__MODULE__")
+        # IO.inspect(unquote(queue_adapter))
+        set_queue_adapter(unquote(queue_adapter))
+        # IO.inspect(a)
+        # IO.inspect("---")
         # _queue_adapter
       end
 
@@ -44,14 +41,30 @@ defmodule ActiveJob.QueueAdapter do
       #       def queue_adapter=(name_or_adapter)
 
       def set_queue_adapter(name_or_adapter) do
-        IO.inspect("AALALALALLAALAL")
-        IO.inspect(name_or_adapter)
+        # IO.inspect("SET ADAPTER: ")
+        # IO.inspect(name_or_adapter)
 
-        :ets.new(:user_lookup, [:set, :protected, :named_table])
+        # :ets.new(:user_lookup, [:set, :protected, :named_table])
+        mod =
+          cond do
+            name_or_adapter |> Code.ensure_loaded?() ->
+              name_or_adapter
 
-        case name_or_adapter do
-          _ -> nil
-        end
+            name_or_adapter |> is_atom ->
+              mod = ActiveJob.QueueAdapters.lookup(name_or_adapter)
+
+            # if queue_adapter?(mod) do
+            #  mod
+            # else
+            #  raise ArgumentError
+            # end
+
+            true ->
+              raise ArgumentError
+          end
+
+        #
+        mod.new
 
         # case name_or_adapter
         # when Symbol, String
@@ -68,11 +81,11 @@ defmodule ActiveJob.QueueAdapter do
       end
 
       defp assign_adapter(adapter_name, queue_adapter) do
-        :ets.insert(:user_lookup, {
-          "doomspork",
-          "Sean",
-          ["Elixir", "Ruby", "Java"]
-        })
+        # :ets.insert(:user_lookup, {
+        #  "doomspork",
+        #  "Sean",
+        #  ["Elixir", "Ruby", "Java"]
+        # })
 
         # self._queue_adapter_name = adapter_name
         # self._queue_adapter = queue_adapter
@@ -83,7 +96,7 @@ defmodule ActiveJob.QueueAdapter do
 
       def queue_adapter?(object) do
         @queue_adapter_methods
-        |> Enum.all?(fn meth -> function_exported?(object.__struct, meth, 1) end)
+        |> Enum.all?(fn meth -> function_exported?(object, meth, 2) end)
 
         # QUEUE_ADAPTER_METHODS.all? { |meth| object.respond_to?(meth) }
       end

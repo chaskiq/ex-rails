@@ -28,6 +28,9 @@ defmodule QueuingTest do
   end
 
   test "run queued job later" do
+    job = ActiveJob.HelloJob.set(%{wait_until: Date.new!(2014, 1, 1)})
+    response = job.__struct__.perform_later(job)
+    assert response.enqueue_error.__struct__ == ActiveJob.NotImplementedError
     # result = HelloJob.set(wait_until: 1.second.ago).perform_later "Jamie"
     # assert result
     # rescue NotImplementedError
@@ -42,10 +45,10 @@ defmodule QueuingTest do
 
   test "job returned by perform_at has the timestamp available" do
     job = ActiveJob.HelloJob.set(%{wait_until: Date.new!(2014, 1, 1)})
+    response = job.__struct__.perform_later(job)
+    assert response.scheduled_at == ~D[2014-01-01]
     # assert job.scheduled_at == Date.new!(2014, 1, 1)
-    assert_raise RuntimeError, fn ->
-      job.__struct__.perform_later(job)
-    end
+    assert response.enqueue_error.__struct__ == ActiveJob.NotImplementedError
 
     # job = HelloJob.set(wait_until: Time.utc(2014, 1, 1)).perform_later
     # assert_equal Time.utc(2014, 1, 1).to_f, job.scheduled_at
