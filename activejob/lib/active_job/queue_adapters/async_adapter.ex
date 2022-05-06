@@ -23,12 +23,35 @@ defmodule ActiveJob.QueueAdapters.AsyncAdapter do
   # jobs. Since jobs share a single thread pool, long-running jobs will block
   # short-lived jobs. Fine for dev/test; bad for production.
 
-  # See {Concurrent::ThreadPoolExecutor}[https://ruby-concurrency.github.io/concurrent-ruby/master/Concurrent/ThreadPoolExecutor.html] for executor options.
-  def new(executor_options) do
-    # @scheduler = Scheduler.new(**executor_options)
+  defstruct [:mod, :scheduler]
+
+  def new do
+    # find or register the gen server
+    pid =
+      case Process.whereis(ActiveJob.QueueAdapters.AsyncAdapter.Scheduler) do
+        nil ->
+          {:ok, pid} = ActiveJob.QueueAdapters.AsyncAdapter.Scheduler.new()
+          Process.register(pid, ActiveJob.QueueAdapters.AsyncAdapter.Scheduler)
+          pid
+
+        pid ->
+          pid
+      end
+
+    %__MODULE__{
+      mod: __MODULE__,
+      scheduler: pid
+    }
   end
 
-  def enqueue(job) do
+  # See {Concurrent::ThreadPoolExecutor}[https://ruby-concurrency.github.io/concurrent-ruby/master/Concurrent/ThreadPoolExecutor.html] for executor options.
+  # def new(executor_options) do
+  #  # @scheduler = Scheduler.new(**executor_options)
+  # end
+
+  def enqueue(job, a) do
+    pid = job.__struct__.queue_adapter.scheduler
+    ActiveJob.QueueAdapters.AsyncAdapter.Scheduler.enqueue(pid, job)
     # @scheduler.enqueue JobWrapper.new(job), queue_name: job.queue_name
   end
 
@@ -55,12 +78,18 @@ end
 # adapters and deployment environments. Otherwise, serialization bugs
 # may creep in undetected.
 defmodule ActiveJob.QueueAdapters.AsyncAdapter.JobWrapper do
+  defstruct [:job]
+
   def new(job) do
     # job.provider_job_id = SecureRandom.uuid
     # @job_data = job.serialize
+    %__MODULE__{
+      job: job
+    }
   end
 
-  def perform do
+  def perform(job) do
+    job.__struct__.execute(job, %{})
     # Base.execute @job_data
   end
 end
@@ -85,32 +114,72 @@ defmodule ActiveJob.QueueAdapters.AsyncAdapter.Scheduler do
 
   def start_link(_arg) do
     GenServer.start_link(__MODULE__, [])
+    # GenServer.start_link(__MODULE__, [], name: :"__MODULE__:1")
+    # GenServer.start_link(__MODULE__, [], name: {:via, Registry, {:async_adapter, table}})
+  end
+
+  def schedule, do: Process.send_after(self(), :work, 2000)
+
+  def handle_info(:work, [job | state]) do
+    job_wrapper = ActiveJob.QueueAdapters.AsyncAdapter.JobWrapper.new(job)
+
+    case job_wrapper.__struct__.perform(job) do
+      %{enqueue_error: err} = job ->
+        schedule()
+        {:noreply, [state] ++ job}
+
+      _ ->
+        schedule()
+        {:noreply, state}
+    end
+  end
+
+  def handle_info(:work, []) do
+    IO.inspect("NO MORE JOBS")
+    schedule()
+    {:noreply, []}
   end
 
   def init(args) do
+    schedule()
     {:ok, []}
     # self.immediate = false
     # @immediate_executor = Concurrent::ImmediateExecutor.new
     # @async_executor = Concurrent::ThreadPoolExecutor.new(DEFAULT_EXECUTOR_OPTIONS.merge(options))
   end
 
-  def enqueue(job, opts \\ []) do
-    # GenServer.cast(pid, {:push, item})
+  def enqueue(pid, job) do
     # executor.post(job, &:perform)
+    GenServer.cast(pid, {:push, job})
+  end
+
+  def pop(pid) do
+    GenServer.call(pid, :pop)
+  end
+
+  def handle_call(:pop, _from, [item | rest]) do
+    {:reply, item, rest}
   end
 
   def handle_cast({:push, item}, stack) do
     {:noreply, [item | stack]}
   end
 
+  def values(pid) do
+    GenServer.call(pid, :list)
+  end
+
+  def last_value(pid) do
+    GenServer.call(pid, :last_value)
+  end
+
   def enqueue_at(job, timestamp, opts \\ []) do
     defaults =
-
-    if timestamp > 0 do
-      Process.send_after(self(),:enqueue ,1*60*1000)
-    else
-      enqueue(job, queue_name: "foo")
-    end
+      if timestamp > 0 do
+        Process.send_after(self(), :enqueue, 1 * 60 * 1000)
+      else
+        enqueue(job, queue_name: "foo")
+      end
 
     # delay = timestamp - Time.current.to_f
     # if delay > 0
@@ -118,6 +187,14 @@ defmodule ActiveJob.QueueAdapters.AsyncAdapter.Scheduler do
     # else
     #  enqueue(job, queue_name: queue_name)
     # end
+  end
+
+  def handle_call(:size, _from, stack) do
+    {:reply, Enum.count(stack), stack}
+  end
+
+  def handle_call(:list, _from, stack) do
+    {:reply, stack, stack}
   end
 
   def shutdown(opts \\ []) do
