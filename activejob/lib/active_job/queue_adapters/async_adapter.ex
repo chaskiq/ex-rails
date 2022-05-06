@@ -27,21 +27,22 @@ defmodule ActiveJob.QueueAdapters.AsyncAdapter do
 
   def new do
     # find or register the gen server
-    pid =
-      case Process.whereis(ActiveJob.QueueAdapters.AsyncAdapter.Scheduler) do
-        nil ->
-          {:ok, pid} = ActiveJob.QueueAdapters.AsyncAdapter.Scheduler.new()
-          Process.register(pid, ActiveJob.QueueAdapters.AsyncAdapter.Scheduler)
-          pid
-
-        pid ->
-          pid
-      end
-
     %__MODULE__{
       mod: __MODULE__,
-      scheduler: pid
+      scheduler: find_pid()
     }
+  end
+
+  def find_pid() do
+    case Process.whereis(ActiveJob.QueueAdapters.AsyncAdapter.Scheduler) do
+      nil ->
+        {:ok, pid} = ActiveJob.QueueAdapters.AsyncAdapter.Scheduler.new()
+        Process.register(pid, ActiveJob.QueueAdapters.AsyncAdapter.Scheduler)
+        pid
+
+      pid ->
+        pid
+    end
   end
 
   # See {Concurrent::ThreadPoolExecutor}[https://ruby-concurrency.github.io/concurrent-ruby/master/Concurrent/ThreadPoolExecutor.html] for executor options.
@@ -56,6 +57,8 @@ defmodule ActiveJob.QueueAdapters.AsyncAdapter do
   end
 
   def enqueue_at(job, timestamp) do
+    pid = job.__struct__.queue_adapter.scheduler
+    ActiveJob.QueueAdapters.AsyncAdapter.Scheduler.enqueue_at(pid, job)
     # @scheduler.enqueue_at JobWrapper.new(job), timestamp, queue_name: job.queue_name
   end
 
@@ -153,6 +156,26 @@ defmodule ActiveJob.QueueAdapters.AsyncAdapter.Scheduler do
     GenServer.cast(pid, {:push, job})
   end
 
+  def enqueue_at(pid, job, timestamp, opts \\ []) do
+    defaults =
+      if timestamp > 0 do
+        spawn(fn ->
+          :timer.sleep(1000)
+          enqueue(pid, job)
+        end)
+      else
+        # , queue_name: "foo")
+        enqueue(pid, job)
+      end
+
+    # delay = timestamp - Time.current.to_f
+    # if delay > 0
+    #  Concurrent::ScheduledTask.execute(delay, args: [job], executor: executor, &:perform)
+    # else
+    #  enqueue(job, queue_name: queue_name)
+    # end
+  end
+
   def pop(pid) do
     GenServer.call(pid, :pop)
   end
@@ -171,22 +194,6 @@ defmodule ActiveJob.QueueAdapters.AsyncAdapter.Scheduler do
 
   def last_value(pid) do
     GenServer.call(pid, :last_value)
-  end
-
-  def enqueue_at(job, timestamp, opts \\ []) do
-    defaults =
-      if timestamp > 0 do
-        Process.send_after(self(), :enqueue, 1 * 60 * 1000)
-      else
-        enqueue(job, queue_name: "foo")
-      end
-
-    # delay = timestamp - Time.current.to_f
-    # if delay > 0
-    #  Concurrent::ScheduledTask.execute(delay, args: [job], executor: executor, &:perform)
-    # else
-    #  enqueue(job, queue_name: queue_name)
-    # end
   end
 
   def handle_call(:size, _from, stack) do

@@ -1,10 +1,3 @@
-# frozen_string_literal: true
-
-# require "helper"
-# require "jobs/hello_job"
-# require "jobs/enqueue_error_job"
-# require "active_support/core_ext/numeric/time"
-
 defmodule ObanTest do
   use ExUnit.Case
   doctest ActiveJob

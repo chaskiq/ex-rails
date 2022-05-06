@@ -1,8 +1,3 @@
-# frozen_string_literal: true
-
-# require "active_support/rescuable"
-# require "active_job/arguments"
-
 defmodule ActiveJob.Execution do
   defmacro __using__(opts) do
     quote do
@@ -22,9 +17,6 @@ defmodule ActiveJob.Execution do
 
       def execute(struct, job_data) do
         IO.inspect("EXECUTE HERE!")
-        # IO.inspect(struct)
-        # IO.inspect(job_data)
-
         struct.__struct__.perform_now(struct)
         # ActiveJob.Callbacks.run_callbacks(:execute) do
         #  job = deserialize(job_data)

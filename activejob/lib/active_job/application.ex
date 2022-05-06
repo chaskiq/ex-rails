@@ -10,6 +10,7 @@ defmodule ActiveJob.Application do
     children = [
       ActiveJob.Test.Repo,
       {Oban, oban_config()}
+      # Exq,
       # Starts a worker by calling: ActiveJob.Worker.start_link(arg)
       # {ActiveJob.Worker, arg}
     ]

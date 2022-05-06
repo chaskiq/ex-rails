@@ -1,7 +1,3 @@
-# frozen_string_literal: true
-
-# require "active_job/arguments"
-
 defmodule ActiveJob.Enqueuing do
   defmacro __using__(_opts) do
     quote do

@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 defmodule ActiveJob.ConfiguredJob do
   defstruct [:options, :job_class]
 
@@ -14,12 +12,8 @@ defmodule ActiveJob.ConfiguredJob do
   end
 
   def perform_now(struct, args \\ nil) do
-    require IEx
-    IEx.pry()
     job = struct.job_class.new(args)
     job.__struct__.set(struct.options)
-    require IEx
-    IEx.pry()
     # @job_class.new(args).set(@options).perform_now
   end
 

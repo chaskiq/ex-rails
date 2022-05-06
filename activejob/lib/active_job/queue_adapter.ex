@@ -1,7 +1,3 @@
-# frozen_string_literal: true
-
-# require "active_support/core_ext/string/inflections"
-
 defmodule ActiveJob.QueueAdapter do
   defmacro __using__(queue_adapter: queue_adapter) do
     quote do

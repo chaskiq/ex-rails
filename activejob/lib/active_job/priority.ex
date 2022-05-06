@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 defmodule ActiveJob.QueuePriority do
   # module QueuePriority
 
