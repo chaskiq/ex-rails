@@ -35,7 +35,7 @@ defmodule ActiveStorage.Blob do
 
     has_one(:preview_image_blob, through: [:preview_image_attachment, :blob])
 
-    timestamps(inserted_at: :created_at, updated_at: false)
+    timestamps(inserted_at: :created_at, updated_at: :updated_at)
   end
 
   def record_type do

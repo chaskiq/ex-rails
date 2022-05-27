@@ -216,6 +216,8 @@ defmodule User do
   schema "users" do
     field(:name, :string)
 
+    timestamps(inserted_at: :created_at, updated_at: :updated_at)
+
     has_one(:avatar_attachment, ActiveStorage.Attachment,
       where: [record_type: "User"],
       foreign_key: :record_id

@@ -11,7 +11,7 @@ defmodule ActiveStorage.Attachment do
 
     belongs_to(:blob, Blob)
 
-    timestamps(inserted_at: :created_at, updated_at: false)
+    timestamps(inserted_at: :created_at, updated_at: :updated_at)
   end
 
   # belongs_to :record, polymorphic: true, touch: true

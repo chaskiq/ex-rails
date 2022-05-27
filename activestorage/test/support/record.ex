@@ -7,7 +7,7 @@ defmodule ActiveStorage.Test.Record do
   # import Ecto.Changeset
 
   schema "records" do
-    timestamps(inserted_at: :created_at)
+    timestamps(inserted_at: :created_at, updated_at: :updated_at)
   end
 
   def record_type do
