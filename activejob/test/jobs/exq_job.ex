@@ -9,9 +9,11 @@ defmodule ActiveJob.ExqJob do
       after: fn _x -> IO.inspect("AFTER") end
     }
 
-    def perform(args) do
-      IO.inspect("GREAT THE Exq JOB WAS PERFORMED!!!!!!")
-      IO.inspect(args)
-      JobBuffer.push(:job_buffer, "#{args[:a]} says hello #{args[:b]} times")
-    end
+  def perform(args) do
+    IO.inspect("GREAT THE Exq JOB WAS PERFORMED!!!!!!")
+    IO.inspect(args)
+    str = "#{args["a"]} says hello #{args["b"]} times"
+
+    JobBuffer.push(:job_buffer, str)
+  end
 end

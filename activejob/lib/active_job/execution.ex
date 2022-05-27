@@ -37,7 +37,7 @@ defmodule ActiveJob.Execution do
       #   puts MyJob.new(*args).perform_now # => "Hello World!"
       def _perform_now(struct) do
         IO.inspect("PERFORM NOW!")
-        IO.inspect(struct)
+        # IO.inspect(struct)
 
         #  # Guard against jobs that were persisted before we started counting executions by zeroing out nil counters
         #  self.executions = (executions || 0) + 1

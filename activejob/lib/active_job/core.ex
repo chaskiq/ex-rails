@@ -143,7 +143,7 @@ defmodule ActiveJob.Core do
 
       # Configures the job with the given options.
       def set(struct, options \\ %{}) do
-        IO.inspect("OPTIOTIOIT")
+        IO.inspect("SET JOB HERE")
         IO.inspect(options)
 
         struct

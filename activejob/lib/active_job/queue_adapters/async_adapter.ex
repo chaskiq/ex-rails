@@ -50,7 +50,7 @@ defmodule ActiveJob.QueueAdapters.AsyncAdapter do
   #  # @scheduler = Scheduler.new(**executor_options)
   # end
 
-  def enqueue(job, a) do
+  def enqueue(job, _a) do
     pid = job.__struct__.queue_adapter.scheduler
     ActiveJob.QueueAdapters.AsyncAdapter.Scheduler.enqueue(pid, job)
     # @scheduler.enqueue JobWrapper.new(job), queue_name: job.queue_name
@@ -125,6 +125,7 @@ defmodule ActiveJob.QueueAdapters.AsyncAdapter.Scheduler do
 
   def handle_info(:work, [job | state]) do
     job_wrapper = ActiveJob.QueueAdapters.AsyncAdapter.JobWrapper.new(job)
+    IO.inspect("JOB HERE RECEIVED")
 
     case job_wrapper.__struct__.perform(job) do
       %{enqueue_error: err} = job ->

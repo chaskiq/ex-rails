@@ -72,9 +72,6 @@ end
     }
 ```
 
-
-
-
 ### Existing Queue libraries in Elixir
 
 * [rihanna](https://github.com/samphilipd/rihanna) - PostgreSQL storage, uses advisory locks

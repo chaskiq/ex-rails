@@ -21,7 +21,7 @@ services:
     command: server --console-address ":9001" /data
 
   app:
-    build: test/app
+    build: ./activestorage/test/app
     environment:
       RAILS_ENV: development
     volumes:
