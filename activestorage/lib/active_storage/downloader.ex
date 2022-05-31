@@ -125,7 +125,7 @@ defmodule ActiveStorage.Downloader do
     #  false -> raise "ActiveStorage::IntegrityError"
     # end
 
-    case :crypto.hash(:md5, file) |> Base.encode64() == checksum do
+    case ActiveStorage.Blob.compute_checksum_in_chunks(file) == checksum do
       true -> true
       false -> raise ActiveStorage.IntegrityError
     end

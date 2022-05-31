@@ -272,6 +272,7 @@ defmodule ActiveStorage do
       "image/tiff",
       "image/bmp",
       "image/vnd.adobe.photoshop",
+      "image/psd",
       "image/vnd.microsoft.icon",
       "image/webp",
       "image/psd",

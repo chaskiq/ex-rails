@@ -41,15 +41,39 @@ defmodule ActiveStorage.Service.DiskService do
     default = [checksum: nil]
     options = Keyword.merge(default, options)
 
+    # hack to determine string vs pid,
+    # A better way would probably to turn your pid into some opaque value,
+    # like: {:file, pid}  and {:stringio, pid} and passing that around
+
+    c = cond do
+      is_binary(io) && String.valid?(io) ->
+        {:ok, pid} = StringIO.open(io)
+        fn (p) ->
+          IO.binstream(pid, 1048576)
+          |> Stream.into(File.stream!(p, [:raw, :binary, :write]))
+          |> Stream.run()
+        end
+      is_binary(io) && !String.valid?(io) ->
+        fn (p) ->
+          File.write(p, io)
+        end
+      is_pid(io) ->
+        fn (p) ->
+          :file.position(io, :bof)
+          IO.binstream(io, 1048576)
+          |> Stream.into(File.stream!(p, [:raw, :binary, :write]))
+          |> Stream.run()
+        end
+    end
+
     ActiveStorage.Service.instrument(:upload, %{key: key}, fn ->
       # instrument :upload, key: key, checksum: checksum do
       # IO.copy_stream(io, make_path_for(key))
+
       p = make_path_for(service, key)
-      # IO.inspect(p)
-      case File.write(p, io) do
+      case c.(p) do
         :ok ->
           path = __MODULE__.path_for(service, key)
-
           case options[:checksum] do
             nil ->
               {:ok, p}
@@ -60,10 +84,10 @@ defmodule ActiveStorage.Service.DiskService do
                 true -> nil
               end
           end
-
         _ ->
           {:error, "could not upload file from disk service"}
       end
+
     end)
 
     # ensure_integrity_of(key, checksum) if checksum
@@ -94,7 +118,7 @@ defmodule ActiveStorage.Service.DiskService do
     # end
   end
 
-  def download_chunk(service, key, range) do
+  def download_chunk(service, key, _range) do
     # instrument :download_chunk, key: key, range: range do
 
     ActiveStorage.Service.instrument(:download_chunk, %{key: key}, fn ->
@@ -174,7 +198,7 @@ defmodule ActiveStorage.Service.DiskService do
     # end
   end
 
-  def headers_for_direct_upload(key, options \\ []) do
+  def headers_for_direct_upload(_key, options \\ []) do
     default = [content_type: nil]
     options = Keyword.merge(default, options)
     %{"Content-Type" => options[:content_type]}
@@ -263,7 +287,7 @@ defmodule ActiveStorage.Service.DiskService do
 
   @impl ActiveStorage.Service
 
-  def public_url(service, key, options \\ []) do
+  def public_url(_service, key, options \\ []) do
     defaults = [
       expires_in: nil,
       filename: options.filename,

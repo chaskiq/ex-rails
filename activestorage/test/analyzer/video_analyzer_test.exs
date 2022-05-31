@@ -10,7 +10,6 @@ defmodule ActiveStorage.Analyzer.VideoAnalyzerTest do
 
     metadata = ActiveStorageTestHelpers.extract_metadata_from(blob) |> Jason.decode!()
 
-    IO.inspect(metadata)
     assert 640 == metadata["width"]
     assert 480 == metadata["height"]
     assert [4, 3] == metadata["display_aspect_ratio"]
@@ -90,6 +89,7 @@ defmodule ActiveStorage.Analyzer.VideoAnalyzerTest do
         content_type: "video/webm"
       )
 
+    IO.inspect(blob)
     metadata = ActiveStorageTestHelpers.extract_metadata_from(blob) |> Jason.decode!()
 
     # blob = create_file_blob(filename: "video.webm", content_type: "video/webm")

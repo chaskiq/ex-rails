@@ -42,8 +42,6 @@ defmodule ActiveStorage.Analyzer.ImageAnalyzer do
         instrument("mogrify", fn ->
           Mogrify.open(file) |> Mogrify.verbose()
         end)
-
-      IO.inspect(image)
       image
     catch
       x ->

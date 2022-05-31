@@ -264,7 +264,7 @@ defmodule ActiveStorage.Blob do
   def upload(blob, io, options \\ []) do
     defaults = [identify: true]
     options = Keyword.merge(defaults, options)
-
+    require IEx; IEx.pry
     blob
     |> unfurl(io, options)
     |> upload_without_unfurling(io)
@@ -337,7 +337,6 @@ defmodule ActiveStorage.Blob do
     options = Keyword.merge(defaults, options)
 
     checksum = compute_checksum_in_chunks(io)
-    # ExImageInfo.seems?(io)
 
     bite_size = get_byte_size(io)
 
@@ -392,19 +391,46 @@ defmodule ActiveStorage.Blob do
     s.__struct__.download(s, blob.key, block)
   end
 
-  def get_byte_size(io) do
+  def get_byte_size(io) when is_binary(io) do
     <<head::size(8), _rest::binary>> = io
     head
   end
 
-  def compute_checksum_in_chunks(io) do
-    :crypto.hash(:md5, io) |> Base.encode64()
+  def get_byte_size(io) when is_pid(io) do
+    case :file.pid2name(io) do
+      {:ok, path} -> File.stat!(path).size
+      _ -> nil
+    end
+  end
+
+  def compute_checksum_in_chunks(io) when io |> is_binary() do
+    {:ok, io} = StringIO.open(io)
+    md5 = compute_checksum_in_chunks(io, false)
+    StringIO.close(io)
+    md5
+
+    # :crypto.hash(:md5, io) |> Base.encode64()
     # OpenSSL::Digest::MD5.new.tap do |checksum|
     #  while chunk = io.read(5.megabytes)
     #    checksum << chunk
     #  end
     #  io.rewind
     # end.base64digest
+  end
+
+  def compute_checksum_in_chunks(io, rewind \\ true) when io |> is_pid() do
+    md5_hash = :crypto.hash_init(:md5)
+    md5 = IO.binstream(io, :line)
+    |> Enum.reduce(md5_hash, &:crypto.hash_update(&2, &1))
+    |> :crypto.hash_final()
+
+    # io.rewind
+    if(rewind) do
+      :file.position(io, :bof)
+    end
+
+    md5 |> Base.encode64
+    # Base.encode64(md5) #, case: :lower)
   end
 
   # Returns an ActiveStorage::Filename instance of the filename that can be
@@ -449,16 +475,12 @@ defmodule ActiveStorage.Blob do
     #  name: [ "ActiveStorage-#{id}-", blob.filename.extension_with_delimiter ], tmpdir: tmpdir, &block
   end
 
+  def extract_content_type(blob, io) when is_binary(io) do
+    MIME.from_path(blob.changes.filename) || blob.changes.content_type
+  end
+
   def extract_content_type(blob, io) do
-    case ExImageInfo.info(io) do
-      nil ->
-        MIME.from_path(blob.changes.filename)
-
-      {mime, _w, _h, _} ->
-        mime
-    end
-
-    # Marcel::MimeType.for io, name: filename.to_s, declared_type: content_type
+    ExMarcel.MimeType.for {:io, io}, name: blob.changes.filename, declared_type: blob.changes.content_type
   end
 
   def forcibly_serve_as_binary?(blob) do

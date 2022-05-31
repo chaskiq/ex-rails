@@ -66,13 +66,13 @@ defmodule ActiveStorage.Blob.Identifiable do
 
   def identify_content_type(blob) do
     # , name: filename.to_s, declared_type: content_type)
-    case download_identifiable_chunk(blob) |> ExImageInfo.type() do
-      {type, _} -> type
-      _ -> nil
-    end
+    chunk = download_identifiable_chunk(blob)
 
-    # ExImageInfo.type File.read! __MODULE__.path_for(service, key)
-    # Marcel::MimeType.for download_identifiable_chunk, name: filename.to_s, declared_type: content_type
+    ExMarcel.MimeType.for(
+      {:string, chunk},
+      name: blob.filename,
+      declared_type: blob.content_type
+    )
   end
 
   def download_identifiable_chunk(blob) do

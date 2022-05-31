@@ -7,7 +7,7 @@ defmodule ActiveStorageBlobTest do
     test "upload " do
       {:ok, file} = File.read("./test/files/dog.jpg")
       filename = "dog.jpg"
-      {mime, _w, _h, _kind} = ExImageInfo.info(file)
+      mime = ExMarcel.MimeType.for({:string, file})
 
       blob = %ActiveStorage.Blob{}
 

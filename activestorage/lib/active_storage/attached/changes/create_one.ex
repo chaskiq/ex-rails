@@ -9,8 +9,6 @@ defmodule ActiveStorage.Attached.Changes.CreateOne do
     struct = %__MODULE__{name: name, record: record, attachable: attachable}
     # @name, @record, @attachable = name, record, attachable
     blob = blob(struct)
-
-    # IO.inspect(blob.__struct__)
     blob = blob.__struct__.identify_without_saving(blob)
 
     struct = struct |> Map.put(:blob, blob)

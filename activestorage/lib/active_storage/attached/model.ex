@@ -36,15 +36,11 @@ defmodule ActiveStorage.Attached.Model do
       end
 
       def save_with_attachments(struct, name) do
-        # IO.inspect(struct.attachment_changes[name])
-
         case struct.attachment_changes[name] do
           nil ->
             nil
 
           m ->
-            # IO.inspect("MAMAMAMAMAMA")
-            # IO.inspect(m)
             m.__struct__.save(m)
         end
 

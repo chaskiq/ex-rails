@@ -10,10 +10,10 @@ defmodule ActiveStorage.Service.S3Service do
     :upload_options
   ]
 
-  def new(%{client: cli, public: public, bucket: bucket}) do
-    %__MODULE__{client: cli, public: public, bucket: bucket}
-    # @service = service
-  end
+  #def new(%{client: cli, public: public, bucket: bucket}) do
+  #  %__MODULE__{client: cli, public: public, bucket: bucket}
+  #  # @service = service
+  #end
 
   # def new(%{bucket: bucket, upload: upload, public: public}, options \\ []) do
   def new(options \\ []) do
@@ -21,7 +21,7 @@ defmodule ActiveStorage.Service.S3Service do
 
     options = Keyword.merge(defaults, options)
 
-    s3_options = map_options = Enum.into(options, %{})
+    s3_options = Enum.into(options, %{})
     client = ExAws.Config.new(:s3, s3_options)
 
     bucket = options |> Keyword.get(:bucket)

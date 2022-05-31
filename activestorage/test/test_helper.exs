@@ -36,6 +36,9 @@ defmodule ActiveStorageTestHelpers do
 
     options = Keyword.merge(default, options)
 
+    # https://keita.blog/2016/01/23/elixirs-stringio-may-not-be-what-you-think-it-is/
+    # {:ok, pid} = :file.open(options[:data], [:ram, :binary])
+
     ActiveStorage.Blob.create_and_upload!(%ActiveStorage.Blob{},
       key: options[:key],
       io: options[:data],
@@ -61,14 +64,7 @@ defmodule ActiveStorageTestHelpers do
 
     options = Keyword.merge(default, options)
 
-    file =
-      case File.read("./test/files/#{options[:filename]}") do
-        {:ok, file} -> file
-        _ -> nil
-      end
-
-    # filename = "dog.jpg"
-    # {mime, _w, _h, _kind} = ExImageInfo.info(file)
+    file =  File.open!("./test/files/#{options[:filename]}")
 
     blob = %ActiveStorage.Blob{}
 
@@ -179,7 +175,6 @@ defmodule ActiveStorageTestHelpers do
   end
 
   def extract_metadata_from(blob) do
-    # IO.inspect(ActiveStorage.Blob.analyze(blob))
     ActiveStorage.Blob.analyze(blob).metadata
   end
 end

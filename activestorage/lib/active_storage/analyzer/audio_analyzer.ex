@@ -67,7 +67,7 @@ defmodule ActiveStorage.Analyzer.AudioAnalyzer do
   end
 
   defp probe_from(file) do
-    instrument(Path.basename(ffprobe_path), fn ->
+    instrument(Path.basename(ffprobe_path()), fn ->
       {output, _status} =
         System.cmd(ffprobe_path(), [
           "-print_format",
