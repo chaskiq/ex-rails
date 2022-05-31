@@ -24,7 +24,8 @@ defmodule Rails.MixProject do
     [
       "setup.activejob": [
         "cmd --app active_job mix deps.get",
-        "cmd --app active_job mix ecto.setup"
+        "cmd --app active_job mix ecto.create",
+        "cmd --app active_job mix ecto.migrate"
       ],
       "setup.activestorage": [
         "cmd --app active_job mix deps.get",
@@ -36,9 +37,9 @@ defmodule Rails.MixProject do
       # , "test_activestorage"]
       "test.all": [
         "setup.activejob",
-        "test.activejob"
-        # "setup.activestorage",
-        # "test.activestorage"
+        "test.activejob",
+        "setup.activestorage",
+        "test.activestorage"
       ]
       # test: ["deps.get", "ecto.setup", "cmd npm install --prefix assets"],
       # "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
