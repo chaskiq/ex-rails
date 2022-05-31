@@ -6,7 +6,8 @@ defmodule Rails.MixProject do
       apps_path: "apps",
       version: "0.1.0",
       start_permanent: Mix.env() == :prod,
-      deps: deps()
+      deps: deps(),
+      aliases: aliases()
     ]
   end
 
@@ -17,5 +18,18 @@ defmodule Rails.MixProject do
   # Run "mix help deps" for examples and options.
   defp deps do
     []
+  end
+
+  defp aliases do
+    [
+      test_activestorage: ["cmd --app active_storage mix test --color"],
+      test_activejob: ["cmd --app active_job mix test --color"],
+      test_all: ["test_activejob", "test_activestorage"]
+      # test: ["deps.get", "ecto.setup", "cmd npm install --prefix assets"],
+      # "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
+      # "ecto.reset": ["ecto.drop", "ecto.setup"],
+      # test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"],
+      # "assets.deploy": ["tailwind default --minify", "esbuild default --minify", "phx.digest"]
+    ]
   end
 end
