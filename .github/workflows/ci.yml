@@ -32,4 +32,4 @@ jobs:
           otp-version: '24'
           elixir-version: '1.12'
       - run: mix deps.get
-      - run: mix test
+      - run: mix test.all
