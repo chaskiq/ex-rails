@@ -23,6 +23,7 @@ defmodule Rails.MixProject do
   defp aliases do
     [
       "setup.activejob": [
+        "cmd --app active_job mix deps.get",
         "cmd --app active_job mix ecto.create",
         "cmd --app active_job mix ecto.migrate"
       ],
