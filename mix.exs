@@ -22,9 +22,14 @@ defmodule Rails.MixProject do
 
   defp aliases do
     [
+      setup_activejob: [
+        "cmd --app active_job mix ecto.create",
+        "cmd --app active_job mix ecto.migrate"
+      ],
       test_activestorage: ["cmd --app active_storage mix test --color"],
       test_activejob: ["cmd --app active_job mix test --color"],
-      test_all: ["test_activejob", "test_activestorage"]
+      # , "test_activestorage"]
+      test_all: ["setup_activejob", "test_activejob"]
       # test: ["deps.get", "ecto.setup", "cmd npm install --prefix assets"],
       # "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
       # "ecto.reset": ["ecto.drop", "ecto.setup"],
