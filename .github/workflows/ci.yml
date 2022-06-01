@@ -35,6 +35,8 @@ jobs:
         run: sudo apt-get -y install poppler-data poppler-utils
       - name: "Isntall Mutools"
         run: sudo apt install mupdf-tools
+      - name: "ceck installations"
+        run: ls /usr/local/bin/
 
       - uses: erlef/setup-beam@v1
         with:
