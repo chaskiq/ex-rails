@@ -28,7 +28,7 @@ defmodule Rails.MixProject do
         "cmd --app active_job mix ecto.migrate"
       ],
       "setup.activestorage": [
-        "cmd --app active_job mix deps.get",
+        "cmd --app active_storage mix deps.get",
         "cmd --app active_storage mix ecto.create",
         "cmd --app active_storage mix ecto.migrate"
       ],
