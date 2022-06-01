@@ -29,6 +29,8 @@ jobs:
       - uses: actions/checkout@v2
       - name: Install Ubuntu dependencies
         run: sudo apt-get -y install poppler-data poppler-utils ffmpeg mupdf-tools graphicsmagick-imagemagick-compat
+      - name: Check identify
+        run: identify --version
 
       - uses: erlef/setup-beam@v1
         with:
