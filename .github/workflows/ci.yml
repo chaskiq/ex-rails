@@ -27,7 +27,6 @@ jobs:
       MIX_ENV: test
     steps:
       - uses: actions/checkout@v2
-      - uses: jruipinto/ImageMagick-action@v1
       - name: Isntall Imagemagic
         run: sudo apt install imagemagick
       - name: Install FFMPEG
