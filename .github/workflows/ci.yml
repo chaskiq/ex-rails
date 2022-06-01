@@ -28,10 +28,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Install Ubuntu dependencies
-        run: sudo apt-get -y install poppler-data poppler-utils
-        run: sudo apt install ffmpeg
-        run: sudo apt install imagemagick
-        run: sudo apt install mupdf-tools
+        run: sudo apt-get -y install poppler-data poppler-utils ffmpeg imagemagick  mupdf-tools
 
       - uses: erlef/setup-beam@v1
         with:
