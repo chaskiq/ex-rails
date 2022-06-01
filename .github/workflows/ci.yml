@@ -27,6 +27,13 @@ jobs:
       MIX_ENV: test
     steps:
       - uses: actions/checkout@v2
+      - uses: jruipinto/ImageMagick-action@v1
+      - uses: FedericoCarboni/setup-ffmpeg@v1
+      - name: Install Ubuntu dependencies
+        run: sudo apt-get -y install poppler-data poppler-utils
+      - name: "Isntall Mutools"
+        run: sudo apt install mupdf-tools
+
       - uses: erlef/setup-beam@v1
         with:
           otp-version: '24'
