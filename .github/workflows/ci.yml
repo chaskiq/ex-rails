@@ -28,7 +28,10 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: jruipinto/ImageMagick-action@v1
-      - uses: FedericoCarboni/setup-ffmpeg@v1
+      - name: Isntall Imagemagic
+        run: sudo apt install imagemagick
+      - name: Install FFMPEG
+        run: sudo apt install ffmpeg
       - name: Install Ubuntu dependencies
         run: sudo apt-get -y install poppler-data poppler-utils
       - name: "Isntall Mutools"
