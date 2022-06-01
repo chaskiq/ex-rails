@@ -27,16 +27,11 @@ jobs:
       MIX_ENV: test
     steps:
       - uses: actions/checkout@v2
-      - name: Isntall Imagemagic
-        run: sudo apt install imagemagick
-      - name: Install FFMPEG
-        run: sudo apt install ffmpeg
       - name: Install Ubuntu dependencies
         run: sudo apt-get -y install poppler-data poppler-utils
-      - name: "Isntall Mutools"
+        run: sudo apt install ffmpeg
+        run: sudo apt install imagemagick
         run: sudo apt install mupdf-tools
-      - name: "ceck installations"
-        run: ls /usr/local/bin/
 
       - uses: erlef/setup-beam@v1
         with:

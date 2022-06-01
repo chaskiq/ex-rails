@@ -330,9 +330,12 @@ defmodule ActiveStorage do
 
   def paths,
     do: [
-      ffmpeg: "/usr/local/bin/ffmpeg",
-      ffprobe: "/usr/local/bin/ffprobe",
-      pdftoppm: "/usr/local/bin/pdftoppm"
+      ffmpeg: "ffmpeg",
+      ffprobe: "ffprobe",
+      pdftoppm: "pdftoppm"
+      # ffmpeg: "/usr/local/bin/ffmpeg",
+      # ffprobe: "/usr/local/bin/ffprobe",
+      # pdftoppm: "/usr/local/bin/pdftoppm"
     ]
 
   # def paths, do: ActiveSupport :: OrderedOptions.new()
