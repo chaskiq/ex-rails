@@ -1,13 +1,11 @@
 defmodule ActiveStorageTest do
   use ExUnit.Case, async: false
-
   # alias Ecto.Adapters.SQL
   alias ActiveStorage.{Blob}
   # import Ecto.Query
   # import Mix.Ecto, only: [build_repo_priv: 1]
 
   # alias Chaskiq.ActiveStorage
-
   # doctest ActiveStorage
 
   setup do

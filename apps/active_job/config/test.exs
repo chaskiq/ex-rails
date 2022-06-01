@@ -41,4 +41,8 @@ config :exq,
 #  queues: [default: 10, events: 50, media: 20]
 
 # confg/test.exs
-config :active_job, Oban, testing: :inline, repo: ActiveJob.Test.Repo
+config :active_job, Oban,
+  testing: :inline,
+  repo: ActiveJob.Test.Repo,
+  notifier: Oban.Notifiers.PG,
+  peer: Oban.Peers.Global

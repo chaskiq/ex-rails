@@ -16,7 +16,7 @@ defmodule ActiveStorage.Previewer.VideoPreviewerTest do
         image = Mogrify.open(attachable[:io]) |> Mogrify.verbose()
         assert 640 == image.width
         assert 480 == image.height
-        # assert "image/jpeg" == image.mime_type
+        assert "image/jpeg" == image.mime_type
       end)
 
     # blob = create_file_blob(filename: "video.mp4", content_type: "video/mp4")

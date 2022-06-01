@@ -3,6 +3,9 @@ defmodule StartingTest do
 
   alias ActiveStorage.Test.{Record, Repo}
 
+  # we are excluding this tag on test_helper
+  @moduletag :rails
+
   defmodule RailsApp do
     use HTTPoison.Base
 

@@ -29,16 +29,18 @@ defmodule ActiveJob.QueueAdapters.ObanAdapter do
   end
 end
 
-defmodule ActiveJob.QueueAdapters.ObanAdapter.JobWrapper do
-  # , queue: :events
-  use Oban.Worker
+if Code.ensure_loaded?(Oban) do
+  defmodule ActiveJob.QueueAdapters.ObanAdapter.JobWrapper do
+    # , queue: :events
+    use Oban.Worker
 
-  @impl Oban.Worker
-  def perform(%Oban.Job{args: args} = oban_job) do
-    IO.inspect("OBAN WRAPPER HERE!")
-    mod = Module.concat([args["job_class"]])
-    job = mod.deserialize(struct(mod), args)
-    mod.execute(job, job)
-    :ok
+    @impl Oban.Worker
+    def perform(%Oban.Job{args: args} = oban_job) do
+      IO.inspect("OBAN WRAPPER HERE!")
+      mod = Module.concat([args["job_class"]])
+      job = mod.deserialize(struct(mod), args)
+      mod.execute(job, job)
+      :ok
+    end
   end
 end

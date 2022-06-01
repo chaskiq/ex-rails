@@ -1,11 +1,4 @@
-# frozen_string_literal: true
-
-# require "test_helper"
-# require "database/setup"
-# require "active_support/testing/method_call_assertions"
-
 defmodule AttachmentTest do
-  # include ActiveJob::TestHelper
   use ExUnit.Case, async: false
 
   setup do

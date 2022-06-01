@@ -283,8 +283,10 @@ defmodule VariantTest do
     variant = ActiveStorage.Blob.Representable.variant(blob, %{format: "png"})
     _processed = ActiveStorage.Variant.processed(variant)
 
-    _url = variant |> ActiveStorage.Variant.url()
-
+    url = variant |> ActiveStorage.Variant.url()
+    image_format = ActiveStorageTestHelpers.image_format(variant)
+    assert String.match?(url, ~r/racecar\.png/)
+    assert image_format == "PNG"
     # blob = create_file_blob(filename: "racecar.jpg")
     # variant = blob.variant(format: "PNG").processed
     # assert_equal "racecar.png", variant.filename.to_s

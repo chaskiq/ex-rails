@@ -3,7 +3,10 @@
 
 # ActiveStorage.Test.Repo.start_link()
 
-ExUnit.start(timeout: 100_000_000)
+ExUnit.start(
+  timeout: 100_000_000,
+  exclude: [:rails]
+)
 
 alias ActiveStorage.Test.Repo
 
@@ -64,7 +67,7 @@ defmodule ActiveStorageTestHelpers do
 
     options = Keyword.merge(default, options)
 
-    file =  File.open!("./test/files/#{options[:filename]}")
+    file = File.open!("./test/files/#{options[:filename]}")
 
     blob = %ActiveStorage.Blob{}
 
