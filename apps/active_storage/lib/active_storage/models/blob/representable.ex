@@ -27,7 +27,7 @@ defmodule ActiveStorage.Blob.Representable do
   # Raises ActiveStorage::InvariableError if ImageMagick cannot transform the blob. To determine whether a blob is
   # variable, call ActiveStorage::Blob#variable?.
   def variant(blob, transformations) do
-    if blob |> variable? do
+    if variable?(blob) do
       variant_class().new(
         blob,
         ActiveStorage.Variation.wrap(transformations)
@@ -86,8 +86,8 @@ defmodule ActiveStorage.Blob.Representable do
   # See ActiveStorage::Blob#preview and ActiveStorage::Blob#variant for more information.
   def representation(blob, transformations) do
     cond do
-      blob |> previewable? -> preview(blob, transformations)
-      blob |> variable? -> variant(blob, transformations)
+      previewable?(blob) -> preview(blob, transformations)
+      variable?(blob) -> variant(blob, transformations)
       true -> raise ActiveStorage.UnrepresentableError
     end
   end
@@ -97,7 +97,7 @@ defmodule ActiveStorage.Blob.Representable do
     variable?(blob) || previewable?(blob)
   end
 
-  defp default_variant_transformations(blob) do
+  def default_variant_transformations(blob) do
     %{format: default_variant_format(blob)}
   end
 
@@ -120,7 +120,11 @@ defmodule ActiveStorage.Blob.Representable do
   end
 
   defp variant_class() do
-    ActiveStorage.Variant
+    case ActiveStorage.track_variants() do
+      true -> ActiveStorage.VariantWithRecord
+      _ -> ActiveStorage.Variant
+    end
+
     # ActiveStorage.track_variants ? ActiveStorage::VariantWithRecord : ActiveStorage::Variant
   end
 end

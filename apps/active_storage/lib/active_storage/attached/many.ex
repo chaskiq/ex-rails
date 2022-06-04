@@ -41,16 +41,12 @@ defmodule ActiveStorage.Attached.Many do
   #
   # All methods called on this proxy object that aren't listed here will automatically be delegated to +attachments+.
   def attachments(instance) do
-    require IEx
-    IEx.pry()
     record_function(instance, "#{instance.name}_attachments")
     # change.present? ? change.attachments : record.public_send("#{name}_attachments")
   end
 
   # Returns all attached blobs.
   def blobs(instance) do
-    require IEx
-    IEx.pry()
     record_function(instance, "#{instance.name}_blobs")
     # change.present? ? change.blobs : record.public_send("#{name}_blobs")
   end

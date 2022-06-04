@@ -1,7 +1,9 @@
 defmodule ActiveStorage.Attached.Changes.CreateMany do
   # attr_reader :name, :record, :attachables
 
-  defstruct [:name, :record, :attachables, :blobs]
+  alias Ecto.Multi
+
+  defstruct [:name, :record, :attachables, :blobs, :attachments, :subchanges]
 
   def new(name, record, attachables) do
     p = %__MODULE__{
@@ -34,17 +36,25 @@ defmodule ActiveStorage.Attached.Changes.CreateMany do
   end
 
   def attachments(instance) do
-    subchanges(instance)
-    |> Enum.map(fn x ->
-      x.__struct__.attachment(x)
-    end)
+    instance = subchanges(instance)
+
+    attachments =
+      instance.attachments ||
+        instance.subchanges
+        |> Enum.map(fn x ->
+          x.__struct__.attachment(x)
+        end)
+
+    %__MODULE__{instance | attachments: attachments}
 
     # @attachments ||= subchanges.collect(&:attachment)
   end
 
   def blobs(instance) do
+    instance = subchanges(instance)
+
     instance.blobs ||
-      subchanges(instance)
+      instance.subchanges
       |> Enum.map(fn x ->
         x.__struct__.blob(x)
       end)
@@ -53,7 +63,9 @@ defmodule ActiveStorage.Attached.Changes.CreateMany do
   end
 
   def upload(instance) do
-    subchanges(instance)
+    instance = subchanges(instance)
+
+    instance.subchanges
     |> Enum.each(fn x ->
       x.__struct__.upload(x)
     end)
@@ -65,10 +77,14 @@ defmodule ActiveStorage.Attached.Changes.CreateMany do
   end
 
   def subchanges(instance) do
-    instance.attachables
-    |> Enum.map(fn attachable ->
-      build_subchange_from(instance, attachable)
-    end)
+    subchanges =
+      instance.subchanges ||
+        instance.attachables
+        |> Enum.map(fn attachable ->
+          build_subchange_from(instance, attachable)
+        end)
+
+    %__MODULE__{instance | subchanges: subchanges}
 
     # @subchanges ||= attachables.collect { |attachable| build_subchange_from(attachable) }
   end
@@ -84,11 +100,11 @@ defmodule ActiveStorage.Attached.Changes.CreateMany do
   def assign_associated_attachments(instance) do
     name = String.to_atom("#{instance.name}_attachments")
 
+    instance = attachments(instance)
+
     # TODO: this is a little bit ugly
     attachments = persisted_or_new_attachments(instance)
 
-    # consoder a multi
-    # update changeset blobs
     instance.blobs
     |> Enum.each(fn blob ->
       case blob do
@@ -105,13 +121,34 @@ defmodule ActiveStorage.Attached.Changes.CreateMany do
 
     record_changeset =
       instance.record
-      |> ActiveStorage.RepoClient.repo().preload(:highlights_attachments)
+      |> ActiveStorage.RepoClient.repo().preload(name)
       |> Ecto.Changeset.change()
 
-    Ecto.Changeset.put_assoc(record_changeset, name, attachments)
-    |> ActiveStorage.RepoClient.repo().update!
+    Multi.new()
+    |> Multi.update(
+      :attachments,
+      save_attachments(record_changeset, name, attachments)
+    )
+    |> Ecto.Multi.run(:after_save, fn repo, %{attachments: attachments} ->
+      attachments
+      |> Map.get(name)
+      |> Enum.each(fn attachment ->
+        attachment = attachment |> ActiveStorage.RepoClient.repo().preload(:blob)
+        ActiveStorage.Attachment.after_create_commit(attachment)
+      end)
+
+      {:ok, nil}
+    end)
+    |> ActiveStorage.RepoClient.repo().transaction()
+
+    # |> Multi.insert(:after_save, aaa(account, params))
 
     # record.public_send("#{name}_attachments=", persisted_or_new_attachments)
+  end
+
+  def save_attachments(record_changeset, name, attachments) do
+    Ecto.Changeset.put_assoc(record_changeset, name, attachments)
+    # |> ActiveStorage.RepoClient.repo().update!
   end
 
   def reset_associated_blobs(record) do
@@ -121,16 +158,19 @@ defmodule ActiveStorage.Attached.Changes.CreateMany do
   end
 
   def persisted_or_new_attachments(instance) do
-    attachments(instance)
-    |> Enum.filter(fn attachment ->
-      case Ecto.get_meta(attachment, :state) do
-        :loaded ->
-          attachment
+    instance = attachments(instance)
 
-        :built ->
-          attachment
-      end
+    instance.attachments
+    |> Enum.map(fn struct ->
+      attachment = struct.attachment
+      # case Ecto.get_meta(attachment, :state) do
+      #  :loaded ->
+      #    attachment
+      #  :built ->
+      #    attachment
+      # end
     end)
+    |> Enum.filter(& &1)
 
     # attachments.select { |attachment| attachment.persisted? || attachment.new_record? }
   end

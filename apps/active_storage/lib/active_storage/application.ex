@@ -8,7 +8,8 @@ defmodule ActiveStorage.Application do
   @impl true
   def start(_type, _args) do
     children = [
-      ExMarcel.TableWrapper
+      ExMarcel.TableWrapper,
+      ActiveStorage.TableConfig
       # Starts a worker by calling: ActiveStorage.Worker.start_link(arg)
       # {ActiveStorage.Worker, arg}
     ]

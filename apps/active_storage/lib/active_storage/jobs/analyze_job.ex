@@ -1,4 +1,4 @@
-defmodule ActiveJob.AnalyzeJob do
+defmodule ActiveStorage.AnalyzeJob do
   use ActiveJob.Base,
     queue_adapter: :inline,
     queue_as: ActiveStorage.queues()[:analysis]
@@ -10,7 +10,9 @@ defmodule ActiveJob.AnalyzeJob do
   #  after: fn x -> IO.inspect("AFTER") end
   # }
 
-  def perform(blob) do
+  def perform(%{blob_id: blob_id}) do
+    blob = ActiveStorage.get_storage_blob!(blob_id)
+    ActiveStorage.Blob.analyze(blob)
     # blob.analyze
   end
 end

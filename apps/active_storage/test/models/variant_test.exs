@@ -1,19 +1,10 @@
-# frozen_string_literal: true
-
-# require "test_helper"
-# require "database/setup"
-# require "minitest/mock"
-
 defmodule VariantTest do
   use ExUnit.Case, async: false
 
-  # setup do
-  #  @was_tracking, ActiveStorage.track_variants = ActiveStorage.track_variants, false
-  # end
-
-  # teardown do
-  #  ActiveStorage.track_variants = @was_tracking
-  # end
+  setup do
+    ActiveStorage.TableConfig.put("track_variants", false)
+    {:ok, %{}}
+  end
 
   test "variations have the same key for different types of the same transformation" do
     blob = ActiveStorageTestHelpers.create_file_blob(filename: "racecar.jpg")

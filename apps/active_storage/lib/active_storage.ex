@@ -251,10 +251,6 @@ defmodule ActiveStorage do
   # )
   # end
 
-  # def mirror_later # :nodoc:
-  #  ActiveStorage::MirrorJob.perform_later(key, checksum: checksum) if service.respond_to?(:mirror)
-  # end
-
   # ActiveStorage.video_preview_arguments = app.config.active_storage.video_preview_arguments || "-y -vframes 1 -f image2"
 
   def video_preview_arguments() do
@@ -337,6 +333,10 @@ defmodule ActiveStorage do
       # ffprobe: "/usr/local/bin/ffprobe",
       # pdftoppm: "/usr/local/bin/pdftoppm"
     ]
+
+  def track_variants() do
+    ActiveStorage.TableConfig.get("track_variants")
+  end
 
   # def paths, do: ActiveSupport :: OrderedOptions.new()
   # def queues, do: ActiveSupport :: InheritableOptions.new()

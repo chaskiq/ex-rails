@@ -79,14 +79,13 @@ defmodule ActiveStorage.Attached.One do
   #   person.avatar.attach(io: File.open("/path/to/face.jpg"), filename: "face.jpg", content_type: "image/jpeg")
   #   person.avatar.attach(avatar_blob) # ActiveStorage::Blob object
   def attach(instance, attachable) do
-    aname = String.to_atom("assign_#{instance.name}")
+    aname = :"assign_#{instance.name}"
 
     case Ecto.get_meta(instance.record, :state) do
       :loaded ->
         IO.inspect("TODO: save here a loaded state")
-
-        apply(instance.record.__struct__, aname, [instance.record, attachable])
-        |> instance.record.__struct__.save_with_attachment(instance.name)
+        a = apply(instance.record.__struct__, aname, [instance.record, attachable])
+        a |> instance.record.__struct__.save_with_attachment(instance.name)
 
       :built ->
         apply(instance.record.__struct__, aname, [instance.record, attachable])

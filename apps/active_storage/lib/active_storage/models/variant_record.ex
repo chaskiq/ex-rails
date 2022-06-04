@@ -9,6 +9,9 @@ defmodule ActiveStorage.VariantRecord do
   schema "active_storage_variant_records" do
     belongs_to(:blob, ActiveStorage.Blob)
 
+    field(:variation_digest, :string)
+    timestamps(inserted_at: :created_at, updated_at: :updated_at)
+
     # has_one_attached :image
     has_one(:image_attachment, ActiveStorage.Attachment,
       where: [record_type: "ActiveStorage.VariantRecord"],

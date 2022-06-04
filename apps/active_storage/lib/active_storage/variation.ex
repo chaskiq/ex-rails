@@ -1,7 +1,3 @@
-# frozen_string_literal: true
-
-# require "mini_mime"
-
 # A set of transformations that can be applied to a blob to create a variant. This class is exposed via
 # the ActiveStorage::Blob#variant method and should rarely be used directly.
 #
@@ -12,8 +8,6 @@
 #
 # The options map directly to {ImageProcessing}[https://github.com/janko-m/image_processing] commands.
 defmodule ActiveStorage.Variation do
-  # <- this is the magic
-  # alias __MODULE__
   @derive Jason.Encoder
 
   defstruct [:transformations]
@@ -126,8 +120,10 @@ defmodule ActiveStorage.Variation do
   end
 
   def digest(variation) do
-    require IEx
-    IEx.pry()
+    variation.transformations
+    |> Jason.encode!()
+    |> Base.encode64()
+
     # Digest::SHA1.base64digest Marshal.dump(transformations)
   end
 

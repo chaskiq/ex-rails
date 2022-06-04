@@ -1,9 +1,3 @@
-# frozen_string_literal: true
-
-# require "test_helper"
-# require "database/setup"
-# require "active_support/testing/method_call_assertions"
-
 defmodule BlobTest do
   # include ActiveSupport::Testing::MethodCallAssertions
   # include ActiveJob::TestHelper

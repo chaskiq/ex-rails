@@ -31,6 +31,7 @@ defmodule ActiveStorage.Blob.Analyzable do
       # analyzed via #analyze_later when they're attached for the first time.
       def analyze(blob) do
         IO.inspect("ANALIZE blob")
+
         metadata = blob.metadata |> Jason.decode!()
 
         encoded_metadata =
@@ -51,7 +52,7 @@ defmodule ActiveStorage.Blob.Analyzable do
       # again (e.g. if you add a new analyzer or modify an existing one).
       def analyze_later(blob) do
         if analyzer_class(blob).analyze_later? do
-          # ActiveStorage.AnalyzeJob.perform_later(self)
+          ActiveStorage.AnalyzeJob.perform_later(%{blob_id: blob.id})
         else
           analyze(blob)
         end

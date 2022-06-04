@@ -217,14 +217,14 @@ defmodule User do
     timestamps(inserted_at: :created_at, updated_at: :updated_at)
 
     has_one(:avatar_attachment, ActiveStorage.Attachment,
-      where: [record_type: "User"],
+      where: [record_type: "User", name: "avatar"],
       foreign_key: :record_id
     )
 
     has_one(:avatar_blob, through: [:avatar_attachment, :blob])
 
     has_many(:highlights_attachments, ActiveStorage.Attachment,
-      where: [record_type: "User"],
+      where: [record_type: "User", name: "highlights"],
       foreign_key: :record_id
     )
 

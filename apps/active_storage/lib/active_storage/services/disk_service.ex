@@ -45,35 +45,42 @@ defmodule ActiveStorage.Service.DiskService do
     # A better way would probably to turn your pid into some opaque value,
     # like: {:file, pid}  and {:stringio, pid} and passing that around
 
-    c = cond do
-      is_binary(io) && String.valid?(io) ->
-        {:ok, pid} = StringIO.open(io)
-        fn (p) ->
-          IO.binstream(pid, 1048576)
-          |> Stream.into(File.stream!(p, [:raw, :binary, :write]))
-          |> Stream.run()
-        end
-      is_binary(io) && !String.valid?(io) ->
-        fn (p) ->
-          File.write(p, io)
-        end
-      is_pid(io) ->
-        fn (p) ->
-          :file.position(io, :bof)
-          IO.binstream(io, 1048576)
-          |> Stream.into(File.stream!(p, [:raw, :binary, :write]))
-          |> Stream.run()
-        end
-    end
+    c =
+      cond do
+        is_binary(io) && String.valid?(io) ->
+          {:ok, pid} = StringIO.open(io)
+
+          fn p ->
+            IO.binstream(pid, 1_048_576)
+            |> Stream.into(File.stream!(p, [:raw, :binary, :write]))
+            |> Stream.run()
+          end
+
+        is_binary(io) && !String.valid?(io) ->
+          fn p ->
+            File.write(p, io)
+          end
+
+        is_pid(io) ->
+          fn p ->
+            :file.position(io, :bof)
+
+            IO.binstream(io, 1_048_576)
+            |> Stream.into(File.stream!(p, [:raw, :binary, :write]))
+            |> Stream.run()
+          end
+      end
 
     ActiveStorage.Service.instrument(:upload, %{key: key}, fn ->
       # instrument :upload, key: key, checksum: checksum do
       # IO.copy_stream(io, make_path_for(key))
 
       p = make_path_for(service, key)
+
       case c.(p) do
         :ok ->
           path = __MODULE__.path_for(service, key)
+
           case options[:checksum] do
             nil ->
               {:ok, p}
@@ -84,10 +91,10 @@ defmodule ActiveStorage.Service.DiskService do
                 true -> nil
               end
           end
+
         _ ->
           {:error, "could not upload file from disk service"}
       end
-
     end)
 
     # ensure_integrity_of(key, checksum) if checksum

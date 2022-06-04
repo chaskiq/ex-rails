@@ -1,4 +1,4 @@
-defmodule ActiveJob.PurgeJob do
+defmodule ActiveStorage.PurgeJob do
   use ActiveJob.Base,
     queue_adapter: :inline,
     queue_as: ActiveStorage.queues()[:purge]

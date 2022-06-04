@@ -1,32 +1,37 @@
-# require "action_dispatch"
-# require "action_dispatch/http/upload"
-
 defmodule ActiveStorage.Attached.Changes.CreateOne do
-  defstruct [:name, :record, :attachable, :blob]
-  #  attr_reader :name, :record, :attachable
+  defstruct [:name, :record, :attachable, :blob, :attachment]
 
   def new(name, record, attachable) do
     struct = %__MODULE__{name: name, record: record, attachable: attachable}
     # @name, @record, @attachable = name, record, attachable
-    blob = blob(struct)
-    blob = blob.__struct__.identify_without_saving(blob)
+    blob =
+      case blob(struct) do
+        %ActiveStorage.Blob{} = blob -> blob
+        blob -> blob.changes
+      end
+
+    blob = %ActiveStorage.Blob{} |> Map.merge(blob)
+    blob = ActiveStorage.Blob.identify_without_saving(blob)
 
     struct = struct |> Map.put(:blob, blob)
     struct
   end
 
   def attachment(instance) do
-    # @attachment ||= find_or_build_attachment
-    find_or_build_attachment(instance)
+    attachment = instance.attachment || find_or_build_attachment(instance)
+    %{instance | attachment: attachment}
   end
 
   def blob(instance) do
     instance.blob || find_or_build_blob(instance)
   end
 
-  def upload do
-    require IEx
-    IEx.pry()
+  def upload(instance, attachable) do
+    ActiveStorage.Blob.upload_without_unfurling(
+      instance.blob,
+      attachable |> Keyword.get(:io)
+    )
+
     # case attachable
     # when ActionDispatch::Http::UploadedFile, Rack::Test::UploadedFile
     #  blob.upload_without_unfurling(attachable.open)
@@ -36,8 +41,8 @@ defmodule ActiveStorage.Attached.Changes.CreateOne do
   end
 
   def save(instance) do
-    name = String.to_atom("#{instance.name}_attachment")
-    blob_name = String.to_atom("#{instance.name}_blob")
+    name = :"#{instance.name}_attachment"
+    blob_name = :"#{instance.name}_blob"
 
     rec =
       instance.record
@@ -56,7 +61,7 @@ defmodule ActiveStorage.Attached.Changes.CreateOne do
 
     record_changeset = Ecto.Changeset.change(rec)
 
-    attachment = attachment(instance)
+    attachment = attachment(instance).attachment
 
     Ecto.Changeset.put_assoc(record_changeset, name, attachment)
     |> ActiveStorage.RepoClient.repo().update!
@@ -98,10 +103,23 @@ defmodule ActiveStorage.Attached.Changes.CreateOne do
 
   def find_or_build_blob(instance) do
     case instance.attachable do
-      %ActiveStorage.Blob{} -> instance.attachable
-      _ -> nil
-    end
+      %ActiveStorage.Blob{} ->
+        instance.attachable
 
+      [io: io, filename: filename] ->
+        ActiveStorage.Blob.build_after_unfurling(
+          %ActiveStorage.Blob{},
+          instance.attachable
+          |> Keyword.merge(
+            record: instance.record,
+            # attachment_service_name
+            service_name: "local"
+          )
+        )
+    end
+  end
+
+  def find_or_build_blob(instance = "nononon") do
     # case attachable
     # when ActiveStorage::Blob
     #  attachable

@@ -1,14 +1,11 @@
-# frozen_string_literal: true
-
-# require "test_helper"
-# require "database/setup"
-
 defmodule VariantWithRecordTest do
   use ExUnit.Case, async: false
 
-  # setup do
-  #  @was_tracking, ActiveStorage.track_variants = ActiveStorage.track_variants, true
-  # end
+  setup do
+    ActiveStorage.TableConfig.put("track_variants", true)
+    {:ok, %{}}
+    #  @was_tracking, ActiveStorage.track_variants = ActiveStorage.track_variants, true
+  end
 
   # teardown do
   #  ActiveStorage.track_variants = @was_tracking

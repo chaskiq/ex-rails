@@ -42,6 +42,27 @@ defmodule ActiveStorage.Blob do
     "Blob"
   end
 
+  def creation_changeset(storage_blob, attrs) do
+    storage_blob
+    |> cast(attrs, [
+      :filename,
+      :content_type,
+      :metadata,
+      :byte_size,
+      :checksum,
+      :service_name
+    ])
+    |> validate_required([
+      :filename,
+      :content_type,
+      :metadata,
+      :byte_size,
+      :checksum,
+      :service_name,
+      :key
+    ])
+  end
+
   @doc false
   def changeset(storage_blob, attrs) do
     storage_blob
@@ -111,27 +132,6 @@ defmodule ActiveStorage.Blob do
       _ ->
         changeset
     end
-  end
-
-  def creation_changeset(storage_blob, attrs) do
-    storage_blob
-    |> cast(attrs, [
-      :filename,
-      :content_type,
-      :metadata,
-      :byte_size,
-      :checksum,
-      :service_name
-    ])
-    |> validate_required([
-      :filename,
-      :content_type,
-      :metadata,
-      :byte_size,
-      :checksum,
-      :service_name,
-      :key
-    ])
   end
 
   # active storage ported methods
@@ -264,7 +264,9 @@ defmodule ActiveStorage.Blob do
   def upload(blob, io, options \\ []) do
     defaults = [identify: true]
     options = Keyword.merge(defaults, options)
-    require IEx; IEx.pry
+    require IEx
+    IEx.pry()
+
     blob
     |> unfurl(io, options)
     |> upload_without_unfurling(io)
@@ -420,16 +422,18 @@ defmodule ActiveStorage.Blob do
 
   def compute_checksum_in_chunks(io, rewind \\ true) when io |> is_pid() do
     md5_hash = :crypto.hash_init(:md5)
-    md5 = IO.binstream(io, :line)
-    |> Enum.reduce(md5_hash, &:crypto.hash_update(&2, &1))
-    |> :crypto.hash_final()
+
+    md5 =
+      IO.binstream(io, :line)
+      |> Enum.reduce(md5_hash, &:crypto.hash_update(&2, &1))
+      |> :crypto.hash_final()
 
     # io.rewind
     if(rewind) do
       :file.position(io, :bof)
     end
 
-    md5 |> Base.encode64
+    md5 |> Base.encode64()
     # Base.encode64(md5) #, case: :lower)
   end
 
@@ -475,12 +479,24 @@ defmodule ActiveStorage.Blob do
     #  name: [ "ActiveStorage-#{id}-", blob.filename.extension_with_delimiter ], tmpdir: tmpdir, &block
   end
 
+  def mirror_later(blob) do
+    srv = service(blob).__struct__
+
+    if Kernel.function_exported?(srv, :mirror, 2) do
+      # if service(blob).respond_to?(:mirror)
+      ActiveStorage.MirrorJob.perform_later(blob.key, checksum: blob.checksum)
+    end
+  end
+
   def extract_content_type(blob, io) when is_binary(io) do
     MIME.from_path(blob.changes.filename) || blob.changes.content_type
   end
 
   def extract_content_type(blob, io) do
-    ExMarcel.MimeType.for {:io, io}, name: blob.changes.filename, declared_type: blob.changes.content_type
+    ExMarcel.MimeType.for({:io, io},
+      name: blob.changes.filename,
+      declared_type: blob.changes.content_type
+    )
   end
 
   def forcibly_serve_as_binary?(blob) do
@@ -570,4 +586,8 @@ defmodule ActiveStorage.Blob do
   defdelegate default_variant_format(blob), to: ActiveStorage.Blob.Representable
   defdelegate format(blob), to: ActiveStorage.Blob.Representable
   defdelegate variant_class(), to: ActiveStorage.Blob.Representable
+
+  def all() do
+    ActiveStorage.Blob |> repo().all
+  end
 end

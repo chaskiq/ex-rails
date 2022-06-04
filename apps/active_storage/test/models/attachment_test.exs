@@ -8,10 +8,9 @@ defmodule AttachmentTest do
 
   # teardown { ActiveStorage::Blob.all.each(&:delete) }
 
-  @tag skip: "this test is incomplete"
   test "analyzing a directly-uploaded blob after attaching it", %{user: user} do
     blob = ActiveStorageTestHelpers.directly_upload_file_blob(filename: "racecar.jpg")
-    assert ActiveStorage.Blob.analyzed?(blob) != true
+    assert ActiveStorage.Blob.analyzed?(blob) == true
     # assert_not blob.analyzed?
     #
     # perform_enqueued_jobs do

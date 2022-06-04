@@ -20,6 +20,11 @@ defmodule ActiveStorage.Attachment do
   # delegate_missing_to :blob
   # delegate :signed_id, to: :blob
 
+  def after_create_commit(attachment) do
+    analyze_blob_later(attachment)
+    mirror_blob_later(attachment)
+  end
+
   # after_create_commit :mirror_blob_later, :analyze_blob_later
   # after_destroy_commit :purge_dependent_blob_later
 
@@ -91,14 +96,23 @@ defmodule ActiveStorage.Attachment do
   end
 
   def analyze_blob_later(attachment) do
+    if(!ActiveStorage.Blob.analyzed?(attachment.blob)) do
+      attachment.blob.__struct__.analyze_later(attachment.blob)
+    end
+
     # blob.analyze_later unless blob.analyzed?
   end
 
   def mirror_blob_later(attachment) do
     # blob.mirror_later
+    attachment.blob.__struct__.mirror_later(attachment.blob)
   end
 
   def purge_dependent_blob_later(attachment) do
+    if(attachment.blob) do
+      attachment.blob.__struct__.purge_later(attachment)
+    end
+
     # blob&.purge_later if dependent == :purge_later
   end
 

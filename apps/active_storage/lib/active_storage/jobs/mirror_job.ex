@@ -1,4 +1,4 @@
-defmodule ActiveJob.MirrorJob do
+defmodule ActiveStorage.MirrorJob do
   use ActiveJob.Base,
     queue_adapter: :inline,
     queue_as: ActiveStorage.queues()[:mirror]

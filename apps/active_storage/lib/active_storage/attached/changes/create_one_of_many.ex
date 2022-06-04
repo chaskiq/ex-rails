@@ -1,31 +1,30 @@
 defmodule ActiveStorage.Attached.Changes.CreateOneOfMany do
-  defstruct [:name, :record, :attachable, :blob]
+  defstruct [:name, :record, :attachable, :blob, :attachment]
 
-  # < Attached::Changes::CreateOne # :nodoc:
-  #  private
-  #    def find_attachment
-  #      record.public_send("#{name}_attachments").detect { |attachment| attachment.blob_id == blob.id }
-  #    end
+  def new(name, record, attachable) do
+    struct = %__MODULE__{name: name, record: record, attachable: attachable}
+    # @name, @record, @attachable = name, record, attachable
+    blob = blob(struct)
+    blob = blob.__struct__.identify_without_saving(blob)
+
+    struct = struct |> Map.put(:blob, blob)
+    struct
+  end
 
   def find_attachment(instance) do
-    attachment_name = String.to_atom("#{instance.name}_blobs")
-    blob_name = String.to_atom("#{instance.name}_blob")
-
-    rec =
-      instance.record
-      |> ActiveStorage.RepoClient.repo().preload([attachment_name, blob_name])
-
-    require IEx
-    IEx.pry()
-
-    rec
+    instance.record
+    |> Ecto.assoc(:"#{instance.name}_attachments")
+    |> ActiveStorage.RepoClient.repo().all
+    |> Enum.find(fn x -> x.blob_id == instance.blob.id end)
 
     # record.public_send("#{name}_attachments").detect { |attachment| attachment.blob_id == blob.id }
   end
 
-  defdelegate new(name, record, attachable), to: ActiveStorage.Attached.Changes.CreateOne
-
-  defdelegate attachment(instance), to: ActiveStorage.Attached.Changes.CreateOne
+  def attachment(instance) do
+    # @attachment ||= find_or_build_attachment
+    attachment = instance.attachment || find_or_build_attachment(instance)
+    %{instance | attachment: attachment}
+  end
 
   defdelegate blob(instance), to: ActiveStorage.Attached.Changes.CreateOne
 
@@ -33,7 +32,9 @@ defmodule ActiveStorage.Attached.Changes.CreateOneOfMany do
 
   defdelegate save(instance), to: ActiveStorage.Attached.Changes.CreateOne
 
-  defdelegate find_or_build_attachment(instance), to: ActiveStorage.Attached.Changes.CreateOne
+  def find_or_build_attachment(instance) do
+    find_attachment(instance) || build_attachment(instance)
+  end
 
   # defdelegate find_attachment(instance), to: ActiveStorage.Attached.Changes.CreateOne
 
