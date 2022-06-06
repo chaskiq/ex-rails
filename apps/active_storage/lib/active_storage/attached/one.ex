@@ -12,19 +12,6 @@ defmodule ActiveStorage.Attached.One do
     # record.attachment_changes[name]
   end
 
-  def signed_id(instance, opts \\ []) do
-    defaults = [expires_in: nil]
-    options = Keyword.merge(defaults, opts)
-    # a = attachment(instance)
-    # instance.record.avatar_attachment
-
-    loaded_record =
-      instance.record.avatar_attachment |> ActiveStorage.RepoClient.repo().preload(:blob)
-
-    blob = loaded_record.blob
-    blob.__struct__.signed_id(blob, options)
-  end
-
   # Representation of a single attachment to a model.
 
   # :method: purge

@@ -170,6 +170,7 @@ defmodule VariantTest do
       )
 
     variant = ActiveStorage.Blob.Representable.variant(blob, %{resize_to_limit: "20x20"})
+
     ActiveStorage.Variant.processed(variant)
 
     image = ActiveStorageTestHelpers.read_image(variant)

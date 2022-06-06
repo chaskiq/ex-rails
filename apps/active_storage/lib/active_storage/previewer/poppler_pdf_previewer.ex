@@ -39,7 +39,7 @@ defmodule ActiveStorage.Previewer.PopplerPDFPreviewer do
 
       content_type = "image/png"
 
-      output = [io: path, filename: filename, content_type: content_type] ++ options
+      output = [io: {:path, path}, filename: filename, content_type: content_type] ++ options
 
       if(block) do
         block.(output)

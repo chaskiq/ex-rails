@@ -9,7 +9,7 @@ defmodule PreviewTest do
       )
 
     preview = ActiveStorage.Blob.preview(blob, resize_to_limit: "640x280")
-    processed = ActiveStorage.Preview.processed(preview)
+    _processed = ActiveStorage.Preview.processed(preview)
 
     assert "report.png", preview.blob.__struct__.filename(preview.blob).filename
     assert "image/png", preview.blob.content_type
@@ -41,10 +41,10 @@ defmodule PreviewTest do
     preview = ActiveStorage.Blob.preview(blob, resize_to_limit: "640x280")
     processed = ActiveStorage.Preview.processed(preview)
 
-    assert "cropped.png", preview.blob.__struct__.filename(preview.blob).filename
-    assert "image/png", preview.blob.content_type
+    assert "cropped.png", processed.blob.__struct__.filename(processed.blob).filename
+    assert "image/png", processed.blob.content_type
 
-    image = ActiveStorageTestHelpers.read_image(preview.blob)
+    image = ActiveStorageTestHelpers.read_image(processed.blob)
 
     assert 430 == image.width
     assert 145 == image.height
@@ -71,10 +71,10 @@ defmodule PreviewTest do
     preview = ActiveStorage.Blob.preview(blob, resize_to_limit: "640x280")
     processed = ActiveStorage.Preview.processed(preview)
 
-    assert "video.jpg", preview.blob.__struct__.filename(preview.blob).filename
-    assert "image/jpeg", preview.blob.content_type
+    assert "video.jpg", ActiveStorage.Blob.filename(processed.blob).filename
+    assert "image/jpeg", processed.blob.content_type
 
-    image = ActiveStorageTestHelpers.read_image(preview.blob)
+    image = ActiveStorageTestHelpers.read_image(processed.blob)
 
     assert 640 == image.width
     assert 480 == image.height
@@ -107,7 +107,7 @@ defmodule PreviewTest do
 
   @tag skip: "this test is incomplete"
   test "previewing on the writer DB" do
-    blob =
+    _blob =
       ActiveStorageTestHelpers.create_file_blob(
         filename: "report.pdf",
         content_type: "application/pdf"
@@ -132,7 +132,7 @@ defmodule PreviewTest do
       )
 
     preview = ActiveStorage.Blob.preview(blob, resize_to_limit: "640x280")
-    processed = ActiveStorage.Preview.processed(preview)
+    _processed = ActiveStorage.Preview.processed(preview)
 
     assert preview.blob.service_name == "local_public"
 
@@ -151,7 +151,7 @@ defmodule PreviewTest do
       )
 
     preview = ActiveStorage.Blob.preview(blob, resize_to_limit: "640x280")
-    processed = ActiveStorage.Preview.processed(preview)
+    _processed = ActiveStorage.Preview.processed(preview)
     assert preview.blob.service_name == "local_public"
 
     # blob = create_file_blob(filename: "video.mp4", content_type: "video/mp4", service_name: "local_public")

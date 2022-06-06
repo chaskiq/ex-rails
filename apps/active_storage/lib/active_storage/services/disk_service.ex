@@ -46,8 +46,17 @@ defmodule ActiveStorage.Service.DiskService do
     # like: {:file, pid}  and {:stringio, pid} and passing that around
 
     c =
-      cond do
-        is_binary(io) && String.valid?(io) ->
+      case io do
+        {:path, io} ->
+          {:ok, pid} = File.open(io)
+
+          fn p ->
+            IO.binstream(pid, 1_048_576)
+            |> Stream.into(File.stream!(p, [:raw, :binary, :write]))
+            |> Stream.run()
+          end
+
+        {:path_nono, io} ->
           {:ok, pid} = StringIO.open(io)
 
           fn p ->
@@ -56,12 +65,12 @@ defmodule ActiveStorage.Service.DiskService do
             |> Stream.run()
           end
 
-        is_binary(io) && !String.valid?(io) ->
+        {:string, io} ->
           fn p ->
             File.write(p, io)
           end
 
-        is_pid(io) ->
+        {:io, io} ->
           fn p ->
             :file.position(io, :bof)
 

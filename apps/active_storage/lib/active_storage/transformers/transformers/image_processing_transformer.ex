@@ -32,10 +32,10 @@ defmodule ActiveStorage.Transformers.ImageProcessingTransformer do
       %Mogrify.Image{} = p ->
         if(block) do
           {:ok, io} = File.read(p.path)
-          block.(io)
+          block.({:string, io})
         else
           {:ok, io} = File.read(p.path)
-          io
+          {:string, io}
         end
     end
 

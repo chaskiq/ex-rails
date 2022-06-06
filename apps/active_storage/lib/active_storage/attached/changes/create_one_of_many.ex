@@ -6,7 +6,6 @@ defmodule ActiveStorage.Attached.Changes.CreateOneOfMany do
     # @name, @record, @attachable = name, record, attachable
     blob = blob(struct)
     blob = blob.__struct__.identify_without_saving(blob)
-
     struct = struct |> Map.put(:blob, blob)
     struct
   end

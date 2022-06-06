@@ -123,9 +123,9 @@ defmodule ActiveStorage.Preview do
       [service_name: preview.blob.service_name],
       fn attachable ->
         IO.puts("HERE WE SHOWLD RECEIVE ATTACHMENT")
-        IO.inspect(attachable)
+        #  IO.inspect(attachable)
         image = preview.blob.__struct__.preview_image(preview.blob)
-        image.__struct__.attach(image, preview.blob)
+        image.__struct__.attach(image, attachable)
       end
     )
 

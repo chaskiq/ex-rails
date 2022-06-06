@@ -67,7 +67,7 @@ defmodule ActiveStorage.Analyzer.ImageAnalyzer.ImageMagickTest do
   test "analyzing an unsupported image type" do
     blob =
       ActiveStorageTestHelpers.create_blob(
-        data: "bad",
+        data: {:string, "bad"},
         filename: "bad_file.bad",
         content_type: "image/bad_type"
       )

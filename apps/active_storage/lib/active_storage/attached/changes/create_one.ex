@@ -3,6 +3,7 @@ defmodule ActiveStorage.Attached.Changes.CreateOne do
 
   def new(name, record, attachable) do
     struct = %__MODULE__{name: name, record: record, attachable: attachable}
+
     # @name, @record, @attachable = name, record, attachable
     blob =
       case blob(struct) do
@@ -24,6 +25,10 @@ defmodule ActiveStorage.Attached.Changes.CreateOne do
 
   def blob(instance) do
     instance.blob || find_or_build_blob(instance)
+  end
+
+  def upload(instance, attachable = %ActiveStorage.Blob{}) do
+    nil
   end
 
   def upload(instance, attachable) do
@@ -50,21 +55,41 @@ defmodule ActiveStorage.Attached.Changes.CreateOne do
 
     # consider a Ecto MULTI transaction
 
-    case instance.blob do
-      %Ecto.Changeset{valid?: true, data: _} ->
-        # UPDATE CHANGESET
-        instance.blob |> ActiveStorage.RepoClient.repo().update!
+    blob =
+      case instance.blob do
+        %Ecto.Changeset{valid?: true, data: _} ->
+          # UPDATE CHANGESET
+          instance.blob |> ActiveStorage.RepoClient.repo().update!
 
-      _ ->
-        nil
-    end
+        %ActiveStorage.Blob{} = blob ->
+          case blob do
+            %{id: nil} = blob ->
+              blob =
+                blob
+                |> Ecto.Changeset.change()
+                |> ActiveStorage.RepoClient.repo().insert!
+
+            %{id: id} = blob ->
+              blob
+          end
+
+        _ ->
+          nil
+      end
+
+    instance = %{instance | blob: blob}
+
+    upload(instance, instance.attachable)
 
     record_changeset = Ecto.Changeset.change(rec)
 
     attachment = attachment(instance).attachment
 
-    Ecto.Changeset.put_assoc(record_changeset, name, attachment)
-    |> ActiveStorage.RepoClient.repo().update!
+    a =
+      Ecto.Changeset.put_assoc(record_changeset, name, attachment)
+      |> ActiveStorage.RepoClient.repo().update!
+      |> Map.get(name)
+      |> ActiveStorage.RepoClient.repo().preload(:blob)
 
     # record.public_send("#{name}_attachment=", attachment)
     # record.public_send("#{name}_blob=", blob)
@@ -97,7 +122,7 @@ defmodule ActiveStorage.Attached.Changes.CreateOne do
     ActiveStorage.Attachment.new(
       record: instance.record,
       name: instance.name,
-      blob: instance.attachable
+      blob: instance.blob
     )
   end
 
@@ -106,7 +131,7 @@ defmodule ActiveStorage.Attached.Changes.CreateOne do
       %ActiveStorage.Blob{} ->
         instance.attachable
 
-      [io: io, filename: filename] ->
+      [head | tail] ->
         ActiveStorage.Blob.build_after_unfurling(
           %ActiveStorage.Blob{},
           instance.attachable

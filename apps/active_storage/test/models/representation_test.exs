@@ -35,11 +35,9 @@ defmodule RepresentationTest do
 
     representation = ActiveStorage.Blob.representation(blob, %{resize_to_limit: "640x280"})
 
-    processed =
-      representation.__struct__.processed(representation)
-      |> ActiveStorage.RepoClient.repo().preload(:blob)
+    processed = representation.__struct__.processed(representation)
 
-    image = processed.blob |> ActiveStorageTestHelpers.read_image()
+    image = ActiveStorageTestHelpers.read_image(processed.blob)
     assert 612 == image.width
     assert 792 == image.height
 
@@ -64,11 +62,9 @@ defmodule RepresentationTest do
         %{resize_to_limit: "640x280"}
       )
 
-    processed =
-      representation.__struct__.processed(representation)
-      |> ActiveStorage.RepoClient.repo().preload(:blob)
+    processed = representation.__struct__.processed(representation)
 
-    image = processed.blob |> ActiveStorageTestHelpers.read_image()
+    image = ActiveStorageTestHelpers.read_image(processed.blob)
     assert 640 == image.width
     assert 480 == image.height
 

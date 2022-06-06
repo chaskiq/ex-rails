@@ -393,19 +393,26 @@ defmodule ActiveStorage.Blob do
     s.__struct__.download(s, blob.key, block)
   end
 
-  def get_byte_size(io) when is_binary(io) do
+  def get_byte_size({:string, io}) do
     <<head::size(8), _rest::binary>> = io
     head
   end
 
-  def get_byte_size(io) when is_pid(io) do
+  def get_byte_size({:path, io}) do
+    case File.stat!(io) do
+      %File.Stat{} = stat -> stat.size
+      _ -> nil
+    end
+  end
+
+  def get_byte_size({:io, io}) do
     case :file.pid2name(io) do
       {:ok, path} -> File.stat!(path).size
       _ -> nil
     end
   end
 
-  def compute_checksum_in_chunks(io) when io |> is_binary() do
+  def compute_checksum_in_chunks({:string, io}) do
     {:ok, io} = StringIO.open(io)
     md5 = compute_checksum_in_chunks(io, false)
     StringIO.close(io)
@@ -420,7 +427,16 @@ defmodule ActiveStorage.Blob do
     # end.base64digest
   end
 
-  def compute_checksum_in_chunks(io, rewind \\ true) when io |> is_pid() do
+  def compute_checksum_in_chunks({:io, io}, rewind) do
+    compute_checksum_in_chunks(io, rewind)
+  end
+
+  def compute_checksum_in_chunks({:path, io}, rewind) do
+    {:ok, pid} = File.open(io)
+    compute_checksum_in_chunks(pid, rewind)
+  end
+
+  def compute_checksum_in_chunks(io, rewind \\ true) do
     md5_hash = :crypto.hash_init(:md5)
 
     md5 =
@@ -488,11 +504,15 @@ defmodule ActiveStorage.Blob do
     end
   end
 
-  def extract_content_type(blob, io) when is_binary(io) do
+  def extract_content_type(blob, {:string, io}) do
     MIME.from_path(blob.changes.filename) || blob.changes.content_type
   end
 
-  def extract_content_type(blob, io) do
+  def extract_content_type(blob, {:path, io}) do
+    ExMarcel.MimeType.for({:path, io})
+  end
+
+  def extract_content_type(blob, {:io, io}) do
     ExMarcel.MimeType.for({:io, io},
       name: blob.changes.filename,
       declared_type: blob.changes.content_type

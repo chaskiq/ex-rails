@@ -8,9 +8,12 @@ defmodule AttachmentTest do
 
   # teardown { ActiveStorage::Blob.all.each(&:delete) }
 
-  test "analyzing a directly-uploaded blob after attaching it", %{user: user} do
+  test "analyzing a directly-uploaded blob after attaching it", %{user: _user} do
     blob = ActiveStorageTestHelpers.directly_upload_file_blob(filename: "racecar.jpg")
-    assert ActiveStorage.Blob.analyzed?(blob) == true
+    assert ActiveStorage.Blob.analyzed?(blob) != true
+
+    require IEx
+    IEx.pry()
     # assert_not blob.analyzed?
     #
     # perform_enqueued_jobs do
@@ -29,7 +32,7 @@ defmodule AttachmentTest do
 
     attachments = User.highlights(user)
 
-    attached_record = attachments.__struct__.attach(attachments, blob)
+    _attached_record = attachments.__struct__.attach(attachments, blob)
 
     blob = blob |> blob.__struct__.reload!
 
@@ -71,7 +74,7 @@ defmodule AttachmentTest do
 
     assert_blob_identified_before_owner_validated(user, blob, "image/jpeg", fn ->
       avatar = user.__struct__.avatar(user)
-      user = avatar.__struct__.attach(avatar, blob)
+      _user = avatar.__struct__.attach(avatar, blob)
     end)
 
     # blob = directly_upload_file_blob(filename: "racecar.jpg", content_type: "application/octet-stream")
@@ -92,7 +95,7 @@ defmodule AttachmentTest do
 
     assert_blob_identified_before_owner_validated(user, blob, "image/jpeg", fn ->
       highligths = user.__struct__.highlights(user)
-      user = highligths.__struct__.attach(highligths, blob)
+      _user = highligths.__struct__.attach(highligths, blob)
     end)
 
     # blob = directly_upload_file_blob(filename: "racecar.jpg", content_type: "application/octet-stream")
@@ -123,8 +126,9 @@ defmodule AttachmentTest do
   test "getting a signed blob ID from an attachment", %{user: user} do
     blob = ActiveStorageTestHelpers.create_blob()
     avatar = user.__struct__.avatar(user)
-    user = avatar.__struct__.attach(avatar, blob)
-    signed_id = User.avatar(user).__struct__.signed_id(User.avatar(user))
+    attachment = avatar.__struct__.attach(avatar, blob)
+
+    signed_id = attachment.blob.__struct__.signed_id(attachment.blob)
 
     assert blob == ActiveStorage.Blob.find_signed!(signed_id)
     assert blob == ActiveStorage.Blob.find_signed(signed_id)
@@ -141,11 +145,11 @@ defmodule AttachmentTest do
     blob = ActiveStorageTestHelpers.create_blob()
 
     avatar = user.__struct__.avatar(user)
-    user = avatar.__struct__.attach(avatar, blob)
+    attachment = avatar.__struct__.attach(avatar, blob)
 
     signed_id =
-      User.avatar(user).__struct__.signed_id(
-        User.avatar(user),
+      attachment.blob.__struct__.signed_id(
+        attachment.blob,
         purpose: "custom_purpose"
       )
 
@@ -162,10 +166,10 @@ defmodule AttachmentTest do
     blob = ActiveStorageTestHelpers.create_blob()
 
     avatar = user.__struct__.avatar(user)
-    user = avatar.__struct__.attach(avatar, blob)
+    avatar_attachment = avatar.__struct__.attach(avatar, blob)
 
     t = NaiveDateTime.add(NaiveDateTime.local_now(), 60, :second)
-    signed_id = User.avatar(user).__struct__.signed_id(User.avatar(user), expires_in: t)
+    signed_id = avatar_attachment.__struct__.signed_id(avatar_attachment, expires_in: t)
     assert blob == ActiveStorage.Blob.find_signed!(signed_id)
 
     # blob = create_blob
@@ -179,10 +183,10 @@ defmodule AttachmentTest do
     blob = ActiveStorageTestHelpers.create_blob()
 
     avatar = user.__struct__.avatar(user)
-    user = avatar.__struct__.attach(avatar, blob)
+    avatar_attachment = avatar.__struct__.attach(avatar, blob)
 
     t = NaiveDateTime.add(NaiveDateTime.local_now(), -120, :second)
-    signed_id = User.avatar(user).__struct__.signed_id(User.avatar(user), expires_in: t)
+    signed_id = avatar_attachment.__struct__.signed_id(avatar_attachment, expires_in: t)
     assert nil == ActiveStorage.Blob.find_signed(signed_id)
 
     # blob = create_blob
@@ -197,9 +201,9 @@ defmodule AttachmentTest do
     blob = ActiveStorageTestHelpers.create_blob()
 
     avatar = user.__struct__.avatar(user)
-    user = avatar.__struct__.attach(avatar, blob)
+    avatar_attachment = avatar.__struct__.attach(avatar, blob)
 
-    signed_id_generated_old_way = ActiveStorage.Verifier.sign(user.avatar_attachment.blob_id)
+    signed_id_generated_old_way = ActiveStorage.Verifier.sign(avatar_attachment.blob_id)
     assert blob == ActiveStorage.Blob.find_signed!(signed_id_generated_old_way)
 
     # blob = create_blob
@@ -213,9 +217,9 @@ defmodule AttachmentTest do
   } do
     blob = ActiveStorageTestHelpers.create_blob()
     avatar = user.__struct__.avatar(user)
-    user = avatar.__struct__.attach(avatar, blob)
+    attachment = avatar.__struct__.attach(avatar, blob)
 
-    signed_id = User.avatar(user).__struct__.signed_id(User.avatar(user))
+    signed_id = attachment.__struct__.signed_id(attachment)
     assert blob == ActiveStorage.Blob.find_signed!(signed_id)
 
     ###########
@@ -236,16 +240,16 @@ defmodule AttachmentTest do
     # assert_nothing_raised { attachment.destroy }
   end
 
-  defp assert_blob_identified_before_owner_validated(owner, blob, content_type, block) do
-    validated_content_type = nil
+  defp assert_blob_identified_before_owner_validated(_owner, blob, content_type, block) do
+    _validated_content_type = nil
 
     # owner.class.validate do
     #  validated_content_type ||= blob.content_type
     # end
 
-    validated_content_type = blob.content_type
+    _validated_content_type = blob.content_type
 
-    b = block.()
+    block.()
 
     # assert content_type == validated_content_type
     # blob.reload.content_type
@@ -253,7 +257,7 @@ defmodule AttachmentTest do
   end
 
   #
-  defp assert_blob_identified_outside_transaction(blob, block \\ nil) do
+  defp assert_blob_identified_outside_transaction(_blob, _block \\ nil) do
     #  baseline_transaction_depth = ActiveRecord::Base.connection.open_transactions
     #  max_transaction_depth = -1
     #

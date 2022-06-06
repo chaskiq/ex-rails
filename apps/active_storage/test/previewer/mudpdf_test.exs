@@ -8,15 +8,14 @@ defmodule ActiveStorage.Previewer.MuPDFPreviewerTest do
         content_type: "application/pdf"
       )
 
-    attachable =
-      ActiveStorage.Previewer.MuPDFPreviewer.new(blob)
-      |> ActiveStorage.Previewer.MuPDFPreviewer.preview([], fn attachable ->
-        assert "image/png" == attachable[:content_type]
-        assert "report.png" == attachable[:filename]
-        image = Mogrify.open(attachable[:io]) |> Mogrify.verbose()
-        assert 612 == image.width
-        assert 792 == image.height
-      end)
+    ActiveStorage.Previewer.MuPDFPreviewer.new(blob)
+    |> ActiveStorage.Previewer.MuPDFPreviewer.preview([], fn attachable ->
+      assert "image/png" == attachable[:content_type]
+      assert "report.png" == attachable[:filename]
+      image = Mogrify.open(attachable[:io]) |> Mogrify.verbose()
+      assert 612 == image.width
+      assert 792 == image.height
+    end)
 
     #
     # ActiveStorage::Previewer::MuPDFPreviewer.new(blob).preview do |attachable|
@@ -36,15 +35,14 @@ defmodule ActiveStorage.Previewer.MuPDFPreviewerTest do
         content_type: "application/pdf"
       )
 
-    attachable =
-      ActiveStorage.Previewer.MuPDFPreviewer.new(blob)
-      |> ActiveStorage.Previewer.MuPDFPreviewer.preview([], fn attachable ->
-        assert "image/png" == attachable[:content_type]
-        assert "cropped.png" == attachable[:filename]
-        image = Mogrify.open(attachable[:io]) |> Mogrify.verbose()
-        assert 430 == image.width
-        assert 145 == image.height
-      end)
+    ActiveStorage.Previewer.MuPDFPreviewer.new(blob)
+    |> ActiveStorage.Previewer.MuPDFPreviewer.preview([], fn attachable ->
+      assert "image/png" == attachable[:content_type]
+      assert "cropped.png" == attachable[:filename]
+      image = Mogrify.open(attachable[:io]) |> Mogrify.verbose()
+      assert 430 == image.width
+      assert 145 == image.height
+    end)
 
     # blob = create_file_blob(filename: "cropped.pdf", content_type: "application/pdf")
     #

@@ -13,7 +13,7 @@ defmodule ActiveStorageBlobTest do
 
       r =
         ActiveStorage.Blob.create_and_upload!(blob,
-          io: file,
+          io: {:string, file},
           filename: filename,
           content_type: mime,
           metadata: nil,

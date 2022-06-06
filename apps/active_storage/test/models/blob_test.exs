@@ -45,13 +45,14 @@ defmodule BlobTest do
 
   test "create_and_upload sets byte size and checksum" do
     data = "Hello world!"
-    blob = ActiveStorageTestHelpers.create_blob(data: data)
+    blob = ActiveStorageTestHelpers.create_blob(data: {:string, data})
 
     {:ok, _downloaded} = blob.__struct__.download(blob)
 
-    assert downloaded = data
+    assert downloaded = "Hello world!"
     assert data |> String.length() == downloaded |> String.length()
     data_checksum = :crypto.hash(:md5, data) |> Base.encode64()
+
     assert data_checksum == blob.checksum
 
     # assert_equal data, blob.download
@@ -88,7 +89,7 @@ defmodule BlobTest do
   test "create_and_upload uses content_type when identify: false" do
     blob =
       ActiveStorageTestHelpers.create_blob(
-        data: "Article,dates,analysis\n1, 2, 3",
+        data: {:string, "Article,dates,analysis\n1, 2, 3"},
         filename: "table.csv",
         content_type: "text/csv",
         identify: false
@@ -109,10 +110,10 @@ defmodule BlobTest do
 
   test "create_and_upload accepts a custom key" do
     key = "123456"
-    data = "Hello world!"
+    data = {:string, "Hello world!"}
     blob = ActiveStorageTestHelpers.create_blob(key: key, data: data)
     assert key == blob.key
-    assert {:ok, data} == ActiveStorage.Blob.download(blob)
+    assert {:ok, "Hello world!"} == ActiveStorage.Blob.download(blob)
 
     #
     # assert_equal key, blob.key
@@ -142,7 +143,7 @@ defmodule BlobTest do
       0..2
       |> Enum.map(fn _x ->
         ActiveStorageFixtures.create_blob(
-          data: "123",
+          data: {:string, "123"},
           filename: "numbers.txt",
           content_type: "text/plain",
           identify: false
@@ -161,16 +162,15 @@ defmodule BlobTest do
 
   @tag skip: "this test is incomplete"
   test "compose with unpersisted blobs" do
-    blobs =
-      0..2
-      |> Enum.map(fn x ->
-        ActiveStorageTestHelpers.create_blob(
-          data: "123",
-          filename: "numbers.txt",
-          content_type: "text/plain",
-          identify: false
-        )
-      end)
+    0..2
+    |> Enum.map(fn _x ->
+      ActiveStorageTestHelpers.create_blob(
+        data: {:string, "123"},
+        filename: "numbers.txt",
+        content_type: "text/plain",
+        identify: false
+      )
+    end)
 
     # blobs = 3.times.map { create_blob(data: "123", filename: "numbers.txt", content_type: "text/plain", identify: false).dup }
     #
@@ -200,7 +200,7 @@ defmodule BlobTest do
   end
 
   test "text?" do
-    blob = ActiveStorageTestHelpers.create_blob(data: "Hello world!")
+    blob = ActiveStorageTestHelpers.create_blob(data: {:string, "Hello world!"})
     assert ActiveStorage.Blob.text?(blob)
     assert ActiveStorage.Blob.audio?(blob) != true
     # blob = create_blob data: "Hello world!"
@@ -210,20 +210,18 @@ defmodule BlobTest do
 
   test "download yields chunks" do
     table = :ets.new(:chunks, [])
-
-    blob =
-      ActiveStorageTestHelpers.create_blob(data: String.duplicate("a", Size.megabytes(5.0625)))
+    data = String.duplicate("a", Size.megabytes(5.0625))
+    blob = ActiveStorageTestHelpers.create_blob(data: {:string, data})
 
     # temporary chunks state
     :ets.insert(table, {:chunks, []})
 
-    chunks =
-      blob
-      |> ActiveStorage.Blob.download(fn data ->
-        # assign chunks
-        [chunks: chunks] = :ets.lookup(table, :chunks)
-        :ets.insert(table, {:chunks, chunks ++ [data]})
-      end)
+    blob
+    |> ActiveStorage.Blob.download(fn data ->
+      # assign chunks
+      [chunks: chunks] = :ets.lookup(table, :chunks)
+      :ets.insert(table, {:chunks, chunks ++ [data]})
+    end)
 
     # assign chunk to a function
     [chunks: chunks] = :ets.lookup(table, :chunks)
@@ -269,7 +267,7 @@ defmodule BlobTest do
   end
 
   test "open without integrity" do
-    blob = ActiveStorageTestHelpers.create_blob(data: "Hello, world!")
+    blob = ActiveStorageTestHelpers.create_blob(data: {:string, "Hello, world!"})
 
     {:ok, blob} =
       blob
@@ -429,7 +427,7 @@ defmodule BlobTest do
     blob = ActiveStorageTestHelpers.create_blob(filename: "funky.jpg")
 
     case ActiveStorage.update_storage_blob(blob, %{service_name: :unknown}) do
-      {:error, %{errors: [service_name: err]}} -> assert true
+      {:error, %{errors: [service_name: _err]}} -> assert true
       _ -> assert false
     end
 
@@ -533,8 +531,8 @@ defmodule BlobTest do
   def expected_url_for(blob, options \\ []) do
     defaults = [disposition: :attachment, filename: nil, content_type: nil, service_name: :local]
     options = Keyword.merge(defaults, options)
-    filename = options[:filename] || blob.filename
-    content_type = options[:content_type] || blob.content_type
+    _filename = options[:filename] || blob.filename
+    _content_type = options[:content_type] || blob.content_type
     #   filename ||= blob.filename
     #   content_type ||= blob.content_type
 

@@ -8,15 +8,15 @@ defmodule ActiveStorage.Previewer.PopplerPDFPreviewerTest do
         content_type: "application/pdf"
       )
 
-    attachable =
-      ActiveStorage.Previewer.PopplerPDFPreviewer.new(blob)
-      |> ActiveStorage.Previewer.PopplerPDFPreviewer.preview([], fn attachable ->
-        assert "image/png" == attachable[:content_type]
-        assert "report.png" == attachable[:filename]
-        image = Mogrify.open(attachable[:io]) |> Mogrify.verbose()
-        assert 612 == image.width
-        assert 792 == image.height
-      end)
+    ActiveStorage.Previewer.PopplerPDFPreviewer.new(blob)
+    |> ActiveStorage.Previewer.PopplerPDFPreviewer.preview([], fn attachable ->
+      assert "image/png" == attachable[:content_type]
+      assert "report.png" == attachable[:filename]
+      {:path, file} = attachable[:io]
+      image = Mogrify.open(file) |> Mogrify.verbose()
+      assert 612 == image.width
+      assert 792 == image.height
+    end)
 
     # blob = create_file_blob(filename: "report.pdf", content_type: "application/pdf")
 
@@ -37,15 +37,15 @@ defmodule ActiveStorage.Previewer.PopplerPDFPreviewerTest do
         content_type: "application/pdf"
       )
 
-    attachable =
-      ActiveStorage.Previewer.PopplerPDFPreviewer.new(blob)
-      |> ActiveStorage.Previewer.PopplerPDFPreviewer.preview([], fn attachable ->
-        assert "image/png" == attachable[:content_type]
-        assert "cropped.png" == attachable[:filename]
-        image = Mogrify.open(attachable[:io]) |> Mogrify.verbose()
-        assert 430 == image.width
-        assert 145 == image.height
-      end)
+    ActiveStorage.Previewer.PopplerPDFPreviewer.new(blob)
+    |> ActiveStorage.Previewer.PopplerPDFPreviewer.preview([], fn attachable ->
+      assert "image/png" == attachable[:content_type]
+      assert "cropped.png" == attachable[:filename]
+      {:path, file} = attachable[:io]
+      image = Mogrify.open(file) |> Mogrify.verbose()
+      assert 430 == image.width
+      assert 145 == image.height
+    end)
 
     # blob = create_file_blob(filename: "cropped.pdf", content_type: "application/pdf")
 

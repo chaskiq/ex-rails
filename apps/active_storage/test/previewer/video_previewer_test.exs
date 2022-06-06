@@ -8,16 +8,17 @@ defmodule ActiveStorage.Previewer.VideoPreviewerTest do
         content_type: "video/mp4"
       )
 
-    attachable =
-      ActiveStorage.Previewer.VideoPreviewer.new(blob)
-      |> ActiveStorage.Previewer.VideoPreviewer.preview([], fn attachable ->
-        assert "image/jpeg" == attachable[:content_type]
-        assert "video.jpg" == attachable[:filename]
-        image = Mogrify.open(attachable[:io]) |> Mogrify.verbose()
-        assert 640 == image.width
-        assert 480 == image.height
-        assert "image/jpeg" == image.mime_type
-      end)
+    ActiveStorage.Previewer.VideoPreviewer.new(blob)
+    |> ActiveStorage.Previewer.VideoPreviewer.preview([], fn attachable ->
+      assert "image/jpeg" == attachable[:content_type]
+      assert "video.jpg" == attachable[:filename]
+      {:path, file} = attachable[:io]
+      image = Mogrify.open(file) |> Mogrify.verbose()
+      assert 640 == image.width
+      assert 480 == image.height
+      # image.mime_type
+      assert "image/jpeg" == ExMarcel.MimeType.for({:path, image.path})
+    end)
 
     # blob = create_file_blob(filename: "video.mp4", content_type: "video/mp4")
 

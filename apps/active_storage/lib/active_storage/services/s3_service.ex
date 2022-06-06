@@ -10,10 +10,10 @@ defmodule ActiveStorage.Service.S3Service do
     :upload_options
   ]
 
-  #def new(%{client: cli, public: public, bucket: bucket}) do
+  # def new(%{client: cli, public: public, bucket: bucket}) do
   #  %__MODULE__{client: cli, public: public, bucket: bucket}
   #  # @service = service
-  #end
+  # end
 
   # def new(%{bucket: bucket, upload: upload, public: public}, options \\ []) do
   def new(options \\ []) do
@@ -105,6 +105,13 @@ defmodule ActiveStorage.Service.S3Service do
 
   # def upload(key, io, %{checksum: nil, filename: nil, content_type: nil, disposition: nil}) do
   def upload(service, key, io) do
+    io =
+      case io do
+        {:string, io} -> io
+        {:io, io} -> io
+        _ -> nil
+      end
+
     # stream(io)
     # amazon = Application.fetch_env!(:active_storage, :storage) |> Keyword.get(:amazon)
     # bucket = amazon.bucket

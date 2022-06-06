@@ -38,7 +38,7 @@ defmodule ActiveStorage.Previewer.VideoPreviewer do
 
       content_type = "image/jpeg"
 
-      output = [io: path, filename: filename, content_type: content_type] ++ options
+      output = [io: {:path, path}, filename: filename, content_type: content_type] ++ options
 
       if(block) do
         block.(output)

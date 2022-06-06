@@ -158,6 +158,7 @@ defmodule ActiveStorage.Variant do
     |> ActiveStorage.Blob.open(
       block: fn input ->
         key = key(variant)
+
         variant.variation
         |> ActiveStorage.Variation.transform(input, fn output ->
           srv = ActiveStorage.Blob.service(variant.blob)

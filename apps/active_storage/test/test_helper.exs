@@ -27,7 +27,7 @@ defmodule ActiveStorageTestHelpers do
   def create_blob(options \\ []) do
     default = [
       key: nil,
-      data: "Hello world!",
+      data: {:string, "Hello world!"},
       filename: "hello.txt",
       content_type: "text/plain",
       identify: true,
@@ -72,7 +72,7 @@ defmodule ActiveStorageTestHelpers do
     blob = %ActiveStorage.Blob{}
 
     ActiveStorage.Blob.create_and_upload!(blob,
-      io: file,
+      io: {:io, file},
       filename: options[:filename],
       content_type: options[:content_type],
       metadata: options[:metadata],
@@ -102,7 +102,7 @@ defmodule ActiveStorageTestHelpers do
   def build_blob_after_unfurling(options \\ []) do
     default = [
       key: nil,
-      data: "Hello world!",
+      data: {:string, "Hello world!"},
       filename: "hello.txt",
       content_type: "text/plain",
       identify: true,
@@ -132,8 +132,8 @@ defmodule ActiveStorageTestHelpers do
     # file = file_fixture(filename)
     # byte_size = file.size
     # checksum = OpenSSL::Digest::MD5.file(file).base64digest
-    byte_size = ActiveStorage.Blob.get_byte_size(io)
-    checksum = ActiveStorage.Blob.compute_checksum_in_chunks(io)
+    byte_size = ActiveStorage.Blob.get_byte_size({:string, io})
+    checksum = ActiveStorage.Blob.compute_checksum_in_chunks({:string, io})
 
     blob =
       create_blob_before_direct_upload(
@@ -145,7 +145,7 @@ defmodule ActiveStorageTestHelpers do
       )
 
     service = ActiveStorage.Blob.service(blob)
-    service.__struct__.upload(service, blob.key, io)
+    service.__struct__.upload(service, blob.key, {:string, io})
 
     blob
 
@@ -171,10 +171,6 @@ defmodule ActiveStorageTestHelpers do
     key = ActiveStorage.Variant.key(blob_or_variant)
     p = srv.__struct__.path_for(srv, key)
     Mogrify.identify(p, format: format)
-  end
-
-  def read_image(blob_or_variant) do
-    # MiniMagick :: Image.open(blob_or_variant.service.send(:path_for, blob_or_variant.key))
   end
 
   def extract_metadata_from(blob) do

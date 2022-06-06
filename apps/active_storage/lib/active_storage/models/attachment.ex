@@ -18,7 +18,9 @@ defmodule ActiveStorage.Attachment do
   # belongs_to :blob, class_name: "ActiveStorage::Blob", autosave: true
 
   # delegate_missing_to :blob
-  # delegate :signed_id, to: :blob
+  def signed_id(attachment, reason \\ []) do
+    ActiveStorage.Blob.signed_id(attachment.blob, reason)
+  end
 
   def after_create_commit(attachment) do
     analyze_blob_later(attachment)
@@ -87,10 +89,16 @@ defmodule ActiveStorage.Attachment do
   end
 
   def new(record: record, name: name, blob: blob) do
+    blob_id =
+      case blob do
+        %ActiveStorage.Blob{id: id} -> id
+        %Ecto.Changeset{} = c -> c.data.id
+      end
+
     %__MODULE__{
       record_id: record.id,
       record_type: record.__struct__.record_type(),
-      blob_id: blob.id,
+      blob_id: blob_id,
       name: name
     }
   end

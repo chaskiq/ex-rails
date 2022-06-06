@@ -205,7 +205,7 @@ defmodule StartingTest do
     end
 
     test "user test" do
-      user = User.avatar(%User{})
+      _user = User.avatar(%User{})
     end
   end
 end
