@@ -21,6 +21,19 @@ jobs:
         ports: ['6379:6379']
         options: --entrypoint redis-server
 
+      minio:
+        image: lazybit/minio
+        ports:
+          - 9000:9000
+        env:
+          MINIO_ACCESS_KEY: root
+          MINIO_SECRET_KEY: active_storage_test
+        volumes:
+          - ${{ github.workspace }}/data:/data
+        options: --name=minio --health-cmd "curl http://localhost:9000/minio/health/live"
+
+
+
     env:
       DATABASE_URL: postgres://postgres:postgres@localhost:5432/test
       REDIS_URL: redis://localhost:6379/0
@@ -32,16 +45,6 @@ jobs:
         run: sudo apt-get -y install poppler-data poppler-utils ffmpeg mupdf-tools
       - name: Check identify
         run: identify --version
-
-      - name: Minio Deploy
-        uses: lovellfelix/minio-deploy-action@v1
-        with:
-          endpoint: http://localhost:9000
-          access_key: root
-          secret_key: active_storage_test
-          bucket: 'active-storage-test'
-          source_dir: 'public'
-          target_dir: '/'
 
       - uses: erlef/setup-beam@v1
         with:
