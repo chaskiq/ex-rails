@@ -22,16 +22,14 @@ jobs:
         options: --entrypoint redis-server
 
       minio:
+        # fixme: let's not depend on external unofficial image
         image: lazybit/minio
         ports:
           - 9000:9000
         env:
-          MINIO_ACCESS_KEY: root
-          MINIO_SECRET_KEY: active_storage_test
-        volumes:
-          - ${{ github.workspace }}/data:/data
+          MINIO_ROOT_USER: root
+          MINIO_ROOT_PASSWORD: active_storage_test
         options: --name=minio --health-cmd "curl http://localhost:9000/minio/health/live"
-
 
 
     env:
@@ -45,6 +43,11 @@ jobs:
         run: sudo apt-get -y install poppler-data poppler-utils ffmpeg mupdf-tools
       - name: Check identify
         run: identify --version
+
+      - run: wget https://dl.min.io/client/mc/release/linux-amd64/mc
+      - run: chmod +x ./mc
+      - run: ./mc alias set minio http://127.0.0.1:9000 root active_storage_test
+      - run: ./mc mb --ignore-existing minio/active_storage_test
 
       - uses: erlef/setup-beam@v1
         with:
