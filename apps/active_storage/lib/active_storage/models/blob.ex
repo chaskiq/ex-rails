@@ -38,6 +38,19 @@ defmodule ActiveStorage.Blob do
     timestamps(inserted_at: :created_at, updated_at: :updated_at)
   end
 
+  def unattached_query() do
+    from(a in ActiveStorage.Blob,
+      left_join: c in ActiveStorage.Attachment,
+      on: a.id == c.blob_id,
+      select: a,
+      where: is_nil(c.id)
+    )
+  end
+
+  def unattached() do
+    unattached_query() |> ActiveStorage.RepoClient.repo().all
+  end
+
   def record_type do
     "Blob"
   end
@@ -478,9 +491,9 @@ defmodule ActiveStorage.Blob do
     defaults = [tmpdir: nil, block: nil]
     options = Keyword.merge(defaults, options)
 
-    ext = MIME.extensions(MIME.from_path(blob.filename)) |> hd
+    ext = ActiveStorage.Blob.filename(blob) |> ActiveStorage.Filename.extension_with_delimiter()
 
-    name = ["ActiveStorage-#{blob.id}-", ".#{ext}"]
+    name = ["ActiveStorage-#{blob.id}-", "#{ext}"]
 
     service = service(blob)
 
@@ -505,7 +518,7 @@ defmodule ActiveStorage.Blob do
   end
 
   def extract_content_type(blob, {:string, io}) do
-    MIME.from_path(blob.changes.filename) || blob.changes.content_type
+    ExMarcel.MimeType.for(nil, name: blob.changes.filename) || blob.changes.content_type
   end
 
   def extract_content_type(blob, {:path, io}) do

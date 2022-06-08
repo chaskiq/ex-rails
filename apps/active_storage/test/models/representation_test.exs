@@ -76,8 +76,16 @@ defmodule RepresentationTest do
     # assert_equal 480, image.height
   end
 
-  @tag skip: "this test is incomplete"
   test "representing an unrepresentable blob" do
+    blob = ActiveStorageTestHelpers.create_blob()
+
+    assert_raise ActiveStorage.UnrepresentableError, fn ->
+      ActiveStorage.Blob.representation(
+        blob,
+        %{resize_to_limit: "100x100"}
+      )
+    end
+
     # blob = create_blob
     #
     # assert_raises ActiveStorage::UnrepresentableError do

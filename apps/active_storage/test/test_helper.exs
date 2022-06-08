@@ -10,6 +10,8 @@ ExUnit.start(
 
 alias ActiveStorage.Test.Repo
 
+# Ecto.Adapters.SQL.Sandbox.mode(Repo, {:shared, self()})
+
 # {:ok, _} = Ecto.Adapters.Postgres.ensure_all_started(Repo, :temporary)
 
 # _ = Ecto.Adapters.Postgres.storage_down(Repo.config())
@@ -21,6 +23,10 @@ alias ActiveStorage.Test.Repo
 
 # :ok = Ecto.Migrator.up(Repo, 0, Ecto.Integration.Migration)
 # Ecto.Adapters.SQL.Sandbox.mode(Repo, :manual)
+Ecto.Adapters.SQL.Sandbox.mode(Repo, {:shared, self()})
+
+Ecto.Adapters.SQL.Sandbox.checkout(Repo)
+
 # Process.flag(:trap_exit, true)
 
 defmodule ActiveStorageTestHelpers do
@@ -121,6 +127,10 @@ defmodule ActiveStorageTestHelpers do
     )
 
     # ActiveStorage::Blob.build_after_unfurling key: key, io: StringIO.new(data), filename: filename, content_type: content_type, identify: identify, record: record
+  end
+
+  def file_fixture(file) do
+    File.read!("./test/files/#{file}")
   end
 
   def directly_upload_file_blob(options \\ []) do

@@ -85,6 +85,18 @@ defmodule ActiveStorage.Attached.Changes.CreateOne do
 
     attachment = attachment(instance).attachment
 
+    # updates attachment blob
+    attachment =
+      case attachment do
+        %{id: nil} ->
+          attachment
+
+        %{id: id} = attachment ->
+          attachment
+          |> Ecto.Changeset.change(%{blob_id: blob.id})
+          |> ActiveStorage.RepoClient.repo().update!
+      end
+
     a =
       Ecto.Changeset.put_assoc(record_changeset, name, attachment)
       |> ActiveStorage.RepoClient.repo().update!
@@ -110,7 +122,13 @@ defmodule ActiveStorage.Attached.Changes.CreateOne do
         nil
 
       blob ->
-        apply(instance.record.__struct__, "#{instance.name}_attachment")
+        namespace = :"#{instance.name}_attachment"
+
+        instance.record
+        |> ActiveStorage.RepoClient.repo().preload(namespace)
+        |> Map.get(namespace)
+
+        # apply(instance.record, :"#{instance.name}_attachment")
     end
 
     # if instance.record.public_send("#{name}_blob") == blob do

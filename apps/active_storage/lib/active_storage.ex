@@ -61,8 +61,14 @@ defmodule ActiveStorage do
   #  service(blob).url(blob)
   # end
 
-  def url(blob, _options \\ []) do
-    ActiveStorage.Service.url(blob)
+  def url(blob, options \\ []) do
+    defaults = [
+      filename: ActiveStorage.Blob.filename(blob)
+    ]
+
+    options = Keyword.merge(defaults, options)
+
+    ActiveStorage.Service.url(blob, options)
   end
 
   def service_url(blob) do

@@ -15,7 +15,7 @@ defmodule ActiveStorage.Downloader do
 
     service = downloader.service
 
-    open_tempfile(options[:name], fn file ->
+    open_tempfile(options[:name], options[:tmpdir], fn file ->
       {:ok, file_contents} = download(service, key, file)
 
       # a = IO.read(file, :line)
@@ -42,11 +42,9 @@ defmodule ActiveStorage.Downloader do
     case downloader.service.__struct__.download(service, key) do
       {:ok, a} ->
         dir = System.tmp_dir!()
-        tmp_file = Path.join(dir, args.name)
-        # IO.inspect(tmp_file)
 
         {:ok, file} =
-          open_tempfile(tmp_file, fn file ->
+          open_tempfile(args.name, dir, fn file ->
             verify_integrity_of(a, args)
             IO.binwrite(file, a)
             File.close(file)
@@ -74,10 +72,16 @@ defmodule ActiveStorage.Downloader do
     # end
   end
 
-  defp open_tempfile(tmp_file, block) do
-    [prefix, suffix] = tmp_file
+  defp open_tempfile(name, tmp_dir, block) do
+    [prefix, suffix] = name
 
-    case Temp.path(%{prefix: prefix, suffix: suffix}) do
+    path_options =
+      case tmp_dir do
+        nil -> %{prefix: prefix, suffix: suffix}
+        base_dir -> %{prefix: prefix, suffix: suffix, base_dir: base_dir}
+      end
+
+    case Temp.path(path_options) do
       {:ok, tmp_path} ->
         block.(tmp_path)
 
