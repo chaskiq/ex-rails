@@ -18,7 +18,7 @@ services:
       MINIO_ROOT_USER: root
       MINIO_ROOT_PASSWORD: active_storage_test
       # VIRTUAL_HOST: minio.localhost
-    command: server --console-address ":9001" /data
+    command: server --console-address ":9001" /active_storage_test
 
   app:
     build: ./apps/active_storage/test/app
