@@ -33,6 +33,16 @@ jobs:
       - name: Check identify
         run: identify --version
 
+      - name: Minio Deploy
+        uses: lovellfelix/minio-deploy-action@v1
+        with:
+          endpoint: http://localhost:9000
+          access_key: root
+          secret_key: active_storage_test
+          bucket: 'active-storage-test'
+          source_dir 'public'
+          target_dir: '/'
+
       - uses: erlef/setup-beam@v1
         with:
           otp-version: '24'
