@@ -40,7 +40,7 @@ jobs:
           access_key: root
           secret_key: active_storage_test
           bucket: 'active-storage-test'
-          source_dir 'public'
+          source_dir: 'public'
           target_dir: '/'
 
       - uses: erlef/setup-beam@v1
