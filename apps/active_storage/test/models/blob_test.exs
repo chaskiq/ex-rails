@@ -11,6 +11,9 @@ defmodule BlobTest do
   end
 
   test "unattached scope" do
+    ActiveStorage.Attachment |> Repo.delete_all()
+    ActiveStorage.Blob |> Repo.delete_all()
+
     first = ActiveStorageTestHelpers.create_blob(filename: "funky.jpg")
     second = ActiveStorageTestHelpers.create_blob(filename: "town.jpg")
 
@@ -18,12 +21,13 @@ defmodule BlobTest do
 
     avatar = user.__struct__.avatar(user)
     attachment = avatar.__struct__.attach(avatar, first)
-    assert ActiveStorage.Blob.unattached() == [second]
-    assert ActiveStorage.Blob.unattached() != [first]
+
+    assert ActiveStorage.Blob.unattached() |> Enum.find(fn x -> x.id == second.id end)
+    assert ActiveStorage.Blob.unattached() |> Enum.find(fn x -> x.id == first.id end) == nil
 
     attachment2 = avatar.__struct__.attach(avatar, second)
 
-    assert ActiveStorage.Blob.unattached() != [second]
+    assert ActiveStorage.Blob.unattached() |> Enum.find(fn x -> x.id == second.id end) == nil
 
     # [ create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg") ].tap do |blobs|
     #  User.create! name: "DHH", avatar: blobs.first
