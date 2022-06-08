@@ -44,10 +44,10 @@ jobs:
       - name: Check identify
         run: identify --version
 
-      - run: wget https://dl.min.io/client/mc/release/linux-amd64/mc
-      - run: chmod +x ./mc
-      - run: ./mc alias set minio http://127.0.0.1:9000 root active_storage_test
-      - run: ./mc mb --ignore-existing minio/active_storage_test
+      #- run: wget https://dl.min.io/client/mc/release/linux-amd64/mc
+      #- run: chmod +x ./mc
+      #- run: ./mc alias set minio http://127.0.0.1:9000 root active_storage_test
+      #- run: ./mc mb --ignore-existing minio/active_storage_test
 
       - uses: erlef/setup-beam@v1
         with:
