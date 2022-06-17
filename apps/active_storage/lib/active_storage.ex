@@ -75,6 +75,77 @@ defmodule ActiveStorage do
     ActiveStorage.Service.service_url(blob)
   end
 
+  def routes_prefix do
+    Application.get_env(:active_storage, :routes_prefix) || "/active_storage"
+  end
+
+  def service_blob_url(struct, opts \\ []) do
+    namespace = routes_prefix()
+
+    # expires_in =
+    #  Keyword.fetch!(opts, :expires_in) ||
+    #    Application.get_env(:active_storage, :urls_expire_in)
+
+    # sign_option = [expires_in: 3600]
+    sign_option = []
+
+    case struct do
+      %ActiveStorage.Variant{blob: blob} ->
+        filename = Blob.filename(blob)
+        "#{namespace}/blobs/redirect/#{Blob.signed_id(blob, sign_option)}/#{filename.filename}"
+
+      %ActiveStorage.VariantWithRecord{blob: blob} ->
+        filename = Blob.filename(blob)
+        "#{namespace}/blobs/redirect/#{Blob.signed_id(blob, sign_option)}/#{filename.filename}"
+
+      %ActiveStorage.Preview{blob: blob} ->
+        filename = Blob.filename(blob)
+        "#{namespace}/blobs/redirect/#{Blob.signed_id(blob, sign_option)}/#{filename.filename}"
+
+      %ActiveStorage.Blob{} = blob ->
+        filename = Blob.filename(blob)
+        "#{namespace}/blobs/redirect/#{Blob.signed_id(blob, sign_option)}/#{filename.filename}"
+
+      %ActiveStorage.Attachment{} ->
+        "url!"
+    end
+  end
+
+  def storage_redirect_url(struct, opts \\ []) do
+    namespace = routes_prefix()
+
+    # sign_option = [expires_in: 3600]
+    sign_option = []
+
+    case struct do
+      %ActiveStorage.Variant{blob: blob} ->
+        service_blob_url(blob)
+
+      %ActiveStorage.VariantWithRecord{blob: blob} = variant ->
+        # "/representations/redirect/:signed_blob_id/:variation_key/*filename" => "active_storage/representations/redirect#show", as: :rails_blob_representation
+        variation_key = variant.variation.__struct__.key(variant.variation)
+
+        "#{namespace}/representations/redirect/#{Blob.signed_id(blob, sign_option)}/#{variation_key}/#{Blob.filename(blob).filename}"
+
+      %ActiveStorage.Preview{blob: blob} ->
+        require IEx
+        IEx.pry()
+        filename = Blob.filename(blob)
+        "#{namespace}/blobs/redirect/#{Blob.signed_id(blob, sign_option)}/#{filename.filename}"
+
+      %ActiveStorage.Blob{} = blob ->
+        require IEx
+        IEx.pry()
+        filename = Blob.filename(blob)
+        "#{namespace}/blobs/redirect/#{Blob.signed_id(blob, sign_option)}/#{filename.filename}"
+
+      %ActiveStorage.Attachment{} ->
+        require IEx
+        IEx.pry()
+        "url!"
+    end
+  end
+
   @doc """
   Returns the list of storage_blob.
 
@@ -229,7 +300,7 @@ defmodule ActiveStorage do
     )
   end
 
-  defp repo do
+  def repo do
     Application.fetch_env!(:active_storage, :repo)
   end
 
