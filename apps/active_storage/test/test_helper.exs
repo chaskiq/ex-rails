@@ -171,6 +171,13 @@ defmodule ActiveStorageTestHelpers do
     Mogrify.open(srv.__struct__.path_for(srv, key)) |> Mogrify.verbose()
   end
 
+  def read_image(attached = %ActiveStorage.Attached.One{}) do
+    key = attached.__struct__.key(attached)
+
+    srv = ActiveStorage.Blob.service()
+    Mogrify.open(srv.__struct__.path_for(srv, key)) |> Mogrify.verbose()
+  end
+
   def read_image(blob_or_variant) do
     srv = blob_or_variant |> ActiveStorage.Blob.service()
     Mogrify.open(srv.__struct__.path_for(srv, blob_or_variant.key)) |> Mogrify.verbose()

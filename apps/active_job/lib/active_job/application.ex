@@ -9,13 +9,13 @@ defmodule ActiveJob.Application do
   def start(_type, _args) do
     children =
       [
-        ActiveJob.Test.Repo,
         obanapp()
         # {Oban, oban_config()}
         # Exq,
         # Starts a worker by calling: ActiveJob.Worker.start_link(arg)
         # {ActiveJob.Worker, arg}
       ]
+      |> List.flatten()
       |> Enum.filter(fn x -> x end)
 
     # See https://hexdocs.pm/elixir/Supervisor.html
@@ -27,7 +27,11 @@ defmodule ActiveJob.Application do
   defp obanapp do
     if Code.ensure_loaded?(Oban) do
       Application.ensure_all_started(:oban)
-      {Oban, Application.fetch_env!(:active_job, Oban)}
+
+      [
+        Application.get_env(:active_job, :repo, Repo),
+        {Oban, Application.fetch_env!(:active_job, Oban)}
+      ]
     end
   end
 end

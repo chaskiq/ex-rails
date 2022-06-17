@@ -30,7 +30,7 @@ defmodule ActiveJob.ObanJob do
     queue_adapter: ActiveJob.QueueAdapters.ObanAdapter
 
   def perform(args) do
-    IO.inspect("GREAT THE OBAN JOB WAS PERFORMED!!!!!!")
+    IO.inspect("THE GREAT OBAN JOB WAS PERFORMED!")
     IO.inspect(args)
   end
 end

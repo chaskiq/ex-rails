@@ -27,7 +27,7 @@ defmodule ActiveStorage.Attached.Changes.CreateOneOfMany do
 
   defdelegate blob(instance), to: ActiveStorage.Attached.Changes.CreateOne
 
-  defdelegate upload, to: ActiveStorage.Attached.Changes.CreateOne
+  defdelegate upload(instance, attachable), to: ActiveStorage.Attached.Changes.CreateOne
 
   defdelegate save(instance), to: ActiveStorage.Attached.Changes.CreateOne
 

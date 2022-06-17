@@ -25,6 +25,7 @@ defmodule ActiveStorage.Verifier do
     |> Plug.Crypto.MessageVerifier.sign(secret())
   end
 
+  @spec verify(binary, any) :: {:error, <<_::64, _::_*8>>} | {:ok, any}
   def verify(message, purpose \\ nil) do
     case Plug.Crypto.MessageVerifier.verify(message, secret()) do
       {:ok, encoded} ->

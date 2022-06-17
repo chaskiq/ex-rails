@@ -13,14 +13,17 @@ defmodule ActiveStorage.VariantWithRecord do
   end
 
   def processed(instance) do
-    instance = process(instance)
-    instance |> record()
+    process(instance)
+    # instance |> record()
   end
 
   def process(instance) do
     if !processed?(instance) do
       a = transform_blob(instance)
       create_or_find_record(instance, a)
+    else
+      # fill the record
+      %{instance | record: __MODULE__.find_variant_record(instance)}
     end
 
     # transform_blob { |image| create_or_find_record(image: image) } unless processed?
@@ -34,12 +37,13 @@ defmodule ActiveStorage.VariantWithRecord do
   end
 
   def image(instance) do
-    record = __MODULE__.record(instance)
+    record = record(instance)
+    record.__struct__.image(record)
+    # instance.record.__struct__.image(processed.record)
 
-    case record do
-      nil -> nil
-      %{image: image} -> image
-    end
+    # blob = record.blob
+    # preview.blob.__struct__.preview_image(preview.blob)
+    # blob.__struct__.preview_image(blob)
   end
 
   def key(instance) do
@@ -49,7 +53,7 @@ defmodule ActiveStorage.VariantWithRecord do
 
   def url(instance) do
     img = image(instance)
-    img.url
+    img.__struct__.url(img)
   end
 
   # delegate :key, :url, :download, to: :image, allow_nil: true
@@ -128,7 +132,9 @@ defmodule ActiveStorage.VariantWithRecord do
           record
       end
 
-    instance |> Map.merge(%{record: record})
+    variant = record.__struct__.record(record)
+
+    instance |> Map.merge(%{record: variant})
   end
 
   #  def create_or_find_record(image:)

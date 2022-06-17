@@ -26,7 +26,7 @@ defmodule ActiveStorage.Service.Configurator do
         r.build(
           %{
             configurator: configurator,
-            name: service_name,
+            name: service_key,
             service: r
           },
           config

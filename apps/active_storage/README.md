@@ -59,7 +59,7 @@ config :my_app, :sources, %{
 #### `config/(dev|test|prod).ex`
 
 ```
-config :active_storage, :default_source, :amazon
+config :active_storage, :service, :amazon
 ```
 
 ### Setup

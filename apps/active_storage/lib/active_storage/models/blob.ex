@@ -38,6 +38,18 @@ defmodule ActiveStorage.Blob do
     timestamps(inserted_at: :created_at, updated_at: :updated_at)
   end
 
+  def service() do
+    ActiveStorage.TableConfig.get("service")
+  end
+
+  def service_name_stringyfied() do
+    service().name |> Atom.to_string()
+  end
+
+  def services() do
+    ActiveStorage.TableConfig.get("services")
+  end
+
   def unattached_query() do
     from(a in ActiveStorage.Blob,
       left_join: c in ActiveStorage.Attachment,
@@ -89,6 +101,7 @@ defmodule ActiveStorage.Blob do
       :key
     ])
     |> key
+    |> default_service_if_empty()
     # |> prepare_changes(&set_defaults/1)
     |> validate_required([
       :filename,
@@ -98,6 +111,14 @@ defmodule ActiveStorage.Blob do
       # :checksum,
       :service_name
     ])
+  end
+
+  defp default_service_if_empty(changeset) do
+    case get_change(changeset, :service_name) do
+      nil -> put_change(changeset, :service_name, service_name_stringyfied())
+      "" -> put_change(changeset, :service_name, service_name_stringyfied())
+      _ -> changeset
+    end
   end
 
   def set_defaults(current_changeset) do
@@ -156,7 +177,7 @@ defmodule ActiveStorage.Blob do
       filename: nil,
       content_type: nil,
       metadata: nil,
-      service_name: "local",
+      service_name: nil,
       identify: true
       # record: record
     ]
@@ -189,7 +210,7 @@ defmodule ActiveStorage.Blob do
       filename: nil,
       content_type: nil,
       metadata: nil,
-      service_name: "local",
+      service_name: nil,
       identify: true
       # record: record
     ]
@@ -214,7 +235,7 @@ defmodule ActiveStorage.Blob do
       filename: nil,
       content_type: nil,
       metadata: nil,
-      service_name: "local",
+      service_name: nil,
       identify: true
       # record: record
     ]
@@ -249,7 +270,7 @@ defmodule ActiveStorage.Blob do
       filename: nil,
       content_type: nil,
       metadata: nil,
-      service_name: "local",
+      service_name: nil,
       identify: true,
       record: nil
     ]
@@ -277,8 +298,8 @@ defmodule ActiveStorage.Blob do
   def upload(blob, io, options \\ []) do
     defaults = [identify: true]
     options = Keyword.merge(defaults, options)
-    require IEx
-    IEx.pry()
+    IO.puts("UPLOAD TH")
+    IO.inspect(options)
 
     blob
     |> unfurl(io, options)

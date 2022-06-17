@@ -4,7 +4,7 @@ config :logger, level: :info
 
 config :active_storage, ecto_repos: [ActiveStorage.Test.Repo]
 
-config :active_storage, :default_source, :amazon
+config :active_storage, :service, :local
 
 config :active_storage, repo: ActiveStorage.Test.Repo
 

@@ -44,7 +44,8 @@ defmodule PreviewTest do
     assert "cropped.png", processed.blob.__struct__.filename(processed.blob).filename
     assert "image/png", processed.blob.content_type
 
-    image = ActiveStorageTestHelpers.read_image(processed.blob)
+    attached = processed.__struct__.image(processed)
+    image = ActiveStorageTestHelpers.read_image(attached)
 
     assert 430 == image.width
     assert 145 == image.height
@@ -74,7 +75,8 @@ defmodule PreviewTest do
     assert "video.jpg", ActiveStorage.Blob.filename(processed.blob).filename
     assert "image/jpeg", processed.blob.content_type
 
-    image = ActiveStorageTestHelpers.read_image(processed.blob)
+    attached = processed.__struct__.image(processed)
+    image = ActiveStorageTestHelpers.read_image(attached)
 
     assert 640 == image.width
     assert 480 == image.height

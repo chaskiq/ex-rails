@@ -1,6 +1,8 @@
 defmodule ActiveStorage.Service.S3Service do
   @behaviour ActiveStorage.Service
 
+  alias ExAws.S3
+
   defstruct [
     :public,
     :name,
@@ -17,7 +19,7 @@ defmodule ActiveStorage.Service.S3Service do
 
   # def new(%{bucket: bucket, upload: upload, public: public}, options \\ []) do
   def new(options \\ []) do
-    defaults = [public: false]
+    defaults = [public: false, name: nil]
 
     options = Keyword.merge(defaults, options)
 
@@ -26,7 +28,7 @@ defmodule ActiveStorage.Service.S3Service do
 
     bucket = options |> Keyword.get(:bucket)
     public = options |> Keyword.get(:public)
-
+    name = options |> Keyword.get(:name)
     # @client = Aws::S3::Resource.new(**options)
     # @bucket = @client.bucket(bucket)
 
@@ -38,7 +40,8 @@ defmodule ActiveStorage.Service.S3Service do
     %__MODULE__{
       client: client,
       bucket: bucket,
-      public: public
+      public: public,
+      name: name
     }
   end
 
@@ -83,47 +86,62 @@ defmodule ActiveStorage.Service.S3Service do
   end
 
   @impl ActiveStorage.Service
-  def private_url(service, blob, opts \\ []) do
+  def private_url(service, key, opts \\ []) do
     bucket = service.bucket
 
     # object_for(key).presigned_url :get, expires_in: expires_in.to_i,
     #  response_content_disposition: content_disposition_with(type: disposition, filename: filename),
     #  response_content_type: content_type
-    ExAws.Config.new(:s3, service.client)
-    |> ExAws.S3.presigned_url(:get, bucket, blob.key, opts)
+
+    case ExAws.Config.new(:s3, service.client)
+         |> ExAws.S3.presigned_url(:get, bucket, key, opts) do
+      {:ok, url} ->
+        url
+
+      _ ->
+        raise "can't create a presigned url for #{key}"
+    end
   end
 
   @impl ActiveStorage.Service
-  def public_url(service, key) do
+  def public_url(service, key, _options) do
     bucket = service.bucket
 
     ExAws.Config.new(:s3, service.client)
     |> ExAws.S3.get_object(bucket, key)
   end
 
+  def url(service, key, options \\ []) do
+    if ActiveStorage.Service.public?(service) do
+      public_url(service, key, options)
+    else
+      private_url(service, key, options)
+    end
+  end
+
   # https://www.poeticoding.com/aws-s3-in-elixir-with-exaws/
 
   # def upload(key, io, %{checksum: nil, filename: nil, content_type: nil, disposition: nil}) do
   def upload(service, key, io) do
-    io =
-      case io do
-        {:string, io} -> io
-        {:io, io} -> io
-        _ -> nil
-      end
-
-    # stream(io)
-    # amazon = Application.fetch_env!(:active_storage, :storage) |> Keyword.get(:amazon)
-    # bucket = amazon.bucket
     ActiveStorage.Service.instrument(:upload, %{key: key}, fn ->
-      operation =
-        ExAws.S3.put_object(
-          service.bucket,
-          key,
-          io
-        )
+      case io do
+        {:path, path} ->
+          path
+          |> S3.Upload.stream_file()
+          |> S3.upload(service.bucket, key)
+          |> ExAws.request()
 
-      ExAws.request(operation, service.client)
+        {:string, contents} ->
+          S3.put_object(service.bucket, key, contents) |> ExAws.request!()
+
+        {:io, io} ->
+          :file.position(io, :bof)
+          contents = IO.binread(io)
+          S3.put_object(service.bucket, key, contents) |> ExAws.request!()
+
+        _ ->
+          nil
+      end
     end)
   end
 
@@ -141,7 +159,6 @@ defmodule ActiveStorage.Service.S3Service do
     #    raise ActiveStorage::FileNotFoundError
     #  end
     # end
-
     case object_for(service, key) do
       {:ok, %{body: body}} -> {:ok, body}
       _ -> nil
@@ -153,16 +170,11 @@ defmodule ActiveStorage.Service.S3Service do
     ExAws.S3.Upload.stream_file(filename) |> ExAws.S3.upload(bucket, filename) |> ExAws.request!()
   end
 
-  # def url(blob) do
-  #  signed_blob_id = Chaskiq.Verifier.sign(blob.id)
-  #  ActiveStorage.service_url(signed_blob_id)
-  # end
-
   # def open(*args, **options, &block) do
-  def open(service, blob, args, block) do
+  def open(service, blob, args) do
     # .open(*args, **options, &block)
     ActiveStorage.Downloader.new(service)
-    |> ActiveStorage.Downloader.open(blob, args, block)
+    |> ActiveStorage.Downloader.open(blob, args)
   end
 
   def create_direct_upload(blob, %{

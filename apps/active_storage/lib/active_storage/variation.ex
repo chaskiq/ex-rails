@@ -22,8 +22,16 @@ defmodule ActiveStorage.Variation do
 
       any ->
         cond do
-          any |> is_binary() -> any |> __MODULE__.decode()
-          true -> %ActiveStorage.Variation{transformations: variator}
+          any |> is_binary() ->
+            transformations = any |> __MODULE__.decode()
+
+            transformations =
+              for {key, val} <- transformations, into: %{}, do: {String.to_atom(key), val}
+
+            %ActiveStorage.Variation{transformations: transformations}
+
+          true ->
+            %ActiveStorage.Variation{transformations: variator}
         end
     end
 

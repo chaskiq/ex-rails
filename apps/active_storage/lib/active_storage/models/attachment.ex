@@ -14,12 +14,27 @@ defmodule ActiveStorage.Attachment do
     timestamps(inserted_at: :created_at, updated_at: :updated_at)
   end
 
+  def record(struct) do
+    mod = Module.concat([struct.record_type])
+    ActiveStorage.repo().get!(mod, struct.record_id)
+  end
+
   # belongs_to :record, polymorphic: true, touch: true
   # belongs_to :blob, class_name: "ActiveStorage::Blob", autosave: true
 
   # delegate_missing_to :blob
   def signed_id(attachment, reason \\ []) do
     ActiveStorage.Blob.signed_id(attachment.blob, reason)
+  end
+
+  def key(attachment) do
+    attachment = attachment |> ActiveStorage.RepoClient.repo().preload(:blob)
+    attachment.blob.key
+  end
+
+  def url(attachment) do
+    attachment = attachment |> ActiveStorage.RepoClient.repo().preload(:blob)
+    attachment.blob |> ActiveStorage.url()
   end
 
   def after_create_commit(attachment) do

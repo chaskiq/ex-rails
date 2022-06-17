@@ -20,12 +20,12 @@ defmodule BlobTest do
     {:ok, user} = User.changeset(%User{}, %{name: "Jason"}) |> Repo.insert()
 
     avatar = user.__struct__.avatar(user)
-    attachment = avatar.__struct__.attach(avatar, first)
+    _attachment = avatar.__struct__.attach(avatar, first)
 
     assert ActiveStorage.Blob.unattached() |> Enum.find(fn x -> x.id == second.id end)
     assert ActiveStorage.Blob.unattached() |> Enum.find(fn x -> x.id == first.id end) == nil
 
-    attachment2 = avatar.__struct__.attach(avatar, second)
+    _attachment2 = avatar.__struct__.attach(avatar, second)
 
     assert ActiveStorage.Blob.unattached() |> Enum.find(fn x -> x.id == second.id end) == nil
 
@@ -328,8 +328,8 @@ defmodule BlobTest do
   test "URLs expiring in 5 minutes" do
     blob = ActiveStorageTestHelpers.create_blob()
 
-    a = expected_url_for(blob)
-    b = ActiveStorage.url(blob)
+    _a = expected_url_for(blob)
+    _b = ActiveStorage.url(blob)
 
     #
     # freeze_time do
@@ -340,7 +340,7 @@ defmodule BlobTest do
 
   @tag skip: "this test is incomplete"
   test "URLs force content_type to binary and attachment as content disposition for content types served as binary" do
-    blob = ActiveStorageTestHelpers.create_blob(content_type: "text/html")
+    _blob = ActiveStorageTestHelpers.create_blob(content_type: "text/html")
     #
     # freeze_time do
     #   assert_equal expected_url_for(blob, disposition: :attachment, content_type: "application/octet-stream"), blob.url

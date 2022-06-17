@@ -31,13 +31,14 @@ defmodule ActiveStorage.Service do
       service = ActiveStorage.Blob.service(blob)
 
       if is_public do
-        service.__struct__.public_url(service, blob, opts)
+        service.__struct__.public_url(service, blob.key, opts)
       else
-        service.__struct__.private_url(service, blob, opts)
+        service.__struct__.private_url(service, blob.key, opts)
       end
       |> case do
         {:ok, value} -> value
         {:error, _} -> nil
+        value -> value
       end
     end)
 

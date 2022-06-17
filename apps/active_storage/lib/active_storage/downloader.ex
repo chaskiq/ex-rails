@@ -21,6 +21,7 @@ defmodule ActiveStorage.Downloader do
       # a = IO.read(file, :line)
       # https://pspdfkit.com/blog/2021/the-perils-of-large-files-in-elixir/
       # article on how to handle large files.
+
       verify_integrity_of({:string, file_contents}, checksum: options[:checksum])
 
       {:ok, tmp_file} = File.open(file, [:write])

@@ -64,10 +64,14 @@ defmodule ActiveStorage.Preview do
 
   # Returns the blob's attached preview image.
   def image(preview) do
-    case preview.blob.__struct__.preview_image(preview.blob) do
-      %ActiveStorage.Attached.One{record: record} -> record
-      _ -> nil
-    end
+    preview.blob.__struct__.preview_image(preview.blob)
+
+    # processed.blob |> ActiveStorage.RepoClient.repo.preload(:preview_image_blob)
+
+    # case preview.blob.__struct__.preview_image(preview.blob) do
+    #  %ActiveStorage.Attached.One{record: record} -> record
+    #  _ -> nil
+    # end
 
     # blob.preview_image
   end
@@ -128,6 +132,8 @@ defmodule ActiveStorage.Preview do
         image.__struct__.attach(image, attachable)
       end
     )
+
+    preview
 
     # previewer.preview(service_name: blob.service_name) do |attachable|
     #   ActiveRecord::Base.connected_to(role: ActiveRecord.writing_role) do

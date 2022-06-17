@@ -8,7 +8,7 @@ defmodule ActiveStorage.Attached.One do
     %__MODULE__{name: name, record: record}
   end
 
-  def change(instance) do
+  def change(_instance) do
     # record.attachment_changes[name]
   end
 
@@ -40,7 +40,24 @@ defmodule ActiveStorage.Attached.One do
   # You don't have to call this method to access the attachment's methods as
   # they are all available at the model level.
   def attachment(instance) do
+    get_attachment(instance)
     # change.present? ? change.attachment : record.public_send("#{name}_attachment")
+  end
+
+  def key(instance) do
+    __MODULE__.attachment(instance)
+    |> ActiveStorage.Attachment.key()
+  end
+
+  def url(instance) do
+    __MODULE__.attachment(instance)
+    |> ActiveStorage.Attachment.url()
+  end
+
+  def get_attachment(instance) do
+    instance.record
+    |> Ecto.assoc(:"#{instance.name}_attachment")
+    |> ActiveStorage.RepoClient.repo().one
   end
 
   # Returns +true+ if an attachment is not attached.
@@ -70,7 +87,7 @@ defmodule ActiveStorage.Attached.One do
 
     case Ecto.get_meta(instance.record, :state) do
       :loaded ->
-        IO.inspect("TODO: save here a loaded state")
+        # IO.inspect("TODO: save here a loaded state")
         a = apply(instance.record.__struct__, aname, [instance.record, attachable])
         a |> instance.record.__struct__.save_with_attachment(instance.name)
 

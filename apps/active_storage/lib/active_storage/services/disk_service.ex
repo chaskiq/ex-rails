@@ -286,15 +286,23 @@ defmodule ActiveStorage.Service.DiskService do
 
   @impl ActiveStorage.Service
 
-  def private_url(_service, key, opts \\ []) do
-    defaults = [expires_in: nil, filename: nil, content_type: nil, disposition: nil]
+  def private_url(service, key, opts \\ []) do
+    defaults = [
+      expires_in: nil,
+      filename: nil,
+      content_type: nil,
+      disposition: nil,
+      service_name: service.name
+    ]
+
     options = Keyword.merge(defaults, opts)
 
     case generate_url(key,
            expires_in: options[:expires_in],
            filename: options[:filename],
            content_type: options[:content_type],
-           disposition: options[:disposition]
+           disposition: options[:disposition],
+           service_name: options[:service_name]
          ) do
       {:ok, url} -> url
       _ -> nil
@@ -303,12 +311,13 @@ defmodule ActiveStorage.Service.DiskService do
 
   @impl ActiveStorage.Service
 
-  def public_url(_service, key, options \\ []) do
+  def public_url(service, key, options \\ []) do
     defaults = [
       expires_in: nil,
-      filename: options.filename,
+      filename: nil,
       content_type: nil,
-      disposition: "attachment"
+      disposition: "attachment",
+      service_name: service.name
     ]
 
     options = Keyword.merge(defaults, options)
@@ -317,17 +326,24 @@ defmodule ActiveStorage.Service.DiskService do
            expires_in: options[:expires_in],
            filename: options[:filename],
            content_type: options[:content_type],
-           disposition: options[:disposition]
+           disposition: options[:disposition],
+           service_name: options[:service_name]
          ) do
       {:ok, url} -> url
       _ -> nil
     end
   end
 
-  def generate_url(key, options \\ []) do
+  def generate_url(key, options \\ [])
+
+  def generate_url(%{key: key}, options) do
+    generate_url(key, options)
+  end
+
+  def generate_url(key, options) do
     defaults = [
       expires_in: nil,
-      filename: options[:filename],
+      filename: nil,
       content_type: nil,
       disposition: "inline"
     ]
@@ -358,7 +374,8 @@ defmodule ActiveStorage.Service.DiskService do
           key: key,
           disposition: content_disposition,
           content_type: options |> Keyword.get(:content_type),
-          service_name: options |> Keyword.get(:name)
+          service_name: options |> Keyword.get(:service_name),
+          purpose: :blob_key
         })
         # ,
         # expires_in: options[:expires_in],
