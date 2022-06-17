@@ -4,7 +4,7 @@ defmodule ActiveStorage.MixProject do
   def project do
     [
       app: :active_storage,
-      version: "0.0.1",
+      version: "0.1.1",
       elixir: ">= 1.12.0",
       start_permanent: Mix.env() == :prod,
       elixirc_paths: elixirc_paths(Mix.env()),
