@@ -23,7 +23,7 @@ defmodule ActiveStorage.MixProject do
       # This option is only needed when you don't want to use the OTP application name
       name: "active_storage",
       # These are the default files included in the package
-      files: ~w(lib .formatter.exs mix.exs README* LICENSE* CHANGELOG*),
+      files: ~w(lib .formatter.exs mix.exs README*),
       licenses: ["MIT"],
       links: %{"GitHub" => "https://github.com/chaskiq/active_storage_ex"}
     ]
@@ -48,7 +48,14 @@ defmodule ActiveStorage.MixProject do
 
   # Run "mix help deps" to learn about dependencies.
   defp deps do
-    [
+    active_job =
+      if System.get_env("FROM_UMBRELLA") do
+        {:active_job, in_umbrella: true}
+      else
+        {:active_job, "0.1.1"}
+      end
+
+    dependences = [
       {:jason, "~> 1.3"},
       {:ecto, "~> 3.7.2"},
       {:ecto_sql, "~> 3.7.2"},
@@ -56,10 +63,14 @@ defmodule ActiveStorage.MixProject do
       {:ex_aws, "~> 2.2"},
       {:hackney, "~> 1.18"},
       {:sweet_xml, "~> 0.6"},
-      {:active_job, in_umbrella: true, optional: true},
+      active_job,
+      # {:active_job, "0.1.1"},
+      # {:active_job, in_umbrella: true},
       # {:mogrify, "~> 0.9.1"},
-      {:ex_marcel, git: "https://github.com/chaskiq/ex-marcel.git", branch: "main"},
-      {:mogrify, git: "https://github.com/chaskiq/mogrify.git", branch: "identify-option"},
+      {:ex_marcel, "0.1.0"},
+      # {:ex_marcel, git: "https://github.com/chaskiq/ex-marcel.git", branch: "main"},
+      {:mogrify,
+       git: "https://github.com/chaskiq/mogrify.git", branch: "identify-option", optional: true},
       {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
       {:plug_crypto, "~> 1.0"},
       {:postgrex, ">= 0.0.0", only: [:test]},
@@ -69,7 +80,6 @@ defmodule ActiveStorage.MixProject do
       {:content_disposition, "1.0.0"},
       {:telemetry, "~> 1.0"},
       {:telemetry_metrics, "~> 0.6.1"}
-
       # {:dep_from_hexpm, "~> 0.3.0"},
       # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
     ]

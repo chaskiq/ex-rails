@@ -4,7 +4,7 @@ defmodule ActiveJob.MixProject do
   def project do
     [
       app: :active_job,
-      version: "0.1.0",
+      version: "0.1.1",
       elixir: "~> 1.12",
       start_permanent: Mix.env() == :prod,
       elixirc_paths: elixirc_paths(Mix.env()),
@@ -48,7 +48,7 @@ defmodule ActiveJob.MixProject do
       {:oban, "~> 2.12", optional: true},
       {:ecto, "~> 3.7.2"},
       {:ecto_sql, "~> 3.7.2"},
-      {:exq, "~> 0.16.2", optional: false}
+      {:exq, "~> 0.16.2", optional: true}
       # {:dep_from_hexpm, "~> 0.3.0"},
       # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
     ]

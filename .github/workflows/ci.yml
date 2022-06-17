@@ -53,5 +53,5 @@ jobs:
         with:
           otp-version: '24'
           elixir-version: '1.12'
-      - run: mix deps.get
+      - run: FROM_UMBRELLA=true mix deps.get
       - run: mix test.all
