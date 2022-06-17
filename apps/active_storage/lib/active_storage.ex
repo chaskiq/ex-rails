@@ -108,6 +108,9 @@ defmodule ActiveStorage do
 
       %ActiveStorage.Attachment{} ->
         "url!"
+
+      _ ->
+        nil
     end
   end
 
@@ -143,6 +146,9 @@ defmodule ActiveStorage do
         require IEx
         IEx.pry()
         "url!"
+
+      _ ->
+        nil
     end
   end
 
