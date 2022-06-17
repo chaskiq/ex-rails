@@ -56,7 +56,7 @@ defmodule ActiveStorage.MixProject do
       {:ex_aws, "~> 2.2"},
       {:hackney, "~> 1.18"},
       {:sweet_xml, "~> 0.6"},
-      {:active_job, in_umbrella: true},
+      {:active_job, in_umbrella: true, optional: true},
       # {:mogrify, "~> 0.9.1"},
       {:ex_marcel, git: "https://github.com/chaskiq/ex-marcel.git", branch: "main"},
       {:mogrify, git: "https://github.com/chaskiq/mogrify.git", branch: "identify-option"},
