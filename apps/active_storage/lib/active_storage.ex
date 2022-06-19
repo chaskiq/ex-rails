@@ -114,6 +114,21 @@ defmodule ActiveStorage do
     end
   end
 
+  def blob_proxy_url(struct, opts \\ []) do
+    namespace = routes_prefix()
+    # sign_option = [expires_in: 3600]
+    sign_option = []
+
+    case struct do
+      %ActiveStorage.Blob{} = blob ->
+        filename = Blob.filename(blob)
+        "#{namespace}/blobs/proxy/#{Blob.signed_id(blob, sign_option)}/#{filename.filename}"
+
+      _ ->
+        nil
+    end
+  end
+
   def storage_redirect_url(struct, opts \\ []) do
     namespace = routes_prefix()
 

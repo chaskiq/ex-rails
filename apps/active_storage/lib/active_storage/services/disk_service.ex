@@ -134,11 +134,17 @@ defmodule ActiveStorage.Service.DiskService do
     # end
   end
 
-  def download_chunk(service, key, _range) do
+  def download_chunk(service, key, {start_range, end_range} = range) do
     # instrument :download_chunk, key: key, range: range do
 
-    ActiveStorage.Service.instrument(:download_chunk, %{key: key}, fn ->
-      File.stream!(__MODULE__.path_for(service, key), [], 30096) |> Enum.take(1) |> hd
+    ActiveStorage.Service.instrument(:download_chunk, %{key: key, range: range}, fn ->
+      file = __MODULE__.path_for(service, key)
+      {ok, f} = :file.open(file, [:binary])
+      {ok, data} = :file.pread(f, start_range, start_range + end_range)
+      :file.close(f)
+      data
+
+      # File.stream!(__MODULE__.path_for(service, key), [], 30096) |> Enum.take(1) |> hd
     end)
 
     #   File.open(path_for(key), "rb") do |file|

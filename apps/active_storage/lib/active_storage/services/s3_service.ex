@@ -165,6 +165,19 @@ defmodule ActiveStorage.Service.S3Service do
     end
   end
 
+  def download_chunk(service, key, {start_range, end_range} = range) do
+    ActiveStorage.Service.instrument(:upload, %{key: key, range: range}, fn ->
+      case object_for(service, key, range: "bytes=#{start_range}-#{end_range}") do
+        {:ok, response} -> response.body
+        _ -> raise ActiveStorage.FileNotFoundError
+      end
+
+      # object_for(key).get(range: "bytes=#{range.begin}-#{range.exclude_end? ? range.end - 1 : range.end}").body.string.force_encoding(Encoding::BINARY)
+      # rescue Aws::S3::Errors::NoSuchKey
+      # raise ActiveStorage::FileNotFoundError
+    end)
+  end
+
   def stream(filename) do
     bucket = System.fetch_env!("AWS_S3_BUCKET")
     ExAws.S3.Upload.stream_file(filename) |> ExAws.S3.upload(bucket, filename) |> ExAws.request!()
@@ -215,9 +228,9 @@ defmodule ActiveStorage.Service.S3Service do
     # end
   end
 
-  def object_for(service, key) do
+  def object_for(service, key, options \\ []) do
     bucket = service.bucket
-    ExAws.S3.get_object(bucket, key) |> ExAws.request(service.client)
+    ExAws.S3.get_object(bucket, key, options) |> ExAws.request(service.client)
   end
 
   def build(%{configurator: _c, name: n, service: _s}, config) do
