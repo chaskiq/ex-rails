@@ -145,7 +145,7 @@ defmodule ActiveStorage.Service.S3Service do
     end)
   end
 
-  def download(service, key) do
+  def download(service, key, block \\ nil) do
     # ActiveStorage.Service.instrument(:delete_prefixed, %{prefix: prefix}, fn ->
 
     # if block_given?
@@ -159,9 +159,18 @@ defmodule ActiveStorage.Service.S3Service do
     #    raise ActiveStorage::FileNotFoundError
     #  end
     # end
-    case object_for(service, key) do
-      {:ok, %{body: body}} -> {:ok, body}
-      _ -> nil
+
+    if block do
+      ActiveStorage.Service.instrument(:streaming_download, %{key: key}, fn ->
+        stream(service, key, block)
+      end)
+    else
+      ActiveStorage.Service.instrument(:download, %{key: key}, fn ->
+        case object_for(service, key) do
+          {:ok, %{body: body}} -> {:ok, body}
+          _ -> nil
+        end
+      end)
     end
   end
 
@@ -178,9 +187,28 @@ defmodule ActiveStorage.Service.S3Service do
     end)
   end
 
-  def stream(filename) do
+  def stream_upload(filename) do
     bucket = System.fetch_env!("AWS_S3_BUCKET")
     ExAws.S3.Upload.stream_file(filename) |> ExAws.S3.upload(bucket, filename) |> ExAws.request!()
+  end
+
+  def stream(service, key, block) do
+    object = object_for(service, key)
+    # 5.megabytes
+    chunk_size = 5_242_880
+    offset = 0
+
+    case object_for(service, key, range: "bytes=#{offset}-#{offset + chunk_size - 1}") do
+      {:ok, response} -> block.(response.body)
+      _ -> raise ActiveStorage.FileNotFoundError
+    end
+
+    # raise ActiveStorage::FileNotFoundError unless object.exists?
+
+    # while offset < object.content_length
+    ##  yield object.get(range: "bytes=#{offset}-#{offset + chunk_size - 1}").body.string.force_encoding(Encoding::BINARY)
+    #  offset += chunk_size
+    # end
   end
 
   # def open(*args, **options, &block) do
