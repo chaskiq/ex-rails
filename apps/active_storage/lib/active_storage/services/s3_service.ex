@@ -193,22 +193,36 @@ defmodule ActiveStorage.Service.S3Service do
   end
 
   def stream(service, key, block) do
-    object = object_for(service, key)
+    {:ok, object} = object_for(service, key)
     # 5.megabytes
     chunk_size = 5_242_880
     offset = 0
 
-    case object_for(service, key, range: "bytes=#{offset}-#{offset + chunk_size - 1}") do
-      {:ok, response} -> block.(response.body)
-      _ -> raise ActiveStorage.FileNotFoundError
-    end
-
-    # raise ActiveStorage::FileNotFoundError unless object.exists?
+    headers = Enum.into(object.headers, %{})
+    content_length = headers["Content-Length"]
 
     # while offset < object.content_length
-    ##  yield object.get(range: "bytes=#{offset}-#{offset + chunk_size - 1}").body.string.force_encoding(Encoding::BINARY)
+    #  yield object.get(range: "bytes=#{offset}-#{offset + chunk_size - 1}").body.string.force_encoding(Encoding::BINARY)
     #  offset += chunk_size
     # end
+
+    stream_chunk(service, key, offset, chunk_size, content_length, block)
+  end
+
+  def stream_chunk(service, key, offset, chunk_size, content_length, block) do
+    if offset < content_length do
+      case object_for(service, key, range: "bytes=#{offset}-#{offset + chunk_size - 1}") do
+        {:ok, object} ->
+          block.(object.body)
+          offset = offset + chunk_size
+          headers = Enum.into(object.headers, %{})
+          content_length = headers["Content-Length"]
+          stream_chunk(service, key, offset, chunk_size, content_length, block)
+
+        _ ->
+          raise ActiveStorage.FileNotFoundError
+      end
+    end
   end
 
   # def open(*args, **options, &block) do
