@@ -199,7 +199,7 @@ defmodule ActiveStorage.Service.S3Service do
     offset = 0
 
     headers = Enum.into(object.headers, %{})
-    content_length = headers["Content-Length"]
+    content_length = headers["Content-Length"] |> String.to_integer()
 
     # while offset < object.content_length
     #  yield object.get(range: "bytes=#{offset}-#{offset + chunk_size - 1}").body.string.force_encoding(Encoding::BINARY)
@@ -210,18 +210,27 @@ defmodule ActiveStorage.Service.S3Service do
   end
 
   def stream_chunk(service, key, offset, chunk_size, content_length, block) do
+    IO.inspect("OFFSET FOR #{offset} vs #{content_length} #{offset < content_length}")
+
     if offset < content_length do
       case object_for(service, key, range: "bytes=#{offset}-#{offset + chunk_size - 1}") do
         {:ok, object} ->
           block.(object.body)
           offset = offset + chunk_size
           headers = Enum.into(object.headers, %{})
-          content_length = headers["Content-Length"]
+          # content_length = headers["Content-Length"]
           stream_chunk(service, key, offset, chunk_size, content_length, block)
 
-        _ ->
+        {:error, {:http_error, 416, err}} ->
+          IO.inspect(err)
+          block.("")
+
+        err ->
+          IO.inspect(err)
           raise ActiveStorage.FileNotFoundError
       end
+    else
+      block.("")
     end
   end
 
