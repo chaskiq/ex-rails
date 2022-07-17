@@ -106,7 +106,7 @@ defmodule ActiveStorage.Variant do
 
     key = key(variant)
     service = __MODULE__.service(variant.blob)
-    srv = service.__struct__.url(service, key, options)
+    service.__struct__.url(service, key, options)
 
     # variant.blob |> ActiveStorage.url(options)
 

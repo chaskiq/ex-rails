@@ -32,7 +32,7 @@ defmodule ActiveStorage.Previewer.PopplerPDFPreviewer do
   def preview(previewer, options \\ [], block \\ nil) do
     input = ActiveStorage.Previewer.download_blob_to_tempfile(previewer.blob)
 
-    draw_first_page_from(previewer, input, fn path, fd ->
+    draw_first_page_from(previewer, input, fn path, _fd ->
       filename =
         (previewer.blob |> ActiveStorage.Blob.filename() |> ActiveStorage.Filename.base()) <>
           ".png"

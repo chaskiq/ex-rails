@@ -5,7 +5,7 @@ defmodule ActiveStorage do
 
   import Ecto.Query, warn: false
 
-  alias ActiveStorage.{Attachment, Blob, RepoClient, Service, Verifier}
+  alias ActiveStorage.{Attachment, Blob, Service, Verifier}
 
   def verifier do
     Verifier
@@ -79,7 +79,7 @@ defmodule ActiveStorage do
     Application.get_env(:active_storage, :routes_prefix) || "/active_storage"
   end
 
-  def service_blob_url(struct, opts \\ []) do
+  def service_blob_url(struct, _opts \\ []) do
     namespace = routes_prefix()
 
     # expires_in =
@@ -114,7 +114,7 @@ defmodule ActiveStorage do
     end
   end
 
-  def blob_proxy_url(struct, opts \\ []) do
+  def blob_proxy_url(struct, _opts \\ []) do
     namespace = routes_prefix()
     # sign_option = [expires_in: 3600]
     sign_option = []

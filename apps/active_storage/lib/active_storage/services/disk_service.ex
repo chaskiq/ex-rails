@@ -139,8 +139,8 @@ defmodule ActiveStorage.Service.DiskService do
 
     ActiveStorage.Service.instrument(:download_chunk, %{key: key, range: range}, fn ->
       file = __MODULE__.path_for(service, key)
-      {ok, f} = :file.open(file, [:binary])
-      {ok, data} = :file.pread(f, start_range, start_range + end_range)
+      {_ok, f} = :file.open(file, [:binary])
+      {_ok, data} = :file.pread(f, start_range, start_range + end_range)
       :file.close(f)
       data
 

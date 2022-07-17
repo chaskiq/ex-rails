@@ -71,7 +71,7 @@ defmodule ActiveStorage.Attachment do
   #
   # Raises an +ArgumentError+ if +transformations+ is a +Symbol+ which is an
   # unknown pre-defined variant of the attachment.
-  def variant(transformations) do
+  def variant(_transformations) do
     # case transformations
     # when Symbol
     #  variant_name = transformations
@@ -139,11 +139,11 @@ defmodule ActiveStorage.Attachment do
     # blob&.purge_later if dependent == :purge_later
   end
 
-  def dependent(attachment) do
+  def dependent(_attachment) do
     # record.attachment_reflections[name]&.options&.fetch(:dependent, nil)
   end
 
-  def variants(attachment) do
+  def variants(_attachment) do
     # record.attachment_reflections[name]&.variants
   end
 end

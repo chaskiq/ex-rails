@@ -193,7 +193,7 @@ defmodule VariantTest do
   test "resized variation of TIFF blob" do
     blob = ActiveStorageTestHelpers.create_file_blob(filename: "racecar.tif")
     variant = ActiveStorage.Blob.Representable.variant(blob, %{resize_to_limit: ["50x50"]})
-    processed = ActiveStorage.Variant.processed(variant)
+    _processed = ActiveStorage.Variant.processed(variant)
 
     image = ActiveStorageTestHelpers.read_image(variant)
 

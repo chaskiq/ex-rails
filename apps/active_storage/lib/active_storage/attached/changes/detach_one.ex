@@ -16,7 +16,7 @@ defmodule ActiveStorage.Attached.Changes.DetachOne do
     end
   end
 
-  def reset(instance) do
+  def reset(_instance) do
     # record.attachment_changes.delete(name)
     # record.public_send("#{name}_attachment=", nil)
   end

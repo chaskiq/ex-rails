@@ -27,7 +27,7 @@ defmodule ActiveStorage.Attached.Changes.CreateOne do
     instance.blob || find_or_build_blob(instance)
   end
 
-  def upload(instance, attachable = %ActiveStorage.Blob{}) do
+  def upload(instance, _attachable = %ActiveStorage.Blob{}) do
     nil
   end
 
@@ -64,12 +64,11 @@ defmodule ActiveStorage.Attached.Changes.CreateOne do
         %ActiveStorage.Blob{} = blob ->
           case blob do
             %{id: nil} = blob ->
-              blob =
-                blob
-                |> Ecto.Changeset.change()
-                |> ActiveStorage.RepoClient.repo().insert!
+              blob
+              |> Ecto.Changeset.change()
+              |> ActiveStorage.RepoClient.repo().insert!
 
-            %{id: id} = blob ->
+            %{id: _id} = blob ->
               blob
           end
 
@@ -91,17 +90,16 @@ defmodule ActiveStorage.Attached.Changes.CreateOne do
         %{id: nil} ->
           attachment
 
-        %{id: id} = attachment ->
+        %{id: _id} = attachment ->
           attachment
           |> Ecto.Changeset.change(%{blob_id: blob.id})
           |> ActiveStorage.RepoClient.repo().update!
       end
 
-    a =
-      Ecto.Changeset.put_assoc(record_changeset, name, attachment)
-      |> ActiveStorage.RepoClient.repo().update!
-      |> Map.get(name)
-      |> ActiveStorage.RepoClient.repo().preload(:blob)
+    Ecto.Changeset.put_assoc(record_changeset, name, attachment)
+    |> ActiveStorage.RepoClient.repo().update!
+    |> Map.get(name)
+    |> ActiveStorage.RepoClient.repo().preload(:blob)
 
     # record.public_send("#{name}_attachment=", attachment)
     # record.public_send("#{name}_blob=", blob)
@@ -149,14 +147,14 @@ defmodule ActiveStorage.Attached.Changes.CreateOne do
       %ActiveStorage.Blob{} ->
         instance.attachable
 
-      [head | tail] ->
+      [_head | _tail] ->
         ActiveStorage.Blob.build_after_unfurling(
           %ActiveStorage.Blob{},
           instance.attachable
           |> Keyword.merge(
             record: instance.record,
             # attachment_service_name
-            service_name: "local"
+            service_name: attachment_service_name(instance)
           )
         )
     end
@@ -189,6 +187,18 @@ defmodule ActiveStorage.Attached.Changes.CreateOne do
   end
 
   def attachment_service_name(instance) do
+    case instance.record do
+      %ActiveStorage.Blob{} ->
+        instance.record.service_name
+
+      %ActiveStorage.VariantRecord{} ->
+        record = instance.record |> ActiveStorage.RepoClient.repo().preload(:blob)
+        record.blob.service_name
+
+      _ ->
+        Application.get_env(:active_storage, :service)
+    end
+
     # record.attachment_reflections[name].options[:service_name]
   end
 end

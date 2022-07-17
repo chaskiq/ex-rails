@@ -225,7 +225,7 @@ defmodule ActiveStorage.Analyzer.VideoAnalyzer do
 
   def probe_from(file) do
     try do
-      instrument(Path.basename(ffprobe_path), fn ->
+      instrument(Path.basename(ffprobe_path()), fn ->
         {output, _status} =
           System.cmd(ffprobe_path(), [
             "-print_format",

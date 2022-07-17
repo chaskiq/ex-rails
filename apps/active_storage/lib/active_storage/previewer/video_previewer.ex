@@ -31,7 +31,7 @@ defmodule ActiveStorage.Previewer.VideoPreviewer do
   def preview(previewer, options \\ [], block \\ nil) do
     input = ActiveStorage.Previewer.download_blob_to_tempfile(previewer.blob)
 
-    draw_relevant_frame_from(previewer, input, fn path, fd ->
+    draw_relevant_frame_from(previewer, input, fn path, _fd ->
       filename =
         (previewer.blob |> ActiveStorage.Blob.filename() |> ActiveStorage.Filename.base()) <>
           ".jpg"

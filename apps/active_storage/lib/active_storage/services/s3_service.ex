@@ -132,12 +132,12 @@ defmodule ActiveStorage.Service.S3Service do
           |> ExAws.request()
 
         {:string, contents} ->
-          S3.put_object(service.bucket, key, contents) |> ExAws.request!()
+          S3.put_object(service.bucket, key, contents) |> ExAws.request()
 
         {:io, io} ->
           :file.position(io, :bof)
           contents = IO.binread(io)
-          S3.put_object(service.bucket, key, contents) |> ExAws.request!()
+          S3.put_object(service.bucket, key, contents) |> ExAws.request()
 
         _ ->
           nil
@@ -217,7 +217,7 @@ defmodule ActiveStorage.Service.S3Service do
         {:ok, object} ->
           block.(object.body)
           offset = offset + chunk_size
-          headers = Enum.into(object.headers, %{})
+          _headers = Enum.into(object.headers, %{})
           # content_length = headers["Content-Length"]
           stream_chunk(service, key, offset, chunk_size, content_length, block)
 

@@ -125,7 +125,6 @@ defmodule ActiveStorage.VariantWithRecord do
           |> ActiveStorage.Attached.Changes.CreateOne.upload(image)
 
           # record = record |> ActiveStorage.RepoClient.repo().preload(:blob)
-
           record
 
         record ->

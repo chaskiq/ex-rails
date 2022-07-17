@@ -322,7 +322,7 @@ defmodule ActiveStorage.Blob do
   # be slow or prevented, so you should not use this method inside a transaction or in callbacks. Use #purge_later instead.
   def purge(blob) do
     Ecto.Multi.new()
-    |> Ecto.Multi.run(:blob, fn repo, _changes ->
+    |> Ecto.Multi.run(:blob, fn _repo, _changes ->
       case ActiveStorage.RepoClient.repo().get(__MODULE__, blob.id) do
         nil -> {:error, :not_found}
         blob -> {:ok, blob}
@@ -461,6 +461,8 @@ defmodule ActiveStorage.Blob do
     # end.base64digest
   end
 
+  def compute_checksum_in_chunks(io, rewind \\ true)
+
   def compute_checksum_in_chunks({:io, io}, rewind) do
     compute_checksum_in_chunks(io, rewind)
   end
@@ -470,7 +472,7 @@ defmodule ActiveStorage.Blob do
     compute_checksum_in_chunks(pid, rewind)
   end
 
-  def compute_checksum_in_chunks(io, rewind \\ true) do
+  def compute_checksum_in_chunks(io, rewind) do
     md5_hash = :crypto.hash_init(:md5)
 
     md5 =
@@ -538,11 +540,11 @@ defmodule ActiveStorage.Blob do
     end
   end
 
-  def extract_content_type(blob, {:string, io}) do
+  def extract_content_type(blob, {:string, _io}) do
     ExMarcel.MimeType.for(nil, name: blob.changes.filename) || blob.changes.content_type
   end
 
-  def extract_content_type(blob, {:path, io}) do
+  def extract_content_type(_blob, {:path, io}) do
     ExMarcel.MimeType.for({:path, io})
   end
 
@@ -585,10 +587,6 @@ defmodule ActiveStorage.Blob do
     blob.content_type |> String.starts_with?("text")
   end
 
-  def record_type() do
-    "blob"
-  end
-
   def signed_id(blob, opts \\ []) do
     defaults = [expires_in: nil]
     options = Keyword.merge(defaults, opts)
@@ -625,8 +623,8 @@ defmodule ActiveStorage.Blob do
   defdelegate identify(blob), to: ActiveStorage.Blob.Identifiable
   defdelegate identify_without_saving(blob), to: ActiveStorage.Blob.Identifiable
   defdelegate identified?(blob), to: ActiveStorage.Blob.Identifiable
-  defdelegate identify_content_type(_blob), to: ActiveStorage.Blob.Identifiable
-  defdelegate download_identifiable_chunk(_blob), to: ActiveStorage.Blob.Identifiable
+  defdelegate identify_content_type(blob), to: ActiveStorage.Blob.Identifiable
+  defdelegate download_identifiable_chunk(blob), to: ActiveStorage.Blob.Identifiable
 
   # ActiveStorage.Blob.Representable
 

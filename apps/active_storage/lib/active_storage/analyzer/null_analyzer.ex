@@ -9,7 +9,7 @@ defmodule ActiveStorage.Analyzer.NullAnalyzer do
     false
   end
 
-  def metadata(blob) do
+  def metadata(_blob) do
     %{}
   end
 end

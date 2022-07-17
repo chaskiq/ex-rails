@@ -6,7 +6,7 @@ defmodule ActiveStorage.MirrorJob do
   # discard_on ActiveStorage::FileNotFoundError
   # retry_on ActiveStorage::IntegrityError, attempts: 10, wait: :exponentially_longer
 
-  def perform(key, options \\ []) do
+  def perform(_key, _options \\ []) do
     defaults = [checksum: nil]
     # ActiveStorage.Blob.service.try(:mirror, key, checksum: checksum)
   end

@@ -6,7 +6,7 @@ defmodule ActiveStorage.PurgeJob do
   # discard_on ActiveRecord::RecordNotFound
   # retry_on ActiveRecord::Deadlocked, attempts: 10, wait: :exponentially_longer
 
-  def perform(blob) do
+  def perform(_blob) do
     # blob.purge
   end
 end

@@ -55,7 +55,7 @@ defmodule ActiveStorage.MixProject do
         {:active_job, "0.1.1"}
       end
 
-    dependences = [
+    [
       {:jason, "~> 1.3"},
       {:ecto, "~> 3.7.2"},
       {:ecto_sql, "~> 3.7.2"},

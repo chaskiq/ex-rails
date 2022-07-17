@@ -129,7 +129,7 @@ defmodule ActiveStorage.Attached.Changes.CreateMany do
       :attachments,
       save_attachments(record_changeset, name, attachments)
     )
-    |> Ecto.Multi.run(:after_save, fn repo, %{attachments: attachments} ->
+    |> Ecto.Multi.run(:after_save, fn _repo, %{attachments: attachments} ->
       attachments
       |> Map.get(name)
       |> Enum.each(fn attachment ->
@@ -162,7 +162,7 @@ defmodule ActiveStorage.Attached.Changes.CreateMany do
 
     instance.attachments
     |> Enum.map(fn struct ->
-      attachment = struct.attachment
+      struct.attachment
       # case Ecto.get_meta(attachment, :state) do
       #  :loaded ->
       #    attachment

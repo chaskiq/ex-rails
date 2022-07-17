@@ -46,8 +46,8 @@ defmodule ActiveJob.Base do
   # * SerializationError - Error class for serialization errors.
 
   defmacro __using__(opts) do
-    IO.inspect("job opts:")
-    IO.inspect(opts)
+    # IO.inspect("job opts:")
+    # IO.inspect(opts)
 
     queue_adapter = Keyword.get(opts, :queue_adapter)
     callbacks = Keyword.get(opts, :callbacks)

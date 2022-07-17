@@ -31,7 +31,7 @@ defmodule ActiveStorage.Service.Registry do
             if block do
               block.(source_name)
             else
-              keys = ActiveStorage.Blob.services().configurations |> Keyword.keys()
+              ActiveStorage.Blob.services().configurations |> Keyword.keys()
 
               raise KeyError,
                     "Missing configuration for the #{source_name} Active Storage service. Configurations available for the configurations.keys.to_sentence services."
@@ -73,7 +73,7 @@ defmodule ActiveStorage.Service.Registry do
   # private
   # attr_reader :configurations, :services
 
-  def configurator(struct) do
+  def configurator(_struct) do
     # @configurator ||= ActiveStorage::Service::Configurator.new(configurations)
   end
 end

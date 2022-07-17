@@ -16,7 +16,7 @@ defmodule ActiveStorage.Attached.Changes.PurgeMany do
     reset(instance)
   end
 
-  def reset(instance) do
+  def reset(_instance) do
     # instance.record.attachment_changes.delete(name)
     # record.public_send("#{name}_attachments").reset
   end

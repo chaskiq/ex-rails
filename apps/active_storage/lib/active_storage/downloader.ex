@@ -99,8 +99,8 @@ defmodule ActiveStorage.Downloader do
     # end
   end
 
-  defp download(service, key, file) do
-    {:ok, downloaded_file} = service.__struct__.download(service, key)
+  defp download(service, key, _file) do
+    {:ok, _downloaded_file} = service.__struct__.download(service, key)
 
     # IO.binwrite(file, downloaded_file)
     # file.binmode

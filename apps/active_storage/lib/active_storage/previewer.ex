@@ -96,7 +96,7 @@ defmodule ActiveStorage.Previewer do
     # ActiveSupport::Notifications.instrument "#{operation}.active_storage", payload, &block
   end
 
-  def capture(preview, argv, to: to) do
+  def capture(_preview, argv, to: to) do
     [bin | cmd] = argv
     # path = System.find_executable(bin)
     # port = Port.open({:spawn_executable, path}, [:binary, args: cmd])
@@ -105,7 +105,7 @@ defmodule ActiveStorage.Previewer do
       {out, 0} ->
         IO.binwrite(to, out)
 
-      {err, status} ->
+      {_err, status} ->
         # TODO: get the error and print it in the Exception message
         raise ActiveStorage.PreviewError, message: "Failed (status ): err"
     end

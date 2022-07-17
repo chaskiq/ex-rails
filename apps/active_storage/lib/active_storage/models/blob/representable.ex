@@ -101,7 +101,7 @@ defmodule ActiveStorage.Blob.Representable do
     %{format: default_variant_format(blob)}
   end
 
-  defp default_variant_format(blob) do
+  def default_variant_format(blob) do
     if ActiveStorage.Blob.web_image?(blob) do
       format(blob) || "png"
     else
@@ -119,7 +119,7 @@ defmodule ActiveStorage.Blob.Representable do
     # end
   end
 
-  defp variant_class() do
+  def variant_class() do
     case ActiveStorage.track_variants() do
       true -> ActiveStorage.VariantWithRecord
       _ -> ActiveStorage.Variant

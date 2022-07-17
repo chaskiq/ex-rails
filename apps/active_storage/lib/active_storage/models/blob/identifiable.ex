@@ -54,7 +54,7 @@ defmodule ActiveStorage.Blob.Identifiable do
     )
   end
 
-  def update_metadata(blob, attrs) do
+  def update_metadata(_blob, _attrs) do
   end
 
   def identified?(blob) do
@@ -79,7 +79,7 @@ defmodule ActiveStorage.Blob.Identifiable do
     if blob.byte_size > 0 do
       blob.__struct__.service(blob)
       service = blob.__struct__.service(blob)
-      service.__struct__.download_chunk(service, blob.key, 0..4096)
+      service.__struct__.download_chunk(service, blob.key, {0, 4096})
     else
       ""
     end
