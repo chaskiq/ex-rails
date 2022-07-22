@@ -29,7 +29,7 @@ defmodule ActiveJob.Application do
       Application.ensure_all_started(:oban)
 
       [
-        Application.get_env(:active_job, :repo, Repo),
+        # Application.get_env(:active_job, :repo, Repo),
         {Oban, Application.fetch_env!(:active_job, Oban)}
       ]
     end
