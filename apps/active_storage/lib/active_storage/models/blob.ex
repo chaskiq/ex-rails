@@ -114,6 +114,13 @@ defmodule ActiveStorage.Blob do
   end
 
   defp default_service_if_empty(changeset) do
+    case changeset.data do
+      %{service_name: service_name = nil} -> set_service_name_from_changes(changeset)
+      %{service_name: service_name = any} -> changeset
+    end
+  end
+
+  defp set_service_name_from_changes(changeset) do
     case get_change(changeset, :service_name) do
       nil -> put_change(changeset, :service_name, service_name_stringyfied())
       "" -> put_change(changeset, :service_name, service_name_stringyfied())
