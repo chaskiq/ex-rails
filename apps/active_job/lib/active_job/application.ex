@@ -9,7 +9,7 @@ defmodule ActiveJob.Application do
   def start(_type, _args) do
     children =
       [
-        obanapp()
+        # obanapp()
         # {Oban, oban_config()}
         # Exq,
         # Starts a worker by calling: ActiveJob.Worker.start_link(arg)
