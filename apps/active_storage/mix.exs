@@ -58,7 +58,7 @@ defmodule ActiveStorage.MixProject do
     [
       {:jason, "~> 1.3"},
       {:ecto, "~> 3.7.2"},
-      {:ecto_sql, "~> 3.7.2"},
+      {:ecto_sql, "~> 3.7"},
       {:ex_aws_s3, "~> 2.3"},
       {:ex_aws, "~> 2.2"},
       {:hackney, "~> 1.18"},
