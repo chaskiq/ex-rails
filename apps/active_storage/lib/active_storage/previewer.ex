@@ -105,7 +105,7 @@ defmodule ActiveStorage.Previewer do
       {out, 0} ->
         IO.binwrite(to, out)
 
-      {_err, status} ->
+      {_err, _status} ->
         # TODO: get the error and print it in the Exception message
         raise ActiveStorage.PreviewError, message: "Failed (status ): err"
     end

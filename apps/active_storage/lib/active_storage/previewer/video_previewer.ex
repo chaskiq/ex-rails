@@ -56,7 +56,7 @@ defmodule ActiveStorage.Previewer.VideoPreviewer do
     # end
   end
 
-  defp draw_relevant_frame_from(previewer, file, block \\ nil) do
+  defp draw_relevant_frame_from(previewer, file, block) do
     args =
       [
         ffmpeg_path(),

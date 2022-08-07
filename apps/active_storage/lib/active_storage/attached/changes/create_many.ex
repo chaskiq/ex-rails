@@ -151,7 +151,7 @@ defmodule ActiveStorage.Attached.Changes.CreateMany do
     # |> ActiveStorage.RepoClient.repo().update!
   end
 
-  def reset_associated_blobs(record) do
+  def reset_associated_blobs(_record) do
     # this resets the active record collection for invalidate the cache for the next queries,
     # I don't know how this would apply into ecto
     # record.public_send("#{name}_blobs").reset

@@ -129,7 +129,7 @@ defmodule ActiveStorage do
     end
   end
 
-  def storage_redirect_url(struct, opts \\ []) do
+  def storage_redirect_url(struct, _opts \\ []) do
     namespace = routes_prefix()
 
     # sign_option = [expires_in: 3600]
@@ -146,20 +146,14 @@ defmodule ActiveStorage do
         "#{namespace}/representations/redirect/#{Blob.signed_id(blob, sign_option)}/#{variation_key}/#{Blob.filename(blob).filename}"
 
       %ActiveStorage.Preview{blob: blob} ->
-        require IEx
-        IEx.pry()
         filename = Blob.filename(blob)
         "#{namespace}/blobs/redirect/#{Blob.signed_id(blob, sign_option)}/#{filename.filename}"
 
       %ActiveStorage.Blob{} = blob ->
-        require IEx
-        IEx.pry()
         filename = Blob.filename(blob)
         "#{namespace}/blobs/redirect/#{Blob.signed_id(blob, sign_option)}/#{filename.filename}"
 
       %ActiveStorage.Attachment{} ->
-        require IEx
-        IEx.pry()
         "url!"
 
       _ ->
@@ -325,6 +319,10 @@ defmodule ActiveStorage do
     Application.fetch_env!(:active_storage, :repo)
   end
 
+  def logger do
+    Logger
+  end
+
   # Downloads the blob to a tempfile on disk. Yields the tempfile.
   #
   # The tempfile's name is prefixed with +ActiveStorage-+ and the blob's ID. Its extension matches that of the blob.
@@ -350,6 +348,10 @@ defmodule ActiveStorage do
   # end
 
   # ActiveStorage.video_preview_arguments = app.config.active_storage.video_preview_arguments || "-y -vframes 1 -f image2"
+
+  def service_urls_expire_in() do
+    3600
+  end
 
   def video_preview_arguments() do
     # "-y -vframes 1 -f image2"

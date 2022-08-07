@@ -119,7 +119,7 @@ defmodule ActiveStorage.Attached.Changes.CreateOne do
       nil ->
         nil
 
-      blob ->
+      _ ->
         namespace = :"#{instance.name}_attachment"
 
         instance.record
@@ -160,7 +160,7 @@ defmodule ActiveStorage.Attached.Changes.CreateOne do
     end
   end
 
-  def find_or_build_blob(instance = "nononon") do
+  def find_or_build_blob(_instance \\ "nononon") do
     # case attachable
     # when ActiveStorage::Blob
     #  attachable

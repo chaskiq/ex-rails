@@ -33,8 +33,8 @@ defmodule ActiveStorage.Preview do
 
   # attr_reader :blob, :variation
 
-  alias ActiveStorage.{RepoClient}
-  alias __MODULE__
+  # alias ActiveStorage.{RepoClient}
+  # alias __MODULE__
   defstruct [:blob, :variation]
 
   def new(blob, variation_or_variation_key) do

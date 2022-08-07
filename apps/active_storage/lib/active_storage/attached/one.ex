@@ -120,6 +120,6 @@ defmodule ActiveStorage.Attached.One do
   end
 
   def detach_one(instance) do
-    Attached.Changes.DetachOne.new(instance.name, instance.record, attachment(instance))
+    Attached.Changes.DetachOne.new(instance.name, instance.record)
   end
 end

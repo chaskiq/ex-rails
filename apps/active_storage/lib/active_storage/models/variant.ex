@@ -96,7 +96,7 @@ defmodule ActiveStorage.Variant do
   # %{expires_in: ActiveStorage.service_urls_expire_in(), disposition: :inline}
   def url(variant, options \\ []) do
     defaults = [
-      expires_in: 3600,
+      expires_in: ActiveStorage.service_urls_expire_in(),
       disposition: :inline,
       filename: filename(variant),
       content_type: content_type(variant.variation)

@@ -129,15 +129,15 @@ defmodule ActiveStorage.Service.S3Service do
           path
           |> S3.Upload.stream_file()
           |> S3.upload(service.bucket, key)
-          |> ExAws.request()
+          |> ExAws.request(service.client)
 
         {:string, contents} ->
-          S3.put_object(service.bucket, key, contents) |> ExAws.request()
+          S3.put_object(service.bucket, key, contents) |> ExAws.request(service.client)
 
         {:io, io} ->
           :file.position(io, :bof)
           contents = IO.binread(io)
-          S3.put_object(service.bucket, key, contents) |> ExAws.request()
+          S3.put_object(service.bucket, key, contents) |> ExAws.request(service.client)
 
         _ ->
           nil
@@ -249,9 +249,11 @@ defmodule ActiveStorage.Service.S3Service do
       }) do
     bucket = System.fetch_env!("AWS_S3_BUCKET")
 
+    service = ActiveStorage.Blob.service(blob)
     # TODO: refactor this to accept local service too
 
-    {:ok, url} = ExAws.Config.new(:s3) |> ExAws.S3.presigned_url(:put, bucket, blob.id)
+    {:ok, url} =
+      ExAws.Config.new(:s3, service.client) |> ExAws.S3.presigned_url(:put, bucket, blob.id)
 
     headers = Jason.encode!(upload_headers(content_type, blob))
 

@@ -10,7 +10,8 @@ defmodule ActiveStorage.MixProject do
       elixirc_paths: elixirc_paths(Mix.env()),
       description: description(),
       package: package(),
-      deps: deps()
+      deps: deps(),
+      aliases: aliases()
     ]
   end
 
@@ -76,7 +77,9 @@ defmodule ActiveStorage.MixProject do
       {:httpoison, "~> 1.8", only: [:test]},
       {:secure_random, "0.5.1"},
       {:temp, "~> 0.4"},
-      {:content_disposition, "1.0.0"}
+      {:content_disposition, "1.0.0"},
+      {:telemetry_metrics, "~> 0.6"},
+      {:telemetry_poller, "~> 1.0"}
       # {:telemetry_metrics, "~> 0.6"},
       # {:telemetry_poller, "~> 1.0"},
       # {:dep_from_hexpm, "~> 0.3.0"},

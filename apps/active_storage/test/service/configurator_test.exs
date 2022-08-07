@@ -7,7 +7,7 @@ defmodule ActiveStorage.ConfiguratorTest do
     assert service.__struct__ == ActiveStorage.Service.DiskService
 
     assert service == %ActiveStorage.Service.DiskService{
-             name: "Disk",
+             name: :foo,
              public: false,
              root: "path"
            }
@@ -23,7 +23,7 @@ defmodule ActiveStorage.ConfiguratorTest do
     assert service.__struct__ == ActiveStorage.Service.DiskService
 
     assert service == %ActiveStorage.Service.DiskService{
-             name: "disk",
+             name: :foo,
              public: false,
              root: "path"
            }

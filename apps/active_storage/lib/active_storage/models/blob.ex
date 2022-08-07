@@ -115,8 +115,8 @@ defmodule ActiveStorage.Blob do
 
   defp default_service_if_empty(changeset) do
     case changeset.data do
-      %{service_name: service_name = nil} -> set_service_name_from_changes(changeset)
-      %{service_name: service_name = any} -> changeset
+      %{service_name: _service_name = nil} -> set_service_name_from_changes(changeset)
+      %{service_name: _service_name = _} -> changeset
     end
   end
 
@@ -503,6 +503,17 @@ defmodule ActiveStorage.Blob do
     ActiveStorage.Filename.new(blob.filename)
   end
 
+  def custom_metadata(blob) do
+    case Jason.decode!(blob.metadata) do
+      %{"custom" => custom} -> custom
+      _ -> %{}
+    end
+  end
+
+  def custom_metadata(blob, metadata) do
+    custom_metadata(blob) |> Map.merge(%{"custom" => metadata})
+  end
+
   # Downloads the blob to a tempfile on disk. Yields the tempfile.
   #
   # The tempfile's name is prefixed with +ActiveStorage-+ and the blob's ID. Its extension matches that of the blob.
@@ -592,6 +603,75 @@ defmodule ActiveStorage.Blob do
   # Returns true if the content_type of this blob is in the text range, like text/plain.
   def text?(blob) do
     blob.content_type |> String.starts_with?("text")
+  end
+
+  # Returns the URL of the blob on the service. This returns a permanent URL for public files, and returns a
+  # short-lived URL for private files. Private files are signed, and not for public use. Instead,
+  # the URL should only be exposed as a redirect from a stable, possibly authenticated URL. Hiding the
+  # URL behind a redirect also allows you to change services without updating all URLs.
+  def url(blob, options \\ []) do
+    defaults = [
+      expires_in: ActiveStorage.service_urls_expire_in(),
+      disposition: :inline,
+      filename: ActiveStorage.Filename.wrap(blob.filename || filename(blob)),
+      content_type: content_type_for_serving(blob),
+      disposition: forced_disposition_for_serving(blob) || blob.disposition
+    ]
+
+    options = Keyword.merge(defaults, options)
+
+    srv = service(blob)
+    srv.__struct__.url(blob.key, options)
+
+    # service.url key, expires_in: expires_in, filename: ActiveStorage::Filename.wrap(filename || self.filename),
+    #  content_type: content_type_for_serving, disposition: forced_disposition_for_serving || disposition, **options
+  end
+
+  # Returns a URL that can be used to directly upload a file for this blob on the service. This URL is intended to be
+  # short-lived for security and only generated on-demand by the client-side JavaScript responsible for doing the uploading.
+  def service_url_for_direct_upload(blob, options \\ []) do
+    defaults = [
+      expires_in: ActiveStorage.service_urls_expire_in(),
+      content_type: blob.content_type,
+      content_length: blob.byte_size,
+      checksum: blob.checksum,
+      custom_metadata: custom_metadata(blob)
+    ]
+
+    options = Keyword.merge(defaults, options)
+    srv = service(blob)
+    srv.__struct__.url_for_direct_upload(blob.key, options)
+
+    # service.url_for_direct_upload key, expires_in: expires_in, content_type: content_type, content_length: byte_size, checksum: checksum, custom_metadata: custom_metadata
+  end
+
+  # Returns a Hash of headers for +service_url_for_direct_upload+ requests.
+  def service_headers_for_direct_upload(blob) do
+    options = [
+      content_type: blob.content_type,
+      content_length: blob.byte_size,
+      checksum: blob.checksum,
+      custom_metadata: custom_metadata(blob)
+    ]
+
+    srv = service(blob)
+    srv.__struct__.headers_for_direct_upload(blob.key, options)
+
+    # service.headers_for_direct_upload key, filename: filename, content_type: content_type, content_length: byte_size, checksum: checksum, custom_metadata: custom_metadata
+  end
+
+  def content_type_for_serving(blob) do
+    cond do
+      forcibly_serve_as_binary?(blob) -> ActiveStorage.binary_content_type()
+      true -> blob.content_type
+    end
+  end
+
+  def forced_disposition_for_serving(blob) do
+    cond do
+      forcibly_serve_as_binary?(blob) || !allowed_inline?(blob) -> :attachment
+      true -> nil
+    end
   end
 
   def signed_id(blob, opts \\ []) do

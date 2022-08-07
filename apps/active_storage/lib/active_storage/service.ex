@@ -30,6 +30,16 @@ defmodule ActiveStorage.Service do
       is_public = false
       service = ActiveStorage.Blob.service(blob)
 
+      defaults = [
+        filename: ActiveStorage.Blob.filename(blob).filename,
+        content_type: blob.content_type,
+        expires_in: nil,
+        content_type: blob.content_type,
+        disposition: nil
+      ]
+
+      opts = Keyword.merge(defaults, opts)
+
       if is_public do
         service.__struct__.public_url(service, blob.key, opts)
       else

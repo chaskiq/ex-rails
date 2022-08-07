@@ -90,6 +90,8 @@ defmodule ActiveStorage.Service.DiskService do
         :ok ->
           path = __MODULE__.path_for(service, key)
 
+          IO.puts("UPLOADING TO #{path}")
+
           case options[:checksum] do
             nil ->
               {:ok, p}
@@ -195,29 +197,36 @@ defmodule ActiveStorage.Service.DiskService do
 
   def url_for_direct_upload(key, options \\ []) do
     ActiveStorage.Service.instrument(:url, %{key: key}, fn ->
-      default = [expires_in: nil, content_type: nil, content_length: nil, checksum: nil]
-      _options = Keyword.merge(default, options)
+      default = [
+        expires_in: nil,
+        service_name: nil,
+        content_type: nil,
+        content_length: nil,
+        checksum: nil
+      ]
+
+      options = Keyword.merge(default, options) |> Enum.into(%{})
+
+      verified_token_with_expiration =
+        ActiveStorage.verifier().sign(
+          %{
+            key: key,
+            content_type: options.content_type,
+            content_length: options.content_length,
+            checksum: options.checksum,
+            service_name: options.service_name
+          },
+          expires_in: options.expires_in,
+          purpose: :blob_token
+        )
+
+      host = Application.get_env(:active_storage, :host)
+
+      generated_url =
+        "#{host}#{ActiveStorage.routes_prefix()}/disk/#{verified_token_with_expiration}"
+
+      # url_helpers.update_rails_disk_service_url(verified_token_with_expiration, host: current_host)
     end)
-
-    # instrument :url, key: key do |payload|
-    #  verified_token_with_expiration = ActiveStorage.verifier.generate(
-    #    {
-    #      key: key,
-    #      content_type: content_type,
-    #      content_length: content_length,
-    #      checksum: checksum,
-    #      service_name: name
-    #    },
-    #    expires_in: expires_in,
-    #    purpose: :blob_token
-    #  )
-
-    #  generated_url = url_helpers.update_rails_disk_service_url(verified_token_with_expiration, host: current_host)
-
-    #  payload[:url] = generated_url
-
-    #  generated_url
-    # end
   end
 
   def headers_for_direct_upload(_key, options \\ []) do
@@ -260,9 +269,17 @@ defmodule ActiveStorage.Service.DiskService do
   end
 
   def ensure_integrity_of(path, checksum) do
-    case :crypto.hash(:md5, path) |> Base.encode64() == checksum do
-      true -> true
-      false -> raise ActiveStorage.IntegrityError
+    result =
+      File.stream!(path, [], 2048)
+      |> Enum.reduce(:crypto.hash_init(:md5), fn line, acc ->
+        :crypto.hash_update(acc, line)
+      end)
+      |> :crypto.hash_final()
+      |> Base.encode64()
+
+    cond do
+      result == checksum -> true
+      true -> raise ActiveStorage.IntegrityError
     end
 
     # unless Digest::MD5.file(path_for(key)).base64digest == checksum
@@ -285,7 +302,6 @@ defmodule ActiveStorage.Service.DiskService do
     end
 
     #  payload[:url] = generated_url
-
     #  generated_url(key)
     # end
   end
@@ -403,8 +419,3 @@ end
 # rails_disk_service GET      /rails/active_storage/disk/:encoded_key/*filename(.:format)                                       active_storage/disk#show
 # update_rails_disk_service PUT      /rails/active_storage/disk/:encoded_token(.:format)                                               active_storage/disk#update
 # rails_direct_uploads POST     /rails/active_storage/direct_uploads(.:format)                                                    active_storage/direct_uploads#create
-
-# <ActiveStorage::Service::DiskService:0x00007fb8d69dece8
-# @name=:local,
-# @public=false,
-# @root="/Users/michelson/Documents/chaskiq/chaskiq/storage">

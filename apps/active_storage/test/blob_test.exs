@@ -17,7 +17,7 @@ defmodule ActiveStorageBlobTest do
           filename: filename,
           content_type: mime,
           metadata: nil,
-          service_name: "amazon",
+          service_name: "minio",
           identify: true
         )
 

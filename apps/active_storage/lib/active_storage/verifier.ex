@@ -60,8 +60,12 @@ defmodule ActiveStorage.Verifier do
 
   def encoded_date(expires_in) do
     case expires_in do
-      nil -> nil
-      _ -> expires_in
+      nil ->
+        nil
+
+      _ ->
+        {:ok, datetime} = DateTime.now("Etc/UTC")
+        datetime |> DateTime.add(expires_in, :second)
     end
   end
 

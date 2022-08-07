@@ -16,12 +16,13 @@ defmodule ActiveStorage.Analyzer do
       end
 
       defoverridable accept?: 1
-
       # Implement this method in concrete subclasses. It will determine if blob analysis
       # should be done in a job or performed inline. By default, analysis is enqueued in a job.
       def analyze_later? do
         true
       end
+
+      defoverridable analyze_later?: 0
 
       def new(blob) do
         %__MODULE__{blob: blob}

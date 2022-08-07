@@ -69,15 +69,17 @@ defmodule ActiveStorage.Filename do
     # filename.filename.encode(Encoding::UTF_8, invalid: :replace, undef: :replace, replace: "�").strip.tr("\u{202E}%$|:;/\t\r\n\\", "-")
     Regex.replace(
       ~r/u{202E}%$|:;\/\t\r\n\\\\/,
-      String.trim(filename.filename),
+      String.trim(filename),
       "-"
     )
   end
 
   # Returns the sanitized version of the filename.
   def to_s(filename) do
-    # .to_s
-    sanitized(filename)
+    case filename do
+      %ActiveStorage.Filename{filename: f} -> sanitized(f)
+      f -> sanitized(f)
+    end
   end
 
   # def as_json(*)
