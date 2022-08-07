@@ -640,7 +640,7 @@ defmodule ActiveStorage.Blob do
 
     options = Keyword.merge(defaults, options)
     srv = service(blob)
-    srv.__struct__.url_for_direct_upload(blob.key, options)
+    srv.__struct__.url_for_direct_upload(srv, blob.key, options)
 
     # service.url_for_direct_upload key, expires_in: expires_in, content_type: content_type, content_length: byte_size, checksum: checksum, custom_metadata: custom_metadata
   end
@@ -651,6 +651,7 @@ defmodule ActiveStorage.Blob do
       content_type: blob.content_type,
       content_length: blob.byte_size,
       checksum: blob.checksum,
+      filename: blob.filename,
       custom_metadata: custom_metadata(blob)
     ]
 

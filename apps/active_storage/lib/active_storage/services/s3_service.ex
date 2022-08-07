@@ -93,12 +93,15 @@ defmodule ActiveStorage.Service.S3Service do
     #  response_content_disposition: content_disposition_with(type: disposition, filename: filename),
     #  response_content_type: content_type
 
+    IO.inspect(opts)
+
     case ExAws.Config.new(:s3, service.client)
          |> ExAws.S3.presigned_url(:get, bucket, key, opts) do
       {:ok, url} ->
         url
 
-      _ ->
+      err ->
+        IO.inspect(err)
         raise "can't create a presigned url for #{key}"
     end
   end
@@ -253,7 +256,8 @@ defmodule ActiveStorage.Service.S3Service do
     # TODO: refactor this to accept local service too
 
     {:ok, url} =
-      ExAws.Config.new(:s3, service.client) |> ExAws.S3.presigned_url(:put, bucket, blob.id)
+      ExAws.Config.new(:s3, service.client)
+      |> ExAws.S3.presigned_url(:put, bucket, blob.id)
 
     headers = Jason.encode!(upload_headers(content_type, blob))
 
@@ -279,6 +283,90 @@ defmodule ActiveStorage.Service.S3Service do
     # payload[:exist] = answer
     # answer
     # end
+  end
+
+  def url_for_direct_upload(service, key, options \\ []) do
+    defaults = [
+      expires_in: nil,
+      content_type: nil,
+      content_length: nil,
+      checksum: nil,
+      custom_metadata: %{}
+    ]
+
+    options = Keyword.merge(defaults, options)
+
+    upload_options = [
+      expires_in: Keyword.get(options, :expires_in),
+      content_type: Keyword.get(options, :content_type),
+      content_length: Keyword.get(options, :content_length),
+      content_md5: Keyword.get(options, :checksum),
+      metadata: Keyword.get(options, :custom_metadata),
+      whitelist_headers: ["content-length"]
+      # **upload_options
+    ]
+
+    # instrument :url, key: key do |payload|
+
+    generated_url =
+      ExAws.Config.new(:s3, service.client)
+      |> ExAws.S3.presigned_url(:put, service.bucket, key, upload_options)
+
+    case generated_url do
+      {:ok, url} -> url
+      _ -> nil
+    end
+
+    # generated_url = object_for(key).presigned_url :put,
+    #  expires_in: options.expires_in,
+    #  content_type: options.content_type,
+    #  content_length: options.content_length,
+    #  content_md5: options.checksum,
+    #  metadata: options.custom_metadata,
+    #  whitelist_headers: ["content-length"],
+    # **upload_options
+
+    # payload[:url] = generated_url
+
+    # generated_url
+    # end
+  end
+
+  def headers_for_direct_upload(key, options \\ []) do
+    defaults = [
+      content_type: nil,
+      checksum: nil,
+      filename: nil,
+      disposition: nil,
+      custom_metadata: %{}
+    ]
+
+    options = Keyword.merge(defaults, options)
+
+    content_disposition =
+      ActiveStorage.Service.content_disposition_with(
+        disposition: options |> Keyword.get(:disposition),
+        filename: options |> Keyword.get(:filename) |> ActiveStorage.Filename.to_s()
+      )
+
+    # content_disposition = content_disposition_with(type: disposition, filename: filename) if filename
+
+    %{
+      "Content-Type" => Keyword.get(options, :content_type),
+      "Content-MD5" => Keyword.get(options, :checksum),
+      "Content-Disposition" => content_disposition
+    }
+    |> Jason.encode!()
+
+    # |> Map.merge(custom_metadata_headers(metadata))
+  end
+
+  def custom_metadata_headers(metadata) do
+    Enum.reduce(metadata, %{}, fn {key, value}, acc ->
+      Map.put(acc, "x-amz-meta-#{key}", value)
+    end)
+
+    # metadata.transform_keys { |key| "x-amz-meta-#{key}" }
   end
 
   def object_for(service, key, options \\ []) do

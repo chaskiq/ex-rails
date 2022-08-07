@@ -195,7 +195,7 @@ defmodule ActiveStorage.Service.DiskService do
     end)
   end
 
-  def url_for_direct_upload(key, options \\ []) do
+  def url_for_direct_upload(service, key, options \\ []) do
     ActiveStorage.Service.instrument(:url, %{key: key}, fn ->
       default = [
         expires_in: nil,
@@ -232,7 +232,7 @@ defmodule ActiveStorage.Service.DiskService do
   def headers_for_direct_upload(_key, options \\ []) do
     default = [content_type: nil]
     options = Keyword.merge(default, options)
-    %{"Content-Type" => options[:content_type]}
+    %{"Content-Type" => options[:content_type]} |> Jason.encode!()
   end
 
   def stream(service, key, block) do

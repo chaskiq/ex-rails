@@ -32,10 +32,9 @@ defmodule ActiveStorage.Service do
 
       defaults = [
         filename: ActiveStorage.Blob.filename(blob).filename,
+        expires_in: 3600,
         content_type: blob.content_type,
-        expires_in: nil,
-        content_type: blob.content_type,
-        disposition: nil
+        disposition: :inline
       ]
 
       opts = Keyword.merge(defaults, opts)
