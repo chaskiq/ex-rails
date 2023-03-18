@@ -20,8 +20,10 @@ defmodule ActiveStorage.Variation do
       %ActiveStorage.Variation{} ->
         variator
 
+
       any ->
         cond do
+
           any |> is_binary() ->
             transformations = any |> __MODULE__.decode()
 

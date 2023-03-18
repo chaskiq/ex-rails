@@ -257,7 +257,7 @@ defmodule ActiveStorage.Service.S3Service do
 
     {:ok, url} =
       ExAws.Config.new(:s3, service.client)
-      |> ExAws.S3.presigned_url(:put, bucket, blob.id)
+      |> ExAws.S3.presigned_url(:put, bucket, "#{blob.id}")
 
     headers = Jason.encode!(upload_headers(content_type, blob))
 
